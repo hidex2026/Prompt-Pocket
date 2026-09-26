@@ -598,6 +598,13 @@ function ppCardInsertion(st,x,y){
   const folder=document.elementFromPoint(x,y)?.closest?.('tr[data-folder]');
   if(folder&&!st.row.classList.contains('folderRow')){
     const r=folder.getBoundingClientRect();
+    const draggedCard=items.find(item=>item.id===st.row.dataset.row);
+    // A card already inside this folder cannot be "put into" the same folder.
+    // Dragging it back over its parent always offers the line above the folder,
+    // which moves the card out to the root list before that folder.
+    if(draggedCard?.folderId===folder.dataset.folder){
+      return {kind:'line',y:r.top,beforeKey:'folder:'+folder.dataset.folder};
+    }
     const ghostTop=y-st.offsetY;
     const ghostBottom=ghostTop+st.ghostHeight;
     const overlap=Math.max(0,Math.min(ghostBottom,r.bottom)-Math.max(ghostTop,r.top));
