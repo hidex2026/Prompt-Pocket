@@ -1134,6 +1134,12 @@ main{padding-top:6px}
   user-select:none!important;
   -webkit-user-select:none!important;
 }
+.folderInteractArea,.folderInteractArea *{
+  -webkit-tap-highlight-color:transparent!important;
+  -webkit-touch-callout:none!important;
+  user-select:none!important;
+  -webkit-user-select:none!important;
+}
 @media(max-width:560px){
   .unifiedTable .folderNameBtn{font-size:inherit!important}
   .unifiedTable .folderNameBtn span:first-child{font-size:19px!important}
