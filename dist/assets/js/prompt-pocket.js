@@ -589,7 +589,10 @@ function ppCardInsertion(st,x,y){
   if(folder&&!st.row.classList.contains('folderRow')){
     const r=folder.getBoundingClientRect();
     const edge=Math.min(26,Math.max(16,r.height*.24));
-    if(y>r.top+edge&&y<r.bottom-edge)return {kind:'folder',folderId:folder.dataset.folder};
+    // The ghost card's TOP edge decides the folder zone, not the finger/cursor.
+    // Moving upward: line below folder → folder body → line above folder.
+    const ghostTop=y-st.offsetY;
+    if(ghostTop>r.top+edge&&ghostTop<r.bottom-edge)return {kind:'folder',folderId:folder.dataset.folder};
   }
   return {kind:'line',...(ppRootInsertion(st.row,y-st.offsetY)||{})};
 }
