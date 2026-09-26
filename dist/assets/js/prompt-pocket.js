@@ -573,11 +573,25 @@ function ppGroupBottom(row){
   }
   return bottom;
 }
+function ppSourceBottom(row){
+  if(row.classList.contains('folderRow')||!row.classList.contains('folderChildRow'))return ppGroupBottom(row);
+  let bottom=row.getBoundingClientRect().bottom;
+  const detail=row.nextElementSibling;
+  if(detail?.classList.contains('rowDetail')&&!detail.classList.contains('hidden'))bottom=detail.getBoundingClientRect().bottom;
+  return bottom;
+}
 function ppRootInsertion(sourceRow,ghostTop){
   const rows=ppRootRows(sourceRow);
-  // Keep the source's own top boundary visible too. Dropping there is a no-op.
-  const lines=[{y:sourceRow.getBoundingClientRect().top,cancel:true}];
-  if(!rows.length)return lines[0];
+  // Both boundaries around the original slot remain visible. Dropping on
+  // either one is a deliberate no-op because the order would not change.
+  const lines=[
+    {y:sourceRow.getBoundingClientRect().top,cancel:true},
+    {y:ppSourceBottom(sourceRow),cancel:true}
+  ];
+  if(!rows.length){
+    lines.sort((a,b)=>Math.abs(a.y-ghostTop)-Math.abs(b.y-ghostTop));
+    return lines[0];
+  }
   rows.forEach(row=>{
     lines.push({y:row.getBoundingClientRect().top,beforeKey:ppRootKey(row)});
   });
