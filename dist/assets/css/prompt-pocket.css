@@ -1132,7 +1132,8 @@ main{padding-top:6px}
 }
 .folderActions .folderMenuBtn{min-width:42px}
 .unifiedTable .col-actions,.unifiedTable .opCol{width:136px}
-.unifiedDragArea,.folderInteractArea{cursor:pointer;touch-action:pan-y}
+.unifiedDragArea{cursor:pointer;touch-action:pan-y}
+.folderInteractArea{cursor:pointer;touch-action:none}
 .unifiedDragArea .rowName{cursor:inherit;text-decoration:none}
 .unifiedDragArea .rowName:hover{text-decoration:none}
 .unifiedDragArea,.unifiedDragArea *{
@@ -1146,6 +1147,13 @@ main{padding-top:6px}
   -webkit-touch-callout:none!important;
   user-select:none!important;
   -webkit-user-select:none!important;
+}
+/* UI labels are controls, not selectable text on touch devices. */
+button,[role="button"]{
+  -webkit-touch-callout:none!important;
+  -webkit-user-select:none!important;
+  user-select:none!important;
+  -webkit-tap-highlight-color:transparent!important;
 }
 @media(max-width:560px){
   .unifiedTable .folderNameBtn{font-size:inherit!important}

@@ -302,7 +302,7 @@ function saveUnifiedManualOrder(){
 }
 function bindFolderReorder(){
   document.querySelectorAll('.folderRow').forEach(row=>{
-    const handles=[...row.querySelectorAll('.folderDragSpace,.folderMenuBtn')];
+    const handles=[...row.querySelectorAll('.folderInteractArea,.folderMenuBtn')];
     handles.forEach(handle=>{
       let timer=null,drag=false,sx=0,sy=0,suppressClick=false,ghost=null,ghostOffsetY=0,lastClick=0,lastClickX=0,lastClickY=0;
       const clear=()=>{if(timer){clearTimeout(timer);timer=null}};
@@ -369,20 +369,6 @@ function bindFolderReorder(){
         }else{lastClick=now;lastClickX=e.clientX;lastClickY=e.clientY}
       },true);
     });
-    const area=row.querySelector('.folderInteractArea');
-    if(area){
-      let lastClick=0,lastClickX=0,lastClickY=0;
-      area.addEventListener('click',e=>{
-        if(e.target.closest('.folderDragSpace,.folderMenuBtn'))return;
-        const now=Date.now();
-        if(now-lastClick<650&&Math.hypot(e.clientX-lastClickX,e.clientY-lastClickY)<32){
-          lastClick=0;e.preventDefault();e.stopImmediatePropagation();
-          const id=row.dataset.folder;
-          openFolders.has(id)?openFolders.delete(id):openFolders.add(id);
-          render();
-        }else{lastClick=now;lastClickX=e.clientX;lastClickY=e.clientY}
-      },true);
-    }
   });
 }
 function bindFolderActions(){
