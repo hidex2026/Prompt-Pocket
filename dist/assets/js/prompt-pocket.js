@@ -345,7 +345,14 @@ function bindFolderReorder(){
       if(insertion){
         const body=row.parentElement;
         const before=insertion.beforeKey?ppRootRows(row).find(r=>ppRootKey(r)===insertion.beforeKey):null;
-        body.insertBefore(row,before||null);
+        // Move an open folder together with its visible children/detail rows.
+        // Moving only the header would leave its contents behind.
+        const group=[row];
+        let next=row.nextElementSibling;
+        while(next&&!next.matches('tr.folderRow,tr.unifiedRow:not(.folderChildRow)')){
+          group.push(next);next=next.nextElementSibling;
+        }
+        group.forEach(node=>body.insertBefore(node,before||null));
         saveUnifiedManualOrder();save();render();toast('フォルダを移動しました');
       }
       drag=false;
@@ -559,7 +566,9 @@ function ppGroupBottom(row){
   let bottom=row.getBoundingClientRect().bottom;
   let next=row.nextElementSibling;
   while(next&&!next.matches('tr.folderRow,tr.unifiedRow:not(.folderChildRow)')){
-    bottom=next.getBoundingClientRect().bottom;
+    // Hidden detail rows have a zero-sized rectangle; they must not erase
+    // the real bottom boundary of the last visible card.
+    if(!next.classList.contains('hidden'))bottom=next.getBoundingClientRect().bottom;
     next=next.nextElementSibling;
   }
   return bottom;
