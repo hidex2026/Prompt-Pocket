@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#ffffff">
-  <title>Prompt Pocket PP_v1.9_TEST12</title>
+  <title>Prompt Pocket PP_v1.9_TEST13</title>
   <style>
 *{box-sizing:border-box} :root{font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;color:#171717;background:#f6f5f2}
 body{margin:0;padding-bottom:84px}.topbar{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:rgba(246,245,242,.92);backdrop-filter:blur(12px);border-bottom:1px solid #ddd}
@@ -1158,12 +1158,40 @@ document.addEventListener('contextmenu',(e)=>{
 .folderNameBtn{touch-action:none}
 </style>
 
+<style>
+/* TEST13: folders use the same readable name area as cards. */
+.unifiedTable .folderRow .nameCell{display:flex;align-items:center;min-width:0;white-space:normal}
+.unifiedTable .folderNameBtn{
+  display:flex!important;align-items:center;gap:6px;flex:1 1 auto;min-width:0;
+  padding:0!important;font:inherit!important;font-weight:650!important;
+  line-height:1.35!important;text-align:left;overflow:hidden;text-decoration:none!important;
+}
+.unifiedTable .folderNameBtn span:first-child{flex:0 0 auto;font-size:20px!important}
+.unifiedTable .folderNameBtn span:nth-child(2){
+  display:-webkit-box;min-width:0;overflow:hidden;-webkit-box-orient:vertical;
+  -webkit-line-clamp:2;text-overflow:ellipsis;overflow-wrap:anywhere;
+}
+.folderRow .folderDragSpace{flex:1 1 auto;min-width:12px;height:32px}
+.folderActions{justify-content:center;align-items:center;gap:6px}
+.folderActions .folderCountInline{
+  margin:0!important;padding:3px 6px!important;font-size:12px!important;
+  line-height:1.2!important;white-space:nowrap;flex:0 0 auto;
+}
+.folderActions .folderMenuBtn{min-width:42px}
+@media(max-width:560px){
+  .unifiedTable .folderNameBtn{font-size:inherit!important}
+  .unifiedTable .folderNameBtn span:first-child{font-size:19px!important}
+  .folderActions{gap:4px}
+  .folderActions .folderCountInline{font-size:11px!important;padding:3px 5px!important}
+}
+</style>
+
 </head>
 <body>
 <header class="topbar">
   <div>
     <div class="eyebrow">AI IMAGE & VIDEO PROMPT LIBRARY</div>
-    <div class="titleLine"><h1>Prompt Pocket</h1><span class="headerVersion">PP_v1.9_TEST12</span></div>
+    <div class="titleLine"><h1>Prompt Pocket</h1><span class="headerVersion">PP_v1.9_TEST13</span></div>
   </div>
   <div class="topActions">
     <button id="newBtn" class="primary">＋ 新規登録</button>
@@ -1711,7 +1739,7 @@ function render(){
 
   const folderHtml=f=>{
     const open=openFolders.has(f.id), kids=items.filter(x=>x.folderId===f.id&&matches(x));
-    let s=`<tr class="folderRow" data-folder="${f.id}" data-sort-key="folder:${f.id}"><td><span class="tableIcon">☆</span></td><td class="nameCell"><button class="folderNameBtn" data-folder-toggle="${f.id}"><span>${open?'📂':'📁'}</span><span>${esc(f.name)}</span></button><span class="folderCountInline">${folderCount(f.id)}枚</span><span class="folderDragSpace" aria-label="フォルダを移動"></span></td><td><div class="tableActions"><span class="detailMenuWrap"><button class="folderMenuBtn" data-folder-menu-toggle="${f.id}" aria-label="フォルダのメニューを開く">⋯</button><div class="detailPopupMenu hidden"><button data-folder-rename="${f.id}">✏️ 名前を変更</button><button class="dangerMenu" data-folder-delete="${f.id}">🗑️ フォルダを削除</button></div></span></div></td></tr>`;
+    let s=`<tr class="folderRow" data-folder="${f.id}" data-sort-key="folder:${f.id}"><td><span class="tableIcon">☆</span></td><td class="nameCell"><button class="folderNameBtn" data-folder-toggle="${f.id}"><span>${open?'📂':'📁'}</span><span>${esc(f.name)}</span></button><span class="folderDragSpace" aria-label="フォルダを移動"></span></td><td><div class="tableActions folderActions"><span class="folderCountInline">${folderCount(f.id)}枚</span><span class="detailMenuWrap"><button class="folderMenuBtn" data-folder-menu-toggle="${f.id}" aria-label="フォルダのメニューを開く">⋯</button><div class="detailPopupMenu hidden"><button data-folder-rename="${f.id}">✏️ 名前を変更</button><button class="dangerMenu" data-folder-delete="${f.id}">🗑️ フォルダを削除</button></div></span></div></td></tr>`;
     if(open){
       if(kids.length)s+=kids.map(x=>cardRows(x,true)).join('');
       else s+=`<tr class="folderEmptyRow"><td colspan="3">このフォルダは空です</td></tr>`;
