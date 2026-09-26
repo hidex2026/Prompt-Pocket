@@ -1104,7 +1104,7 @@ main{padding-top:6px}
 .folderBranch{width:12px!important;margin-right:1px!important;font-size:14px!important;color:#c8aa54!important}
 .folderRow.folderDragging{opacity:.45}
 .folderRow.folderMoveTarget>td{box-shadow:inset 0 -3px 0 #c99a13!important}
-.folderNameBtn{touch-action:none}
+.folderNameBtn{touch-action:pan-y}
 
 /* TEST13: folders use the same readable name area as cards. */
 .unifiedTable .folderRow .nameCell{display:flex;align-items:center;min-width:0;white-space:normal}
@@ -1125,6 +1125,8 @@ main{padding-top:6px}
   line-height:1.2!important;white-space:nowrap;flex:0 0 auto;
 }
 .folderActions .folderMenuBtn{min-width:42px}
+.unifiedDragArea,.folderInteractArea{cursor:pointer;touch-action:pan-y}
+.unifiedDragArea .rowName{cursor:inherit}
 @media(max-width:560px){
   .unifiedTable .folderNameBtn{font-size:inherit!important}
   .unifiedTable .folderNameBtn span:first-child{font-size:19px!important}

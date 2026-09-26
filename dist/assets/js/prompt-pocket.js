@@ -214,11 +214,11 @@ function render(){
   $('empty').classList.toggle('hidden',items.length>0||folders.length>0);
   $('cards').className='detailExplorer unifiedExplorer';
 
-  const cardRows=(x,child=false)=>`<tr class="unifiedRow ${child?'folderChildRow':''}" data-row="${x.id}"${child?' data-folder-child="'+esc(x.folderId)+'"':''}><td><button class="tableIcon" data-fav="${x.id}" title="お気に入り">${x.fav?'★':'☆'}</button></td><td class="nameCell unifiedDragArea" title="${esc(x.name)}">${child?'<span class="folderBranch">└</span>':''}${x.image?`<img class="tinyThumb" src="${x.image}" alt="" loading="lazy" decoding="async">`:``}${x.pinned?'<span class="miniPin">📌</span>':''}<button class="rowName" data-toggle-row="${x.id}">${esc(x.name)}</button><span class="dragSpace" aria-hidden="true"></span></td><td><div class="tableActions"><button data-copy="${x.id}">📋 コピー</button><span class="detailMenuWrap"><button data-menu-toggle="${x.id}" aria-label="メニューを開く">⋯</button><div class="detailPopupMenu hidden" id="detailMenu-${x.id}"><button data-edit="${x.id}">✏️ 編集</button><button data-copy="${x.id}">📋 コピー</button><button data-move-folder="${x.id}">📁 フォルダへ移動</button>${child?`<button data-folder-remove="${x.id}">📤 フォルダから出す</button>`:''}<button data-pin="${x.id}">${x.pinned?'📌 ピン留めを解除':'📌 ピン留めする'}</button><button class="dangerMenu" data-delete="${x.id}">🗑️ 削除</button></div></span></div></td></tr><tr class="rowDetail hidden" id="rowDetail-${x.id}"><td colspan="3"><div class="unifiedCardDetail">${x.image?`<div class="unifiedThumb"><img src="${x.image}" alt="" loading="lazy" decoding="async"></div>`:'<div class="unifiedThumb unifiedNoImage"><span>サムネイル</span></div>'}<div class="unifiedCardBody"><div class="meta">${x.author?`作者：${esc(x.author)}`:'自作 / 作者未登録'}</div><div class="unifiedPrompt">${esc(x.prompt)}</div><div class="chips">${(x.tags||[]).map(t=>`<span class="chip">${esc(t)}</span>`).join('')}</div><div class="cardactions">${actionButtons(x)}</div></div></div></td></tr>`;
+  const cardRows=(x,child=false)=>`<tr class="unifiedRow ${child?'folderChildRow':''}" data-row="${x.id}"${child?' data-folder-child="'+esc(x.folderId)+'"':''}><td><button class="tableIcon" data-fav="${x.id}" title="お気に入り">${x.fav?'★':'☆'}</button></td><td class="nameCell unifiedDragArea" title="${esc(x.name)}">${child?'<span class="folderBranch">└</span>':''}${x.image?`<img class="tinyThumb" src="${x.image}" alt="" loading="lazy" decoding="async">`:``}${x.pinned?'<span class="miniPin">📌</span>':''}<span class="rowName">${esc(x.name)}</span><span class="dragSpace" aria-hidden="true"></span></td><td><div class="tableActions"><button data-copy="${x.id}">📋 コピー</button><span class="detailMenuWrap"><button data-menu-toggle="${x.id}" aria-label="メニューを開く">⋯</button><div class="detailPopupMenu hidden" id="detailMenu-${x.id}"><button data-edit="${x.id}">✏️ 編集</button><button data-copy="${x.id}">📋 コピー</button><button data-move-folder="${x.id}">📁 フォルダへ移動</button>${child?`<button data-folder-remove="${x.id}">📤 フォルダから出す</button>`:''}<button data-pin="${x.id}">${x.pinned?'📌 ピン留めを解除':'📌 ピン留めする'}</button><button class="dangerMenu" data-delete="${x.id}">🗑️ 削除</button></div></span></div></td></tr><tr class="rowDetail hidden" id="rowDetail-${x.id}"><td colspan="3"><div class="unifiedCardDetail">${x.image?`<div class="unifiedThumb"><img src="${x.image}" alt="" loading="lazy" decoding="async"></div>`:'<div class="unifiedThumb unifiedNoImage"><span>サムネイル</span></div>'}<div class="unifiedCardBody"><div class="meta">${x.author?`作者：${esc(x.author)}`:'自作 / 作者未登録'}</div><div class="unifiedPrompt">${esc(x.prompt)}</div><div class="chips">${(x.tags||[]).map(t=>`<span class="chip">${esc(t)}</span>`).join('')}</div><div class="cardactions">${actionButtons(x)}</div></div></div></td></tr>`;
 
   const folderHtml=f=>{
     const open=openFolders.has(f.id), kids=items.filter(x=>x.folderId===f.id&&matches(x));
-    let s=`<tr class="folderRow" data-folder="${f.id}" data-sort-key="folder:${f.id}"><td><span class="tableIcon">☆</span></td><td class="nameCell"><button class="folderNameBtn" data-folder-toggle="${f.id}"><span>${open?'📂':'📁'}</span><span>${esc(f.name)}</span></button><span class="folderDragSpace" aria-label="フォルダを移動"></span></td><td><div class="tableActions folderActions"><span class="folderCountInline">${folderCount(f.id)}枚</span><span class="detailMenuWrap"><button class="folderMenuBtn" data-folder-menu-toggle="${f.id}" aria-label="フォルダのメニューを開く">⋯</button><div class="detailPopupMenu hidden"><button data-folder-rename="${f.id}">✏️ 名前を変更</button><button class="dangerMenu" data-folder-delete="${f.id}">🗑️ フォルダを削除</button></div></span></div></td></tr>`;
+    let s=`<tr class="folderRow" data-folder="${f.id}" data-sort-key="folder:${f.id}"><td><span class="tableIcon">☆</span></td><td class="nameCell folderInteractArea" data-folder-toggle="${f.id}"><span class="folderNameBtn"><span>${open?'📂':'📁'}</span><span>${esc(f.name)}</span></span><span class="folderDragSpace" aria-label="フォルダを移動"></span></td><td><div class="tableActions folderActions"><span class="folderCountInline">${folderCount(f.id)}枚</span><span class="detailMenuWrap"><button class="folderMenuBtn" data-folder-menu-toggle="${f.id}" aria-label="フォルダのメニューを開く">⋯</button><div class="detailPopupMenu hidden"><button data-folder-rename="${f.id}">✏️ 名前を変更</button><button class="dangerMenu" data-folder-delete="${f.id}">🗑️ フォルダを削除</button></div></span></div></td></tr>`;
     if(open){
       if(kids.length)s+=kids.map(x=>cardRows(x,true)).join('');
       else s+=`<tr class="folderEmptyRow"><td colspan="3">このフォルダは空です</td></tr>`;
@@ -302,10 +302,15 @@ function saveUnifiedManualOrder(){
 }
 function bindFolderReorder(){
   document.querySelectorAll('.folderRow').forEach(row=>{
-    const handles=[...row.querySelectorAll('.folderNameBtn,.folderDragSpace,.folderMenuBtn')];
+    const handles=[...row.querySelectorAll('.folderInteractArea,.folderMenuBtn')];
     handles.forEach(handle=>{
-      let timer=null,drag=false,sx=0,sy=0,suppressClick=false,ghost=null,ghostOffsetY=0;
+      let timer=null,drag=false,sx=0,sy=0,suppressClick=false,ghost=null,ghostOffsetY=0,lastTap=0,lastTapX=0,lastTapY=0;
       const clear=()=>{if(timer){clearTimeout(timer);timer=null}};
+      const toggleFolder=()=>{
+        const id=row.dataset.folder;
+        openFolders.has(id)?openFolders.delete(id):openFolders.add(id);
+        render();
+      };
       handle.addEventListener('pointerdown',e=>{
       if(e.pointerType==='mouse'&&e.button!==0)return;
       sx=e.clientX;sy=e.clientY;drag=false;suppressClick=false;
@@ -319,7 +324,7 @@ function bindFolderReorder(){
         ghostOffsetY=Math.min(Math.max(sy-r.top,8),r.height-8);
         ghost.style.transform=`translate3d(${r.left}px,${sy-ghostOffsetY}px,0) scale(.985)`;
         navigator.vibrate?.(20);try{handle.setPointerCapture(e.pointerId)}catch{}
-      },e.pointerType==='mouse'?250:650);
+      },800);
       });
       handle.addEventListener('pointermove',e=>{
       if(!drag){if(timer&&Math.hypot(e.clientX-sx,e.clientY-sy)>10)clear();return}
@@ -333,7 +338,14 @@ function bindFolderReorder(){
       });
       const finish=e=>{
       clear();
-      if(!drag)return;
+      if(!drag){
+        if(handle.classList.contains('folderInteractArea')&&e.pointerType!=='mouse'){
+          const now=Date.now();
+          if(now-lastTap<350&&Math.hypot(e.clientX-lastTapX,e.clientY-lastTapY)<28){lastTap=0;toggleFolder()}
+          else{lastTap=now;lastTapX=e.clientX;lastTapY=e.clientY}
+        }
+        return;
+      }
       e.preventDefault();
       const hit=document.elementFromPoint(e.clientX,e.clientY)?.closest('tr[data-folder],tr.unifiedRow');
       row.classList.remove('folderDragging');
@@ -355,17 +367,16 @@ function bindFolderReorder(){
       };
       handle.addEventListener('pointerup',finish);
       handle.addEventListener('pointercancel',()=>{clear();drag=false;row.classList.remove('folderDragging');ghost?.remove();ghost=null});
+      handle.addEventListener('dblclick',e=>{
+        if(!handle.classList.contains('folderInteractArea')||suppressClick)return;
+        e.preventDefault();toggleFolder();
+      });
       handle.addEventListener('click',e=>{if(suppressClick){e.preventDefault();e.stopImmediatePropagation()}},true);
     });
   });
 }
 function bindFolderActions(){
   bindFolderReorder();
-  document.querySelectorAll('[data-folder-toggle]').forEach(b=>b.onclick=()=>{
-    const id=b.dataset.folderToggle;
-    openFolders.has(id)?openFolders.delete(id):openFolders.add(id);
-    render();
-  });
   document.querySelectorAll('[data-folder-remove]').forEach(b=>b.onclick=()=>{
     const x=items.find(i=>i.id===b.dataset.folderRemove);if(!x)return;
     delete x.folderId;x.updated=Date.now();save();render();toast('フォルダから出しました');
@@ -688,40 +699,49 @@ function ppDrop(e){
   ppCommit(st,candidate);
 }
 
+function toggleCardDetail(row){
+  $('rowDetail-'+row.dataset.row)?.classList.toggle('hidden');
+}
+function bindCardPrimaryInteractions(row,area){
+  let lastTap=0,lastTapX=0,lastTapY=0;
+  area.addEventListener('pointerdown',e=>{
+    if(e.pointerType==='mouse'&&e.button!==0)return;
+    ppBegin(row,e.clientX,e.clientY,area);
+  });
+  area.addEventListener('pointermove',e=>{
+    if(ppDnd?.row===row&&!ppDnd.active&&Math.hypot(e.clientX-ppDnd.startX,e.clientY-ppDnd.startY)>10)ppFinishCancel();
+  });
+  area.addEventListener('pointercancel',()=>{if(ppDnd?.row===row&&!ppDnd.active)ppFinishCancel()});
+  area.addEventListener('dblclick',e=>{
+    if(e.button!==0)return;
+    e.preventDefault();
+    if(ppDnd?.row===row&&!ppDnd.active)ppFinishCancel();
+    toggleCardDetail(row);
+  });
+  area.addEventListener('pointerup',e=>{
+    if(ppDnd?.row!==row||ppDnd.active)return;
+    ppFinishCancel();
+    if(e.pointerType==='mouse')return;
+    const now=Date.now();
+    if(now-lastTap<350&&Math.hypot(e.clientX-lastTapX,e.clientY-lastTapY)<28){lastTap=0;toggleCardDetail(row)}
+    else{lastTap=now;lastTapX=e.clientX;lastTapY=e.clientY}
+  });
+}
 function bindPocketDnd(){
   ppRows().forEach(row=>{
-    const space=row.querySelector('.dragSpace');
-    if(!space)return;
+    const area=row.querySelector('.unifiedDragArea');
+    if(area)bindCardPrimaryInteractions(row,area);
     const menu=row.querySelector('[data-menu-toggle]');
-
-    // Mobile: long-press the blank area for 0.8s, then drag.
-    space.addEventListener('touchstart',e=>{
-      const p=ppPoint(e);ppBegin(row,p.x,p.y);
-    },{passive:true,capture:true});
-
-    // PC: the same blank area starts dragging immediately.
-    space.addEventListener('pointerdown',e=>{
-      if(e.pointerType==='touch'||e.button!==0)return;
-      e.preventDefault();
-      ppBegin(row,e.clientX,e.clientY);
-      const st=ppDnd;
-      if(st){
-        clearTimeout(st.timer);
-        st.timer=null;
-        st.pcMode=true;
-        ppStart(st);
-      }
-    });
-
-    // The ellipsis keeps its normal tap menu; holding it starts D&D instead.
+    // The ellipsis keeps its normal tap menu; holding it for 0.8 seconds starts D&D.
     if(menu){
-      menu.addEventListener('touchstart',e=>{
-        const p=ppPoint(e);ppBegin(row,p.x,p.y,menu);
-      },{passive:true,capture:true});
       menu.addEventListener('pointerdown',e=>{
-        if(e.pointerType==='touch'||e.button!==0)return;
+        if(e.pointerType==='mouse'&&e.button!==0)return;
         ppBegin(row,e.clientX,e.clientY,menu);
       });
+      menu.addEventListener('pointermove',e=>{
+        if(ppDnd?.row===row&&!ppDnd.active&&Math.hypot(e.clientX-ppDnd.startX,e.clientY-ppDnd.startY)>10)ppFinishCancel();
+      });
+      menu.addEventListener('pointercancel',()=>{if(ppDnd?.row===row&&!ppDnd.active)ppFinishCancel()});
       menu.addEventListener('click',e=>{
         if(menu.dataset.dndSuppress!=='1')return;
         delete menu.dataset.dndSuppress;e.preventDefault();e.stopImmediatePropagation();
@@ -809,9 +829,9 @@ document.addEventListener('pointerup',e=>{
   }else ppFinishCancel();
 });
 document.addEventListener('pointercancel',e=>{if(e.pointerType!=='touch')ppFinishCancel()});
-document.addEventListener('selectstart',e=>{if(e.target.closest?.('.dragSpace, .rowName'))e.preventDefault()},true);
-document.addEventListener('contextmenu',e=>{if(e.target.closest?.('.dragSpace, .rowName'))e.preventDefault()},true);
-document.addEventListener('dragstart',e=>{if(e.target.closest?.('.dragSpace, .rowName'))e.preventDefault()},true);
+document.addEventListener('selectstart',e=>{if(e.target.closest?.('.unifiedDragArea, .folderInteractArea, [data-menu-toggle], .folderMenuBtn'))e.preventDefault()},true);
+document.addEventListener('contextmenu',e=>{if(e.target.closest?.('.unifiedDragArea, .folderInteractArea, [data-menu-toggle], .folderMenuBtn'))e.preventDefault()},true);
+document.addEventListener('dragstart',e=>{if(e.target.closest?.('.unifiedDragArea, .folderInteractArea, [data-menu-toggle], .folderMenuBtn'))e.preventDefault()},true);
 
 document.addEventListener('click',e=>{if(!e.target.closest('.detailMenuWrap'))document.querySelectorAll('.detailPopupMenu').forEach(m=>m.classList.add('hidden'))});
 function openEditor(x=null){$('form').reset();selectedTags=new Set(x?.tags||[]);activeTagForManage='';imageData=x?.image||'';$('editId').value=x?.id||'';$('dialogTitle').textContent=x?'プロンプトを編集':'プロンプトを登録';['name','prompt','author','xhandle','source','memo'].forEach(k=>$(k).value=x?.[k]||'');$('deleteBtn').classList.toggle('hidden',!x);updatePreview();renderTagChoices();document.body.classList.add('editor-open');$('editor').showModal();}
