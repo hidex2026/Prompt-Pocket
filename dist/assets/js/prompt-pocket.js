@@ -630,7 +630,14 @@ function ppCommitPcBelow(st,targetRow){
 
   snapshot('並べ替え');
   ppSaveOrder(order);
-  prefs.manualOrder=order;
+  // Keep folder keys in the manual order.  A card move must never send all
+  // folders to the fallback (bottom) position during the next render.
+  const mixedOrder=[...document.querySelectorAll('.detailTable tbody > tr.folderRow, .detailTable tbody > tr.unifiedRow:not(.folderChildRow)')]
+    .map(row=>row.dataset.folder?'folder:'+row.dataset.folder:row.dataset.row).filter(Boolean);
+  const mixedWithoutDrag=mixedOrder.filter(key=>key!==dragId);
+  const mixedTarget=mixedWithoutDrag.indexOf(targetId);
+  if(mixedTarget>=0)mixedWithoutDrag.splice(mixedTarget+1,0,dragId);
+  prefs.manualOrder=mixedWithoutDrag;
   prefs.sort='manual';
   savePrefs();
   $('sort').value='manual';
