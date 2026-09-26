@@ -469,14 +469,14 @@ function ppFinishCancel(){
   ppDnd=null;
 }
 
-function ppBegin(row,x,y,source=row){
+function ppBegin(row,x,y,source=row,pcMode=false){
   ppFinishCancel();
   const r=row.getBoundingClientRect();
   ppDnd={
     row,active:false,lastX:x,lastY:y,startX:x,startY:y,
     sourceTop:r.top,sourceBottom:r.bottom,
     offsetY:0,timer:null,ghost:null,ghostHeight:r.height,
-    candidate:null,pcMode:false,pcTarget:null,source,scrollDir:0,scrollFrame:null
+    candidate:null,pcMode,pcTarget:null,source,scrollDir:0,scrollFrame:null
   };
   const st=ppDnd;
   st.timer=setTimeout(()=>ppStart(st),800);
@@ -706,14 +706,14 @@ function bindCardPrimaryInteractions(row,area){
   let lastTap=0,lastTapX=0,lastTapY=0;
   area.addEventListener('pointerdown',e=>{
     if(e.pointerType==='mouse'&&e.button!==0)return;
-    ppBegin(row,e.clientX,e.clientY,area);
+    ppBegin(row,e.clientX,e.clientY,area,e.pointerType==='mouse');
   });
   area.addEventListener('pointermove',e=>{
     if(ppDnd?.row===row&&!ppDnd.active&&Math.hypot(e.clientX-ppDnd.startX,e.clientY-ppDnd.startY)>10)ppFinishCancel();
   });
   area.addEventListener('pointercancel',()=>{if(ppDnd?.row===row&&!ppDnd.active)ppFinishCancel()});
-  area.addEventListener('dblclick',e=>{
-    if(e.button!==0)return;
+  area.addEventListener('click',e=>{
+    if(e.detail!==2)return;
     e.preventDefault();
     if(ppDnd?.row===row&&!ppDnd.active)ppFinishCancel();
     toggleCardDetail(row);
@@ -736,7 +736,7 @@ function bindPocketDnd(){
     if(menu){
       menu.addEventListener('pointerdown',e=>{
         if(e.pointerType==='mouse'&&e.button!==0)return;
-        ppBegin(row,e.clientX,e.clientY,menu);
+        ppBegin(row,e.clientX,e.clientY,menu,e.pointerType==='mouse');
       });
       menu.addEventListener('pointermove',e=>{
         if(ppDnd?.row===row&&!ppDnd.active&&Math.hypot(e.clientX-ppDnd.startX,e.clientY-ppDnd.startY)>10)ppFinishCancel();
