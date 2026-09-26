@@ -304,7 +304,7 @@ function bindFolderReorder(){
   document.querySelectorAll('.folderRow').forEach(row=>{
     const handles=[...row.querySelectorAll('.folderInteractArea,.folderMenuBtn')];
     handles.forEach(handle=>{
-      let timer=null,drag=false,sx=0,sy=0,suppressClick=false,ghost=null,ghostOffsetY=0,lastTap=0,lastTapX=0,lastTapY=0;
+      let timer=null,drag=false,sx=0,sy=0,suppressClick=false,ghost=null,ghostOffsetY=0,lastClick=0,lastClickX=0,lastClickY=0;
       const clear=()=>{if(timer){clearTimeout(timer);timer=null}};
       const toggleFolder=()=>{
         const id=row.dataset.folder;
@@ -338,14 +338,7 @@ function bindFolderReorder(){
       });
       const finish=e=>{
       clear();
-      if(!drag){
-        if(handle.classList.contains('folderInteractArea')&&e.pointerType!=='mouse'){
-          const now=Date.now();
-          if(now-lastTap<350&&Math.hypot(e.clientX-lastTapX,e.clientY-lastTapY)<28){lastTap=0;toggleFolder()}
-          else{lastTap=now;lastTapX=e.clientX;lastTapY=e.clientY}
-        }
-        return;
-      }
+      if(!drag)return;
       e.preventDefault();
       const hit=document.elementFromPoint(e.clientX,e.clientY)?.closest('tr[data-folder],tr.unifiedRow');
       row.classList.remove('folderDragging');
@@ -367,11 +360,14 @@ function bindFolderReorder(){
       };
       handle.addEventListener('pointerup',finish);
       handle.addEventListener('pointercancel',()=>{clear();drag=false;row.classList.remove('folderDragging');ghost?.remove();ghost=null});
-      handle.addEventListener('dblclick',e=>{
-        if(!handle.classList.contains('folderInteractArea')||suppressClick)return;
-        e.preventDefault();toggleFolder();
-      });
-      handle.addEventListener('click',e=>{if(suppressClick){e.preventDefault();e.stopImmediatePropagation()}},true);
+      handle.addEventListener('click',e=>{
+        if(suppressClick){e.preventDefault();e.stopImmediatePropagation();return}
+        if(!handle.classList.contains('folderInteractArea'))return;
+        const now=Date.now();
+        if(now-lastClick<650&&Math.hypot(e.clientX-lastClickX,e.clientY-lastClickY)<32){
+          lastClick=0;e.preventDefault();e.stopImmediatePropagation();toggleFolder();
+        }else{lastClick=now;lastClickX=e.clientX;lastClickY=e.clientY}
+      },true);
     });
   });
 }
@@ -634,6 +630,10 @@ function ppCommitPcBelow(st,targetRow){
 
   snapshot('並べ替え');
   ppSaveOrder(order);
+  prefs.manualOrder=order;
+  prefs.sort='manual';
+  savePrefs();
+  $('sort').value='manual';
   const map=new Map(items.map(v=>[v.id,v]));
   const ordered=order.map(id=>map.get(id)).filter(Boolean);
   const rest=items.filter(v=>!order.includes(v.id));
