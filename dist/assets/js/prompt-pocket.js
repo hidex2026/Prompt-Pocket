@@ -331,35 +331,28 @@ function bindFolderReorder(){
       e.preventDefault();
       const r0=row.getBoundingClientRect();
       ghost.style.transform=`translate3d(${r0.left}px,${e.clientY-ghostOffsetY}px,0) scale(.985)`;
-      document.querySelectorAll('.folderMoveTarget').forEach(x=>x.classList.remove('folderMoveTarget'));
-      const hit=document.elementFromPoint(e.clientX,e.clientY)?.closest('tr[data-folder],tr.unifiedRow');
-      if(!hit||hit===row||hit.classList.contains('folderChildRow'))return;
-      hit.classList.add('folderMoveTarget');
+      const insertion=ppRootInsertion(row,e.clientY-ghostOffsetY);
+      ppInsertLine(insertion);
       });
       const finish=e=>{
       clear();
       if(!drag)return;
       e.preventDefault();
-      const hit=document.elementFromPoint(e.clientX,e.clientY)?.closest('tr[data-folder],tr.unifiedRow');
+      const insertion=ppRootInsertion(row,e.clientY-ghostOffsetY);
       row.classList.remove('folderDragging');
       ghost?.remove();ghost=null;
-      document.querySelectorAll('.folderMoveTarget').forEach(x=>x.classList.remove('folderMoveTarget'));
-      if(hit&&hit!==row&&!hit.classList.contains('folderChildRow')){
+      ppInsertLine(null);
+      if(insertion){
         const body=row.parentElement;
-        const r=hit.getBoundingClientRect();
-        if(e.clientY<r.top+r.height/2)body.insertBefore(row,hit);
-        else{
-          let after=hit.nextSibling;
-          while(after&&(after.classList?.contains('rowDetail')||after.classList?.contains('folderChildRow')||after.classList?.contains('folderEmptyRow')))after=after.nextSibling;
-          body.insertBefore(row,after);
-        }
+        const before=insertion.beforeKey?ppRootRows(row).find(r=>ppRootKey(r)===insertion.beforeKey):null;
+        body.insertBefore(row,before||null);
         saveUnifiedManualOrder();save();render();toast('フォルダを移動しました');
       }
       drag=false;
       setTimeout(()=>{suppressClick=false},50);
       };
       handle.addEventListener('pointerup',finish);
-      handle.addEventListener('pointercancel',()=>{clear();drag=false;row.classList.remove('folderDragging');ghost?.remove();ghost=null});
+      handle.addEventListener('pointercancel',()=>{clear();drag=false;row.classList.remove('folderDragging');ghost?.remove();ghost=null;ppInsertLine(null)});
       handle.addEventListener('click',e=>{
         if(suppressClick){e.preventDefault();e.stopImmediatePropagation();return}
         if(!handle.classList.contains('folderInteractArea'))return;
@@ -461,6 +454,7 @@ function ppFinishCancel(){
   ppDnd.ghost?.remove();
   ppDnd.row?.classList.remove('pp-dnd-source');
   ppDnd.pcTarget?.classList.remove('pp-pc-drop-target');
+  ppInsertLine?.(null);
   document.body.classList.remove('pp-dnd-active');
   ppDnd=null;
 }
@@ -555,6 +549,86 @@ function ppFindBoundaryCandidate(st,ghostTop){
   return candidates[0];
 }
 
+/* D&D v2: the insertion point follows the TOP edge of the ghost card. */
+function ppRootRows(exclude=null){
+  return [...document.querySelectorAll('.detailTable tbody > tr.folderRow, .detailTable tbody > tr.unifiedRow:not(.folderChildRow)')]
+    .filter(row=>row!==exclude);
+}
+function ppRootKey(row){return row.dataset.folder?'folder:'+row.dataset.folder:row.dataset.row}
+function ppGroupBottom(row){
+  let bottom=row.getBoundingClientRect().bottom;
+  let next=row.nextElementSibling;
+  while(next&&!next.matches('tr.folderRow,tr.unifiedRow:not(.folderChildRow)')){
+    bottom=next.getBoundingClientRect().bottom;
+    next=next.nextElementSibling;
+  }
+  return bottom;
+}
+function ppRootInsertion(sourceRow,ghostTop){
+  const rows=ppRootRows(sourceRow);
+  if(!rows.length)return null;
+  const lines=[];
+  rows.forEach(row=>{
+    lines.push({y:row.getBoundingClientRect().top,beforeKey:ppRootKey(row)});
+  });
+  lines.push({y:ppGroupBottom(rows[rows.length-1]),beforeKey:null});
+  lines.sort((a,b)=>Math.abs(a.y-ghostTop)-Math.abs(b.y-ghostTop));
+  return lines[0];
+}
+function ppInsertLine(show){
+  let line=document.getElementById('ppInsertLine');
+  if(!show){line?.remove();return}
+  if(!line){line=document.createElement('div');line.id='ppInsertLine';document.body.appendChild(line)}
+  const table=document.querySelector('.detailTable');
+  const r=table?.getBoundingClientRect();
+  if(!r){line.remove();return}
+  line.style.left=r.left+'px';line.style.top=(show.y-2)+'px';line.style.width=r.width+'px';
+}
+function ppCardInsertion(st,x,y){
+  const folder=document.elementFromPoint(x,y)?.closest?.('tr[data-folder]');
+  if(folder&&!st.row.classList.contains('folderRow')){
+    const r=folder.getBoundingClientRect();
+    const edge=Math.min(26,Math.max(16,r.height*.24));
+    if(y>r.top+edge&&y<r.bottom-edge)return {kind:'folder',folderId:folder.dataset.folder};
+  }
+  return {kind:'line',...(ppRootInsertion(st.row,y-st.offsetY)||{})};
+}
+function ppCommitAtLine(st,beforeKey){
+  const dragId=st.row.dataset.row;
+  const card=items.find(x=>x.id===dragId);
+  if(!card)return;
+  const keys=ppRootRows(st.row).map(ppRootKey).filter(Boolean);
+  let at=beforeKey?keys.indexOf(beforeKey):keys.length;
+  if(at<0)at=keys.length;
+  keys.splice(at,0,dragId);
+  snapshot('並べ替え');
+  delete card.folderId;
+  card.updated=Date.now();
+  prefs.manualOrder=keys;prefs.sort='manual';savePrefs();$('sort').value='manual';
+  const rootCardIds=keys.filter(key=>!key.startsWith('folder:'));
+  const map=new Map(items.map(x=>[x.id,x]));
+  const ordered=rootCardIds.map(id=>map.get(id)).filter(Boolean);
+  const rest=items.filter(x=>!rootCardIds.includes(x.id));
+  items.splice(0,items.length,...ordered,...rest);
+  save();render();toast('移動しました');
+}
+function ppRelease(st,x,y){
+  const insert=ppCardInsertion(st,x,y);
+  st.ghost?.remove();st.ghost=null;
+  st.row.classList.remove('pp-dnd-source');
+  st.pcTarget?.classList.remove('pp-pc-drop-target');
+  document.querySelectorAll('.folderRow.folderDropTarget').forEach(row=>row.classList.remove('folderDropTarget'));
+  document.body.classList.remove('pp-dnd-active');
+  ppInsertLine(null);
+  ppDnd=null;
+  if(insert.kind==='folder'&&insert.folderId){
+    const card=items.find(item=>item.id===st.row.dataset.row);
+    if(card){card.folderId=insert.folderId;card.updated=Date.now();save();openFolders.add(insert.folderId);render();toast('フォルダに入れました')}
+    return;
+  }
+  if(insert.beforeKey!==undefined)ppCommitAtLine(st,insert.beforeKey);
+}
+
 function ppMove(x,y){
   const st=ppDnd;if(!st?.active)return;
   st.lastX=x;st.lastY=y;
@@ -562,11 +636,11 @@ function ppMove(x,y){
   const sr=st.row.getBoundingClientRect();
   const ghostTop=y-st.offsetY;
   st.ghost.style.transform=`translate3d(${sr.left}px,${ghostTop}px,0) scale(.985)`;
-  st.candidate=ppFindBoundaryCandidate(st,ghostTop);
-  const folderEl=document.elementFromPoint(x,y)?.closest?.('tr[data-folder]');
+  st.insert=ppCardInsertion(st,x,y);
+  const folderEl=st.insert.kind==='folder'?document.querySelector(`tr[data-folder="${st.insert.folderId}"]`):null;
   document.querySelectorAll('.folderRow.folderDropTarget').forEach(r=>{if(r!==folderEl)r.classList.remove('folderDropTarget')});
   folderEl?.classList.add('folderDropTarget');
-  st.folderTarget=folderEl?.dataset.folder||null;
+  ppInsertLine(st.insert.kind==='line'&&Number.isFinite(st.insert.y)?st.insert:null);
 }
 
 
@@ -675,59 +749,9 @@ function ppCommit(st,candidate){
 function ppDrop(e){
   const st=ppDnd;
   if(!st?.active){ppFinishCancel();return}
-
-  // Re-evaluate exactly at release.
-  const ghostTop=st.lastY-st.offsetY;
-  const candidate=ppFindBoundaryCandidate(st,ghostTop);
-
   const px=(e&&Number.isFinite(e.clientX))?e.clientX:st.lastX;
   const py=(e&&Number.isFinite(e.clientY))?e.clientY:st.lastY;
-  const releaseFolder=document.elementFromPoint(px,py)?.closest?.('tr[data-folder]');
-  const folderTarget=releaseFolder?.dataset.folder||st.folderTarget;
-  document.querySelectorAll('.folderRow.folderDropTarget').forEach(r=>r.classList.remove('folderDropTarget'));
-
-  // Remove visual drag state before any dialog.
-  st.ghost?.remove();st.ghost=null;
-  st.row.classList.remove('pp-dnd-source');
-  document.body.classList.remove('pp-dnd-active');
-
-  if(folderTarget){
-    const x=items.find(i=>i.id===st.row.dataset.row);
-    if(x){
-      x.folderId=folderTarget;x.updated=Date.now();
-      save();openFolders.add(folderTarget);ppDnd=null;render();toast('フォルダに入れました');return;
-    }
-  }
-  // A card dropped onto another card always goes directly below that card.
-  // This is the common path for touch devices and also the safe fallback if
-  // a browser does not report the pointer type as a mouse.
-  const target=ppDropTargetAt(st,px,py);
-  if(target){
-    ppDnd=null;
-    ppCommitPcBelow(st,target);
-    return;
-  }
-  if(!candidate){
-    ppDnd=null;
-    return;
-  }
-
-  // If dropping at this boundary produces exactly the original order,
-  // it is the card's current/original slot: cancel silently.
-  const order=ppRows().map(r=>r.dataset.row).filter(Boolean);
-  const dragId=st.row.dataset.row;
-  const simulated=order.filter(id=>id!==dragId);
-  let to=candidate.beforeId?simulated.indexOf(candidate.beforeId):simulated.length;
-  if(to<0)to=simulated.length;
-  simulated.splice(to,0,dragId);
-  const samePlace=simulated.length===order.length && simulated.every((id,i)=>id===order[i]);
-  if(samePlace){
-    ppDnd=null;
-    return;
-  }
-
-  ppDnd=null;
-  ppCommit(st,candidate);
+  ppRelease(st,px,py);
 }
 
 function toggleCardDetail(row){
@@ -794,6 +818,8 @@ document.addEventListener('touchend',e=>{
     const p=ppPoint(e);ppDnd.lastX=p.x;ppDnd.lastY=p.y;
     e.preventDefault();
     const st=ppDnd;
+    ppRelease(st,p.x,p.y);
+    return;
     const folderEl=document.elementFromPoint(p.x,p.y)?.closest?.('tr[data-folder]');
     const folderTarget=folderEl?.dataset.folder||st.folderTarget||null;
     const target=ppDropTargetAt(st,p.x,p.y);
@@ -831,6 +857,9 @@ document.addEventListener('pointerup',e=>{
   if(!ppDnd||e.pointerType==='touch')return;
   if(ppDnd.active){
     ppDnd.lastX=e.clientX;ppDnd.lastY=e.clientY;
+    const st=ppDnd;
+    ppRelease(st,e.clientX,e.clientY);
+    return;
     if(ppDnd.pcMode){
       const st=ppDnd;
       const folderEl=document.elementFromPoint(e.clientX,e.clientY)?.closest?.('tr[data-folder]');

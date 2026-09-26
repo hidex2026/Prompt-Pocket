@@ -500,6 +500,11 @@ fieldset{border:1px solid #ddd8cf;border-radius:16px;margin:14px 0;padding:12px}
   overflow:hidden;will-change:transform;
 }
 .pp-dnd-source{opacity:.28!important}
+.pp-dnd-ghost,.folder-dnd-ghost{pointer-events:none!important}
+#ppInsertLine{
+  position:fixed;z-index:10020;height:4px;background:#111;border-radius:999px;
+  pointer-events:none;box-shadow:0 1px 0 rgba(255,255,255,.8);
+}
 .pp-dnd-hold{background:#fff7d6!important}
 body.pp-dnd-active{user-select:none;-webkit-user-select:none;overscroll-behavior:none}
 
