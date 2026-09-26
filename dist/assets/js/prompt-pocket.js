@@ -676,6 +676,15 @@ function ppDrop(e){
       save();openFolders.add(folderTarget);ppDnd=null;render();toast('フォルダに入れました');return;
     }
   }
+  // A card dropped onto another card always goes directly below that card.
+  // This is the common path for touch devices and also the safe fallback if
+  // a browser does not report the pointer type as a mouse.
+  const target=st.pcTarget||ppPcTargetAt(px,py,st);
+  if(target){
+    ppDnd=null;
+    ppCommitPcBelow(st,target);
+    return;
+  }
   if(!candidate){
     ppDnd=null;
     return;
@@ -703,7 +712,7 @@ function toggleCardDetail(row){
   $('rowDetail-'+row.dataset.row)?.classList.toggle('hidden');
 }
 function bindCardPrimaryInteractions(row,area){
-  let lastTap=0,lastTapX=0,lastTapY=0;
+  let lastClick=0,lastClickX=0,lastClickY=0;
   area.addEventListener('pointerdown',e=>{
     if(e.pointerType==='mouse'&&e.button!==0)return;
     ppBegin(row,e.clientX,e.clientY,area,e.pointerType==='mouse');
@@ -713,18 +722,17 @@ function bindCardPrimaryInteractions(row,area){
   });
   area.addEventListener('pointercancel',()=>{if(ppDnd?.row===row&&!ppDnd.active)ppFinishCancel()});
   area.addEventListener('click',e=>{
-    if(e.detail!==2)return;
-    e.preventDefault();
-    if(ppDnd?.row===row&&!ppDnd.active)ppFinishCancel();
-    toggleCardDetail(row);
+    const now=Date.now();
+    if(now-lastClick<650&&Math.hypot(e.clientX-lastClickX,e.clientY-lastClickY)<32){
+      lastClick=0;
+      e.preventDefault();
+      if(ppDnd?.row===row&&!ppDnd.active)ppFinishCancel();
+      toggleCardDetail(row);
+    }else{lastClick=now;lastClickX=e.clientX;lastClickY=e.clientY}
   });
   area.addEventListener('pointerup',e=>{
     if(ppDnd?.row!==row||ppDnd.active)return;
     ppFinishCancel();
-    if(e.pointerType==='mouse')return;
-    const now=Date.now();
-    if(now-lastTap<350&&Math.hypot(e.clientX-lastTapX,e.clientY-lastTapY)<28){lastTap=0;toggleCardDetail(row)}
-    else{lastTap=now;lastTapX=e.clientX;lastTapY=e.clientY}
   });
 }
 function bindPocketDnd(){
