@@ -1123,7 +1123,7 @@ main{padding-top:6px}
   display:-webkit-box;min-width:0;overflow:hidden;-webkit-box-orient:vertical;
   -webkit-line-clamp:2;text-overflow:ellipsis;overflow-wrap:anywhere;
 }
-.folderRow .folderDragSpace{flex:1 1 auto;min-width:12px;height:32px}
+.folderRow .folderDragSpace{flex:1 1 auto;min-width:12px;height:32px;touch-action:none}
 .folderActions{justify-content:center;align-items:center;gap:6px}
 .folderActions .folderCountInline{
   margin:0!important;padding:4px 5px!important;font-size:15px!important;
