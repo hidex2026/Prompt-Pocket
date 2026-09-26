@@ -1121,10 +1121,12 @@ main{padding-top:6px}
 .folderRow .folderDragSpace{flex:1 1 auto;min-width:12px;height:32px}
 .folderActions{justify-content:center;align-items:center;gap:6px}
 .folderActions .folderCountInline{
-  margin:0!important;padding:3px 6px!important;font-size:12px!important;
-  line-height:1.2!important;white-space:nowrap;flex:0 0 auto;
+  margin:0!important;padding:4px 5px!important;font-size:15px!important;
+  line-height:1.2!important;white-space:nowrap;flex:0 0 60px;min-width:60px;
+  box-sizing:border-box;text-align:center;
 }
 .folderActions .folderMenuBtn{min-width:42px}
+.unifiedTable .col-actions,.unifiedTable .opCol{width:136px}
 .unifiedDragArea,.folderInteractArea{cursor:pointer;touch-action:pan-y}
 .unifiedDragArea .rowName{cursor:inherit;text-decoration:none}
 .unifiedDragArea .rowName:hover{text-decoration:none}
@@ -1144,5 +1146,5 @@ main{padding-top:6px}
   .unifiedTable .folderNameBtn{font-size:inherit!important}
   .unifiedTable .folderNameBtn span:first-child{font-size:19px!important}
   .folderActions{gap:4px}
-  .folderActions .folderCountInline{font-size:11px!important;padding:3px 5px!important}
+  .folderActions .folderCountInline{font-size:15px!important;padding:4px 5px!important}
 }
