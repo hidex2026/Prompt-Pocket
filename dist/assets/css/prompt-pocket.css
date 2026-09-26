@@ -1128,6 +1128,7 @@ main{padding-top:6px}
 .unifiedDragArea,.folderInteractArea{cursor:pointer;touch-action:pan-y}
 .unifiedDragArea .rowName{cursor:inherit;text-decoration:none}
 .unifiedDragArea .rowName:hover{text-decoration:none}
+.unifiedDragArea,.unifiedDragArea *{-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
 @media(max-width:560px){
   .unifiedTable .folderNameBtn{font-size:inherit!important}
   .unifiedTable .folderNameBtn span:first-child{font-size:19px!important}

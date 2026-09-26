@@ -581,6 +581,21 @@ function ppPcTargetAt(x,y,st){
   if(!row||row===st.row)return null;
   return row;
 }
+function ppOverlapTarget(st,x,y){
+  if(!st?.active)return null;
+  const sourceRect=st.row.getBoundingClientRect();
+  const left=sourceRect.left,right=sourceRect.right;
+  const top=y-st.offsetY,bottom=top+st.ghostHeight;
+  return ppRows().filter(row=>row!==st.row).map(row=>{
+    const r=row.getBoundingClientRect();
+    const vertical=Math.max(0,Math.min(bottom,r.bottom)-Math.max(top,r.top));
+    const horizontal=Math.max(0,Math.min(right,r.right)-Math.max(left,r.left));
+    return {row,area:vertical*horizontal,center:Math.abs((top+bottom)/2-(r.top+r.bottom)/2)};
+  }).filter(x=>x.area>0).sort((a,b)=>b.area-a.area||a.center-b.center)[0]?.row||null;
+}
+function ppDropTargetAt(st,x,y){
+  return ppOverlapTarget(st,x,y)||ppPcTargetAt(x,y,st)||st.pcTarget||null;
+}
 function ppSetPcTarget(st,row){
   if(st.pcTarget===row)return;
   st.pcTarget?.classList.remove('pp-pc-drop-target');
@@ -679,7 +694,7 @@ function ppDrop(e){
   // A card dropped onto another card always goes directly below that card.
   // This is the common path for touch devices and also the safe fallback if
   // a browser does not report the pointer type as a mouse.
-  const target=st.pcTarget||ppPcTargetAt(px,py,st);
+  const target=ppDropTargetAt(st,px,py);
   if(target){
     ppDnd=null;
     ppCommitPcBelow(st,target);
@@ -763,7 +778,7 @@ document.addEventListener('touchmove',e=>{
   if(ppDnd.active){
     e.preventDefault();
     ppMove(p.x,p.y);
-    ppSetPcTarget(ppDnd,ppPcTargetAt(p.x,p.y,ppDnd));
+    ppSetPcTarget(ppDnd,ppDropTargetAt(ppDnd,p.x,p.y));
   }
 },{passive:false});
 document.addEventListener('touchend',e=>{
@@ -774,7 +789,7 @@ document.addEventListener('touchend',e=>{
     const st=ppDnd;
     const folderEl=document.elementFromPoint(p.x,p.y)?.closest?.('tr[data-folder]');
     const folderTarget=folderEl?.dataset.folder||st.folderTarget||null;
-    const target=st.pcTarget||ppPcTargetAt(p.x,p.y,st);
+    const target=ppDropTargetAt(st,p.x,p.y);
     st.ghost?.remove();st.ghost=null;
     st.row.classList.remove('pp-dnd-source');
     st.pcTarget?.classList.remove('pp-pc-drop-target');
@@ -802,7 +817,7 @@ document.addEventListener('pointermove',e=>{
   if(ppDnd.active){
     e.preventDefault();
     ppMove(e.clientX,e.clientY);
-    if(ppDnd.pcMode)ppSetPcTarget(ppDnd,ppPcTargetAt(e.clientX,e.clientY,ppDnd));
+    if(ppDnd.pcMode)ppSetPcTarget(ppDnd,ppDropTargetAt(ppDnd,e.clientX,e.clientY));
   }
 },{passive:false});
 document.addEventListener('pointerup',e=>{
@@ -813,7 +828,7 @@ document.addEventListener('pointerup',e=>{
       const st=ppDnd;
       const folderEl=document.elementFromPoint(e.clientX,e.clientY)?.closest?.('tr[data-folder]');
       const folderTarget=folderEl?.dataset.folder||st.folderTarget||null;
-      const target=st.pcTarget||ppPcTargetAt(e.clientX,e.clientY,st);
+      const target=ppDropTargetAt(st,e.clientX,e.clientY);
       st.ghost?.remove();st.ghost=null;
       st.row.classList.remove('pp-dnd-source');
       st.pcTarget?.classList.remove('pp-pc-drop-target');
