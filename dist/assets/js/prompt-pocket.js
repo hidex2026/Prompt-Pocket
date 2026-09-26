@@ -598,11 +598,13 @@ function ppCardInsertion(st,x,y){
   const folder=document.elementFromPoint(x,y)?.closest?.('tr[data-folder]');
   if(folder&&!st.row.classList.contains('folderRow')){
     const r=folder.getBoundingClientRect();
-    const edge=Math.min(26,Math.max(16,r.height*.24));
-    // The ghost card's TOP edge decides the folder zone, not the finger/cursor.
-    // Moving upward: line below folder → folder body → line above folder.
     const ghostTop=y-st.offsetY;
-    if(ghostTop>r.top+edge&&ghostTop<r.bottom-edge)return {kind:'folder',folderId:folder.dataset.folder};
+    const ghostBottom=ghostTop+st.ghostHeight;
+    const overlap=Math.max(0,Math.min(ghostBottom,r.bottom)-Math.max(ghostTop,r.top));
+    // Enter when the ghost visibly overlaps the folder.  Only a thin band at
+    // either edge remains available for the before/after insertion lines.
+    const needed=Math.min(18,Math.max(8,Math.min(st.ghostHeight,r.height)*.16));
+    if(overlap>=needed)return {kind:'folder',folderId:folder.dataset.folder};
   }
   return {kind:'line',...(ppRootInsertion(st.row,y-st.offsetY)||{})};
 }
