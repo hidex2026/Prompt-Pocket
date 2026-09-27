@@ -113,7 +113,7 @@ fieldset{border:1px solid #ddd8cf;border-radius:16px;margin:14px 0;padding:12px}
 
 
 /* v1.4: editor actions, expanded-row actions, pin limit UI */
-.editorActions{display:grid!important;grid-template-columns:1fr!important;gap:8px!important;margin-top:20px}
+.editorActions{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important;margin-top:20px}
 .editorActions .saveAction{width:100%}
 .editorSecondary{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .editorSecondary button{width:100%}
@@ -121,7 +121,7 @@ fieldset{border:1px solid #ddd8cf;border-radius:16px;margin:14px 0;padding:12px}
 .rowMeta button{border:1px solid #d7d7d7;background:#f7f7f7;border-radius:6px;padding:5px 8px;cursor:pointer}
 .rowExtra{margin-top:8px}
 .rowExtra .rowDelete{margin-left:10px}
-@media(max-width:560px){.editorActions{grid-template-columns:1fr!important}.rowExtra{gap:6px}.rowExtra button{padding:5px 7px;font-size:11px}.rowExtra .rowDelete{margin-left:6px}}
+@media(max-width:560px){.editorActions{grid-template-columns:1fr 1fr!important}.rowExtra{gap:6px}.rowExtra button{padding:5px 7px;font-size:11px}.rowExtra .rowDelete{margin-left:6px}}
 
 /* v1.5: unified pin wording, full expanded name, six-line prompt windows */
 .appVersion{text-align:center;margin-top:16px;color:#999;font-size:11px}.rememberOption{display:flex;gap:9px;align-items:flex-start;cursor:pointer}.rememberOption input{width:auto;margin-top:3px}.rememberOption span{display:grid;gap:3px}.rememberOption small{color:#777;font-size:12px;line-height:1.45}
