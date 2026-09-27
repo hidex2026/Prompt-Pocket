@@ -109,6 +109,7 @@ function addWelcomeSample(){
 }
 let selectedTags=new Set(), filterTags=new Set(), customTags=new Set();
 let activeTagForManage='';
+let editorTagDraft=null;
 let imageData='';
 let undoState=null;
 let prefs=JSON.parse(localStorage.getItem(PREF_KEY)||'{"view":"card","welcomed":false,"tagOrder":[]}');
@@ -180,17 +181,17 @@ migrate1xData();
 function toast(t){$('toast').textContent=t;$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),1600)}
 function snapshot(label){undoState={label,items:structuredClone(items)}; updateUndo();}
 function updateUndo(){$('undoBtn').disabled=!undoState;$('undoBtn').classList.toggle('undoReady',!!undoState);$('undoBtn').title=undoState?`${undoState.label}を元に戻す`:'戻せる操作はありません';}
-function allTags(){const tags=[...new Set([...baseTags,...customTags,...items.flatMap(x=>x.tags||[])])].filter(t=>!(prefs.hiddenTags||[]).includes(t));const order=prefs.tagOrder||[];return [...tags].sort((a,b)=>{const ai=order.indexOf(a),bi=order.indexOf(b);if(ai<0&&bi<0)return tags.indexOf(a)-tags.indexOf(b);if(ai<0)return 1;if(bi<0)return -1;return ai-bi});}
+function allTags(){const tags=[...new Set([...baseTags,...(editorTagDraft?editorTagDraft.customTags:customTags),...items.flatMap(x=>x.tags||[])])].filter(t=>!(editorTagDraft?editorTagDraft.hiddenTags:(prefs.hiddenTags||[])).includes(t));const order=editorTagDraft?editorTagDraft.tagOrder:(prefs.tagOrder||[]);return [...tags].sort((a,b)=>{const ai=order.indexOf(a),bi=order.indexOf(b);if(ai<0&&bi<0)return tags.indexOf(a)-tags.indexOf(b);if(ai<0)return 1;if(bi<0)return -1;return ai-bi});}
 function syncTagOrder(){
   const tags=allTags();
-  prefs.tagOrder=[...new Set([...(prefs.tagOrder||[]).filter(t=>tags.includes(t)),...tags])];
-  savePrefs();
+  const next=[...new Set([...(editorTagDraft?editorTagDraft.tagOrder:(prefs.tagOrder||[])).filter(t=>tags.includes(t)),...tags])];
+  if(editorTagDraft)editorTagDraft.tagOrder=next;else{prefs.tagOrder=next;savePrefs()}
 }
 function moveTag(from,to){
   if(!from||!to||from===to)return;
   syncTagOrder();
-  const a=prefs.tagOrder.filter(t=>t!==from), i=a.indexOf(to);
-  a.splice(i<0?a.length:i,0,from); prefs.tagOrder=a; savePrefs(); renderTagChoices(); render();
+  const a=(editorTagDraft?editorTagDraft.tagOrder:prefs.tagOrder).filter(t=>t!==from), i=a.indexOf(to);
+  a.splice(i<0?a.length:i,0,from);if(editorTagDraft)editorTagDraft.tagOrder=a;else{prefs.tagOrder=a;savePrefs()}renderTagChoices();if(!editorTagDraft)render();
 }
 function renderTagChoices(){
   syncTagOrder();
@@ -975,7 +976,7 @@ document.addEventListener('contextmenu',e=>{if(e.target.closest?.('.unifiedDragA
 document.addEventListener('dragstart',e=>{if(e.target.closest?.('.unifiedDragArea, .folderInteractArea, [data-menu-toggle], .folderMenuBtn'))e.preventDefault()},true);
 
 document.addEventListener('click',e=>{if(!e.target.closest('.detailMenuWrap'))document.querySelectorAll('.detailPopupMenu').forEach(m=>m.classList.add('hidden'))});
-function openEditor(x=null){$('form').reset();selectedTags=new Set(x?.tags||[]);activeTagForManage='';imageData=x?.image||'';$('editId').value=x?.id||'';$('dialogTitle').textContent=x?'プロンプトを編集':'プロンプトを登録';['name','prompt','author','xhandle','source','memo'].forEach(k=>$(k).value=x?.[k]||'');updatePreview();renderTagChoices();document.body.classList.add('editor-open');$('editor').showModal();}
+function openEditor(x=null){$('form').reset();editorTagDraft={customTags:new Set(customTags),hiddenTags:[...(prefs.hiddenTags||[])],tagOrder:[...(prefs.tagOrder||[])],deletedTags:new Set()};selectedTags=new Set(x?.tags||[]);activeTagForManage='';imageData=x?.image||'';$('editId').value=x?.id||'';$('dialogTitle').textContent=x?'プロンプトを編集':'プロンプトを登録';['name','prompt','author','xhandle','source','memo'].forEach(k=>$(k).value=x?.[k]||'');updatePreview();renderTagChoices();document.body.classList.add('editor-open');$('editor').showModal();}
 function updatePreview(){$('imagePreview').classList.toggle('hidden',!imageData);$('imagePreview').innerHTML=imageData?`<img src="${imageData}" alt="">`:'';}
 function deleteItem(id){const x=items.find(i=>i.id===id);if(!x)return;if(confirm(`「${x.name}」を削除しますか？\nこの操作は「戻す」で復元できます。`)){snapshot('削除');items=items.filter(i=>i.id!==id);save();render();toast('削除しました')}}
 function duplicateItem(id){const x=items.find(i=>i.id===id);if(!x)return;snapshot('複製');const now=Date.now();const copy={...structuredClone(x),id:crypto.randomUUID(),name:`${x.name} - コピー`,fav:false,pinned:false,created:now,updated:now};items.push(copy);save();render();toast('複製しました');openEditor(copy);}
@@ -993,16 +994,17 @@ bottomNew.onclick=e=>{if(shortcutFired){shortcutFired=false;e.preventDefault();r
 bottomNew.onpointerdown=e=>{if(!prefs.shortcutEnabled)return;shortcutFired=false;clearTimeout(shortcutTimer);shortcutTimer=setTimeout(()=>{shortcutFired=true;runQuickAdd()},prefs.shortcutDelay)};
 ['pointerup','pointercancel','pointerleave'].forEach(ev=>bottomNew.addEventListener(ev,()=>clearTimeout(shortcutTimer)));
 bottomNew.addEventListener('contextmenu',e=>{if(prefs.shortcutEnabled)e.preventDefault()});
-function closeEditor(){ $('editor').close();document.body.classList.remove('editor-open') }
+function closeEditor(){editorTagDraft=null;$('editor').close();document.body.classList.remove('editor-open')}
+$('editor').addEventListener('cancel',e=>{e.preventDefault();closeEditor()});
 $('cancelBtn').onclick=closeEditor;$('editorCloseBtn').onclick=closeEditor;$('search').oninput=render;$('sort').onchange=()=>{randomOrder=[];if(prefs.rememberOps){prefs.sort=$('sort').value;savePrefs()}render()};$('clearFilters').onclick=()=>{$('search').value='';filterTags.clear();render()};$('undoBtn').onclick=()=>{if(!undoState)return;if(!confirm('前の状態に戻しますか？\n\n直前の操作を取り消して、前の状態に戻します。'))return;const current=structuredClone(items);items=structuredClone(undoState.items);undoState={label:'元に戻す前の状態',items:current};save();render();toast('前の状態に戻しました')};
 $('deleteAllBtn').onclick=()=>{const n=items.length;if(!confirm(`⚠️ Prompt Pocketのデータをすべてリセットします。\n\n登録プロンプト ${n}件、フォルダ、表示設定・カスタムタグも初期化されます。\nこの操作は元に戻せません。\n続けますか？`))return;if(!confirm(`最終確認\n本当にすべてのデータをリセットしますか？\nリセット後はサンプルフォルダが復帰します。`))return;localStorage.removeItem(KEY);localStorage.removeItem(LEGACY_KEY);localStorage.removeItem(FOLDER_KEY);localStorage.removeItem(PREF_KEY);localStorage.removeItem('promptPocket.columnWidths.v1');items=[];folders=[];undoState=null;customTags.clear();prefs={view:'card',welcomed:false,tagOrder:[],hiddenTags:[],rememberOps:false,shortcutEnabled:true,longPressMainActionsEnabled:false,shortcutDelay:800,customTags:[]};seedStarterFolders();savePrefs();render();toast('全データをリセットし、サンプルフォルダを復帰しました')};
 $('deleteAllBtn').addEventListener('click',()=>document.body.classList.toggle('buttonGlowEnabled',!!prefs.buttonGlowEnabled));
-$('addTagBtn').onclick=()=>{const t=$('customTag').value.trim();if(!t)return;customTags.add(t);prefs.hiddenTags=prefs.hiddenTags.filter(x=>x!==t);if(!prefs.tagOrder.includes(t))prefs.tagOrder.push(t);selectedTags.add(t);activeTagForManage=t;$('customTag').value='';savePrefs();renderTagChoices()};
+$('addTagBtn').onclick=()=>{const t=$('customTag').value.trim();if(!t||!editorTagDraft)return;editorTagDraft.customTags.add(t);editorTagDraft.hiddenTags=editorTagDraft.hiddenTags.filter(x=>x!==t);if(!editorTagDraft.tagOrder.includes(t))editorTagDraft.tagOrder.push(t);editorTagDraft.deletedTags.delete(t);selectedTags.add(t);activeTagForManage=t;$('customTag').value='';renderTagChoices()};
 $('deleteTagBtn').onclick=()=>{const tag=activeTagForManage;if(!tag)return;const count=items.filter(x=>(x.tags||[]).includes(tag)).length;if(!confirm(`タグ「${tag}」は${count}件で使用されています。
 削除すると、これらのプロンプトからこのタグだけが削除されます。
 プロンプト本体は削除されません。
 
-このタグを削除しますか？`))return;snapshot('タグ削除');items.forEach(x=>x.tags=(x.tags||[]).filter(t=>t!==tag));selectedTags.delete(tag);customTags.delete(tag);filterTags.delete(tag);if(!prefs.hiddenTags.includes(tag))prefs.hiddenTags.push(tag);prefs.tagOrder=prefs.tagOrder.filter(t=>t!==tag);activeTagForManage='';save();savePrefs();renderTagChoices();render();toast('タグを削除しました')};
+このタグを削除しますか？`))return;if(!editorTagDraft)return;editorTagDraft.deletedTags.add(tag);selectedTags.delete(tag);editorTagDraft.customTags.delete(tag);if(!editorTagDraft.hiddenTags.includes(tag))editorTagDraft.hiddenTags.push(tag);editorTagDraft.tagOrder=editorTagDraft.tagOrder.filter(t=>t!==tag);activeTagForManage='';renderTagChoices();toast('「設定を保存する」で削除が確定します')};
 function loadImageFile(f){
   if(!f||!f.type.startsWith('image/')){if(f)alert('画像ファイルを選んでください。');return}
   const r=new FileReader();
@@ -1045,7 +1047,7 @@ imageDropZone.addEventListener('contextmenu',e=>{if(prefs.shortcutEnabled)e.prev
 imageDropZone.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$('image').click()}};
 $('imageDropZone').ondragover=e=>{e.preventDefault();$('imageDropZone').classList.add('dragOver')};$('imageDropZone').ondragleave=()=>$('imageDropZone').classList.remove('dragOver');$('imageDropZone').ondrop=e=>{e.preventDefault();$('imageDropZone').classList.remove('dragOver');loadImageFile(e.dataTransfer.files[0])};
 $('pastePromptBtn').onclick=async()=>{const field=$('prompt');let text='';try{if(navigator.clipboard?.readText){text=await navigator.clipboard.readText()}else{throw new Error('clipboard unavailable')}}catch(err){alert('クリップボードを読み取れませんでした。\nブラウザの権限設定を確認するか、入力欄を長押しして貼り付けてください。');return}if(!text)return toast('クリップボードに文字がありません');if(field.value.trim()&&!confirm('現在のプロンプトは上書きされます。\n貼り付けますか？'))return;field.value=text;field.dispatchEvent(new Event('input',{bubbles:true}));field.focus();toast('プロンプトを貼り付けました')};
-$('form').onsubmit=e=>{e.preventDefault();const id=$('editId').value||crypto.randomUUID();const old=items.find(x=>x.id===id);snapshot(old?'編集':'新規登録');const now=Date.now();const obj={id,name:$('name').value.trim(),prompt:$('prompt').value.trim(),author:$('author').value.trim(),xhandle:$('xhandle').value.trim(),source:$('source').value.trim(),memo:$('memo').value.trim(),tags:[...selectedTags],image:imageData,fav:old?.fav||false,pinned:old?.pinned||false,useCount:old?.useCount||0,lastUsed:old?.lastUsed||0,created:old?.created||now,updated:now};if(!obj.name||!obj.prompt)return;const before=items;items=old?items.map(x=>x.id===id?obj:x):[...items,obj];if(!save()){items=before;return}$('editor').close();document.body.classList.remove('editor-open');render();toast('保存しました')};
+$('form').onsubmit=e=>{e.preventDefault();const id=$('editId').value||crypto.randomUUID();const old=items.find(x=>x.id===id);const now=Date.now();const obj={id,name:$('name').value.trim(),prompt:$('prompt').value.trim(),author:$('author').value.trim(),xhandle:$('xhandle').value.trim(),source:$('source').value.trim(),memo:$('memo').value.trim(),tags:[...selectedTags],image:imageData,fav:old?.fav||false,pinned:old?.pinned||false,useCount:old?.useCount||0,lastUsed:old?.lastUsed||0,created:old?.created||now,updated:now};if(!obj.name||!obj.prompt)return;snapshot(old?'編集':'新規登録');const before=items,deleted=editorTagDraft?.deletedTags||new Set();let next=items.map(x=>deleted.size?{...x,tags:(x.tags||[]).filter(t=>!deleted.has(t))}:x);items=old?next.map(x=>x.id===id?obj:x):[...next,obj];if(!save()){items=before;return}if(editorTagDraft){customTags=new Set(editorTagDraft.customTags);prefs.hiddenTags=[...editorTagDraft.hiddenTags];prefs.tagOrder=[...editorTagDraft.tagOrder];filterTags=new Set([...filterTags].filter(t=>!deleted.has(t)));savePrefs()}editorTagDraft=null;$('editor').close();document.body.classList.remove('editor-open');render();toast('設定を保存しました')};
 let optionPrefsDraft=null;
 const openOptions=()=>{optionPrefsDraft=structuredClone(prefs);$('rememberOps').checked=!!optionPrefsDraft.rememberOps;$('buttonGlowEnabled').checked=!!optionPrefsDraft.buttonGlowEnabled;$('shortcutEnabled').checked=!!optionPrefsDraft.shortcutEnabled;$('longPressMainActionsEnabled').checked=!!optionPrefsDraft.longPressMainActionsEnabled;$('shortcutDelay').value=String(optionPrefsDraft.shortcutDelay||800);$('shortcutDelay').disabled=!(optionPrefsDraft.shortcutEnabled||optionPrefsDraft.longPressMainActionsEnabled);$('optionDialog').showModal()};
 function openSearchKeepingScroll(){
