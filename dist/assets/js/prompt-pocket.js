@@ -1,7 +1,7 @@
 const KEY='promptPocket.v2';
 const LEGACY_KEY='promptPocket.v1';
 const PREF_KEY='promptPocket.prefs.v1';
-const baseTags=['🖼️ 画像','🎬 動画','お洒落','女の子','男の子','獣人','可愛い','ダーク','アニメ','実写','夜景','ファンタジー','SF','水彩'];
+const baseTags=['🖼️ 画像','🎬 動画','実用','アレンジ','お洒落','女の子','男の子','獣人','可愛い','ダーク','アニメ','実写','夜景','ファンタジー','SF','水彩'];
 const presetSampleImage='assets/media/prompt-pocket-03.webp';
 const presetPrompts={
   'three-view':{
@@ -150,7 +150,7 @@ function save(){
 function savePrefs(){prefs.customTags=[...customTags];localStorage.setItem(PREF_KEY,JSON.stringify(prefs));}
 function seedStarterFolders(){
   if(items.length||folders.length)return false;
-  const groups=[['実用',sampleCatalog.practical||[]],['アレンジ',sampleCatalog.arrange||[]],['その他',[...(sampleCatalog.style||[]),...(sampleCatalog.other||[])]]];
+  const groups=[['実用',sampleCatalog.practical||[]],['アレンジ',[...(sampleCatalog.style||[]),...(sampleCatalog.arrange||[])]],['その他',sampleCatalog.other||[]]];
   const now=Date.now();
   groups.forEach(([name,samples],groupIndex)=>{const folder={id:'starter-folder-'+groupIndex,name,created:now+groupIndex,isNew:false};folders.push(folder);samples.forEach((source,index)=>items.push({id:'starter-'+source.key,presetKey:source.key,name:source.name,prompt:source.prompt,author:'',xhandle:'',source:'',memo:'サンプルです。自由に編集・削除できます。',tags:source.tags||[],image:source.image||'',folderId:folder.id,fav:false,pinned:false,useCount:0,lastUsed:0,created:now+groupIndex*20+index,updated:now+groupIndex*20+index}));});
   save();saveFolders();return true;
@@ -345,7 +345,7 @@ function bindFolderReorder(){
       const clear=()=>{if(timer){clearTimeout(timer);timer=null}};
       const toggleFolder=()=>{
         const id=row.dataset.folder;
-        if(folderCount(id)===0){openFolders.delete(id);alert('このフォルダにはカードがありません');return}
+        if(folderCount(id)===0){openFolders.delete(id);$('emptyFolderTitle').textContent=folderById(id)?.name||'フォルダー';$('emptyFolderDialog').showModal();return}
         openFolders.has(id)?openFolders.delete(id):openFolders.add(id);
         render();
       };
@@ -1132,6 +1132,19 @@ $('importFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{co
 /* TEST40: ジャンル別チェック一覧によるサンプル管理 */
 const sampleCatalog={"practical":[{"key":"three-view","name":"三面図","prompt":"てんぷしたきゃらくたーがぞうをさんしょうして、おなじきゃらくたーのさんめんずをさくせいしてください。しょうめん・まよこ・はいめんのぜんしんをよこいちれつにならべ、かみがた、かおだち、たいかく、いしょう、そうしょく、はいしょくをとういつしてください。かくほうこうででざいんがむじゅんしないようにし、せっていしりょうとしてかくにんしやすいしんぷるなはいけいとれいあうとにしてください。","tags":["🖼️ 画像","アニメ","女の子"],"image":"assets/media/prompt-pocket-05.webp"},{"key":"character-sheet","name":"キャラクターシート","prompt":"てんぷしたがぞうのきゃらくたーをさんしょうして、きゃらくたーしーとをさくせいしてください。きゃらくたーのでざいん、かみがた、いしょう、そうしょく、はいしょくなどのとくちょうをいじし、ぜんしんず、かおのあっぷ、だいひょうてきなひょうじょうやぽーずをみやすくはいちしてください。おなじきゃらくたーとしてとういつかんをたもち、せっていしりょうとしてつかいやすいしんぷるなれいあうとにしてください。","tags":["🖼️ 画像","アニメ","女の子"],"image":"assets/media/prompt-pocket-06.webp"},{"key":"expressions","name":"表情差分","prompt":"てんぷしたきゃらくたーがぞうをさんしょうして、おなじきゃらくたーでざいんをいじしたままふくすうのひょうじょうさぶんをさくせいしてください。つうじょう、えがお、うぃんく、てれ、すこしかなしそう、おどろき、むすっとしたひょうじょう、かんがえちゅう、にっこり、ねむそうなど、わかりやすくことなるひょうじょうをならべてください。かみがた、かおだち、いしょう、はいしょくはかえず、かおのひょうじょうだけがしぜんにへんかするようにしてください。","tags":["🖼️ 画像","アニメ","女の子","可愛い"],"image":"assets/media/prompt-pocket-07.webp"}],"style":[{"key":"fantasy-art","name":"幻想アート","prompt":"きょだいなまんげつのしたにひろがる、えいがのようにちょうみつどでげんそうてきなあにめふうのせかい。ながれるようなとうめいかんのあるあおとしろのどれすをまとったわかいじょせいが、はなとつたにおおわれたいせきからこちらへてをのばしている。くろいかみ、りぼん、はなびら、ひかるちょうがよるかぜにただよい、そばにはちいさなしろいねこがいる。おくには、しろ、はし、たき、とう、うかぶしま、みずかがみ、らんたん、すいしょう、てんたいのそうしょくでかざられたひかりかがやくとしがひろがる。あお、むらさき、ぴんく、きんいろのゆめのようなひかりと、ほし、きり、きらめきにつつまれた、おくゆきのあるげんそうてきなふんいき。","tags":["🖼️ 画像","アニメ","ファンタジー","女の子"],"image":"assets/media/prompt-pocket-08.webp"},{"key":"handdrawn","name":"手描きイラスト風","prompt":"あらくいろえんぴつでえがいた、いきいきとしたあにめふうのいらすと。ひざしのあたるまちのかいだんにえがおのしょうじょがすわり、かたほうのてでほおをささえながらまえにみをのりだし、もうかたほうのてをこちらへのばしている。かぜになびくくろいかみ、かじゅあるなしゃつ、でにむしょーつ、ばっぐを、らふでいろあざやかなせんでえがく。てすり、たてもの、でんちゅう、でんせん、しょくぶつ、はな、かんばん、とおくのまちなみをすけっちのようにえがき、あたたかいかみのしつかん、はっちんぐのかげ、ぱすてるちょうのらくがきのようなせんで、えこんてのようないきおいのあるふんいきにする。よめるもじはいれない。","tags":["🖼️ 画像","アニメ","女の子"],"image":"assets/media/prompt-pocket-09.webp"},{"key":"deformed","name":"デフォルメ・マスコット","prompt":"しろいむじのはいけいに、ひとりのかわいらしいでふぉるめされたあにめふうのしょうじょをえがく。ふとくはっきりしたりんかくせん、くっきりしたせるぬり、ぱすてるちょうのはいらいと、つやのあるおおきなひとみ、あざやかでやわらかなはいしょくにする。しょうじょはかたほうのひざをあげてまえにふみだすようにみをのりだし、おおきくえがかれたてでぴーすさいんをこちらへのばし、うぃんくしながらあかるくえがおをみせる。ながれるようなくらいちゃいろのかみにはいろどりのあるはいらいととあわいいろのへあぴんをつける。ゆったりしたしろいしゃつ、だめーじのあるうすあおのでにむしょーつ、べると、ぴんくのさし色がはいったぼりゅーむのあるすにーかー、きんいろのかなぐがついたくらいいろのばっぐをみにつける。","tags":["🖼️ 画像","アニメ","可愛い","女の子"],"image":"assets/media/prompt-pocket-10.webp"}],"arrange":[]};
 sampleCatalog.game=[];sampleCatalog.other=[];
+sampleCatalog.practical.forEach(x=>x.tags=[...new Set([...(x.tags||[]),'実用'])]);
+sampleCatalog.style.forEach(x=>x.tags=[...new Set([...(x.tags||[]),'アレンジ'])]);
+sampleCatalog.practical.push({
+ key:'transparent-cutout',name:'背景を透過（切り抜き）',
+ description:'人物やキャラクターを維持したまま、背景だけを透明にします。',
+ prompt:'添付した画像の人物またはキャラクターを維持したまま、背景だけを完全に透明化してください。顔立ち、髪型、体格、衣装、配色、ポーズは変更しないでください。髪の毛や装飾品などの細かな輪郭を丁寧に切り抜き、白い縁や背景の残りが出ないようにしてください。市松模様を背景として描かず、透明情報を持つPNG画像として出力してください。',
+ tags:['🖼️ 画像','実用'],image:'assets/media/prompt-pocket-11.webp'
+});
+sampleCatalog.other.push(
+ {key:'sns-profile-icons',name:'SNSプロフィールアイコンセット',description:'同じキャラクターで、表情や服装を変えたSNS用アイコンを作ります。',prompt:'添付した画像の人物またはキャラクターの顔立ち、髪型、特徴を維持して、SNSプロフィール用の正方形アイコンセットを作成してください。表情、服装、背景色に変化を付けながら、すべて同じ人物に見えるよう統一してください。小さく表示しても顔が分かる肩から上の構図にし、文字やロゴは入れないでください。',tags:['🖼️ 画像'],image:'assets/media/prompt-pocket-12.webp'},
+ {key:'line-stickers',name:'LINEスタンプセット',description:'文字に頼らず、表情とポーズで伝わるリアクションスタンプを作ります。',prompt:'添付した画像の人物またはキャラクターの顔立ち、髪型、特徴を維持して、日常会話で使いやすいリアクションスタンプのセットを作成してください。喜び、感謝、了解、驚き、困り、応援など、感情がひと目で伝わる表情とポーズにしてください。文字は入れず、各スタンプを独立して切り抜きやすく配置し、背景は透明にしてください。',tags:['🖼️ 画像','可愛い'],image:'assets/media/prompt-pocket-13.webp'},
+ {key:'trading-card',name:'トレーディングカード風',description:'キャラクターを豪華な枠と演出で、レアカード風に仕上げます。',prompt:'添付した画像の人物またはキャラクターの顔立ち、髪型、特徴を維持して、豪華なトレーディングカード風のイラストを作成してください。衣装、ポーズ、背景はキャラクターに合う華やかな演出へ変更し、装飾的なカード枠、光、粒子、希少感のある仕上げを加えてください。読める文字、能力値、ロゴは入れず、キャラクターを主役にしてください。',tags:['🖼️ 画像'],image:'assets/media/prompt-pocket-14.webp'}
+);
 const sampleText={
  'three-view':{description:'同じキャラクターの正面・側面・背面を並べた設定資料を作ります。',prompt:'添付したキャラクター画像を参照して、同じキャラクターの三面図を作成してください。正面・真横・背面の全身を横一列に並べ、髪型、顔立ち、体格、衣装、装飾、配色を統一してください。各方向でデザインが矛盾しないようにし、設定資料として確認しやすいシンプルな背景とレイアウトにしてください。'},
  'character-sheet':{description:'全身・顔・表情・ポーズをまとめたキャラクター設定資料を作ります。',prompt:'添付した画像のキャラクターを参照して、キャラクターシートを作成してください。キャラクターのデザイン、髪型、衣装、装飾、配色などの特徴を維持し、全身図、顔のアップ、代表的な表情やポーズを見やすく配置してください。同じキャラクターとして統一感を保ち、設定資料として使いやすいシンプルなレイアウトにしてください。'},
@@ -1143,11 +1156,11 @@ const sampleText={
 Object.values(sampleCatalog).flat().forEach(x=>Object.assign(x,sampleText[x.key]||{}));
 // TEST45で旧サンプル元から作られた未編集カードだけを、現在のサンプル一覧へ差し替える。
 (()=>{
- const marker='promptPocket.starterSamples.current.v1';if(localStorage.getItem(marker)==='done')return;
+ const marker='promptPocket.starterSamples.current.v2';if(localStorage.getItem(marker)==='done')return;
  const old=items.filter(x=>String(x.id||'').startsWith('starter-')&&x.memo==='サンプルです。自由に編集・削除できます。');
  if(old.length){
   const oldIds=new Set(old.map(x=>x.id));items=items.filter(x=>!oldIds.has(x.id));
-  const groups=[['実用',sampleCatalog.practical||[]],['アレンジ',sampleCatalog.arrange||[]],['その他',[...(sampleCatalog.style||[]),...(sampleCatalog.other||[])]]];
+  const groups=[['実用',sampleCatalog.practical||[]],['アレンジ',[...(sampleCatalog.style||[]),...(sampleCatalog.arrange||[])]],['その他',sampleCatalog.other||[]]];
   const now=Date.now();groups.forEach(([name,samples],gi)=>{let folder=folders.find(f=>f.name===name);if(!folder){folder={id:'starter-folder-'+gi,name,created:now+gi,isNew:false};folders.push(folder)}samples.forEach((source,index)=>items.push({id:'starter-'+source.key,presetKey:source.key,name:source.name,prompt:source.prompt,author:'',xhandle:'',source:'',memo:'サンプルです。自由に編集・削除できます。',tags:source.tags||[],image:source.image||'',folderId:folder.id,fav:false,pinned:false,useCount:0,lastUsed:0,created:now+gi*20+index,updated:now+gi*20+index}));});
   save();saveFolders();
  }
@@ -1172,6 +1185,8 @@ function renderSampleList(){
 function resetSampleSelection(){sampleSelection.clear();samplePending=[];renderSampleList()}
 function openSampleDialog(){sampleSelection.clear();renderSampleList();$('sampleDialog').showModal()}
 $('sampleBtn').onclick=openSampleDialog;
+$('emptyFolderClose').onclick=()=>$('emptyFolderDialog').close();
+$('emptyFolderDialog').addEventListener('cancel',e=>{e.preventDefault();$('emptyFolderDialog').close()});
 $('sampleCategory').onchange=renderSampleList;
 $('sampleExecute').onclick=()=>{
  samplePending=allSamples().filter(x=>sampleSelection.has(x.key));
