@@ -355,6 +355,9 @@ function bindFolderReorder(){
       sx=e.clientX;sy=e.clientY;drag=false;suppressClick=false;
       timer=setTimeout(()=>{
         drag=true;suppressClick=true;row.classList.add('folderDragging');
+        // Folder reordering has its own drag path, so collapse expanded
+        // folders here as well.  The moved folder stays closed after drop.
+        ppCollapseForDrag({row});
         const r=row.getBoundingClientRect();
         ghost=row.cloneNode(true);ghost.className='folder-dnd-ghost';
         ghost.style.width=r.width+'px';ghost.style.left='0px';ghost.style.top='0px';
