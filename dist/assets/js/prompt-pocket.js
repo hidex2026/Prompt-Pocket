@@ -68,8 +68,9 @@ const presetPrompts={
 
 const isFreshInstall=localStorage.getItem(KEY)===null&&localStorage.getItem(LEGACY_KEY)===null;
 let items=JSON.parse(localStorage.getItem(KEY)||localStorage.getItem(LEGACY_KEY)||'[]');
-const APP_VERSION='1.16';
+const APP_VERSION='2.0';
 const VERSION_KEY='promptPocket.lastSeenVersion';
+const DATA_VERSION_KEY='promptPocket.dataVersion';
 const UPDATE_116_NOTICE_KEY='promptPocket.updateNotice.1.16.final';
 const VERSION_HISTORY={
     '1.73':['初回の外部ブラウザ案内を、わかりやすい歓迎画面に変更','現在のバージョン表示とバージョン記録を追加','アップデート内容を更新時に一度だけ表示'],
@@ -147,6 +148,25 @@ function save(){
   catch(err){console.error('Prompt Pocket save failed:',err);alert('データを保存できませんでした。\n画像データなどでブラウザの保存容量が不足している可能性があります。\n画像を小さくしてもう一度お試しください。');return false;}
 }
 function savePrefs(){prefs.customTags=[...customTags];localStorage.setItem(PREF_KEY,JSON.stringify(prefs));}
+function seedStarterFolders(){
+  if(items.length||folders.length)return false;
+  const groups=[['実用',['three-view','character-sheet','expressions']],['アレンジ',['illustration-to-photo','photo-to-illustration','outfit','background','transparent-bg','enhance']],['その他',['fantasy-art','handdrawn','deformed']]];
+  const now=Date.now();
+  groups.forEach(([name,keys],groupIndex)=>{const folder={id:'starter-folder-'+groupIndex,name,created:now+groupIndex,isNew:false};folders.push(folder);keys.forEach((key,index)=>{const source=presetPrompts[key];if(!source)return;items.push({id:'starter-'+key,name:source.name,prompt:source.prompt,author:'',xhandle:'',source:'',memo:'サンプルです。自由に編集・削除できます。',tags:source.tags||[],image:source.image||'',folderId:folder.id,fav:false,pinned:false,useCount:0,lastUsed:0,created:now+groupIndex*20+index,updated:now+groupIndex*20+index});});});
+  save();saveFolders();return true;
+}
+function migrate1xData(){
+  if(localStorage.getItem(DATA_VERSION_KEY)==='2')return;
+  const savedVersion=localStorage.getItem(VERSION_KEY)||'';
+  const hasOldData=items.length>0||folders.length>0||localStorage.getItem(PREF_KEY)!==null;
+  if(hasOldData&&(savedVersion.startsWith('1.')||savedVersion==='')){
+    items=items.map(x=>({...x,folderId:typeof x.folderId==='string'?x.folderId:null}));
+    save();saveFolders();savePrefs();
+    sessionStorage.setItem('promptPocket.migratedFrom1x','1');
+  }
+  localStorage.setItem(DATA_VERSION_KEY,'2');
+}
+migrate1xData();
 
 // Ver.1.0: 見本の初期登録はウェルカム完了時だけ行う。
 // 条件は「通常の初回ウェルカム」かつ「登録0件」。ここでは追加しない。
@@ -968,7 +988,7 @@ bottomNew.onpointerdown=e=>{if(!prefs.shortcutEnabled)return;shortcutFired=false
 bottomNew.addEventListener('contextmenu',e=>{if(prefs.shortcutEnabled)e.preventDefault()});
 function closeEditor(){ $('editor').close();document.body.classList.remove('editor-open') }
 $('cancelBtn').onclick=closeEditor;$('editorCloseBtn').onclick=closeEditor;$('search').oninput=render;$('sort').onchange=()=>{randomOrder=[];if(prefs.rememberOps){prefs.sort=$('sort').value;savePrefs()}render()};$('clearFilters').onclick=()=>{$('search').value='';filterTags.clear();render()};$('undoBtn').onclick=()=>{if(!undoState)return;if(!confirm('前の状態に戻しますか？\n\n直前の操作を取り消して、前の状態に戻します。'))return;const current=structuredClone(items);items=structuredClone(undoState.items);undoState={label:'元に戻す前の状態',items:current};save();render();toast('前の状態に戻しました')};
-$('deleteAllBtn').onclick=()=>{const n=items.length;if(!confirm(`⚠️ Prompt Pocketのデータをすべてリセットします。\n\n登録プロンプト ${n}件、フォルダ、表示設定・カスタムタグも初期化されます。\nこの操作は元に戻せません。\n続けますか？`))return;if(!confirm(`最終確認\n本当にすべてのデータをリセットしますか？\nリセット後は「（見本）雨上がりの少女」だけが復帰します。`))return;localStorage.removeItem(KEY);localStorage.removeItem(LEGACY_KEY);localStorage.removeItem(FOLDER_KEY);localStorage.removeItem(PREF_KEY);localStorage.removeItem('promptPocket.columnWidths.v1');items=[];folders=[];undoState=null;customTags.clear();prefs={view:'card',welcomed:false,tagOrder:[],hiddenTags:[],rememberOps:false,shortcutEnabled:true,longPressMainActionsEnabled:false,shortcutDelay:800,customTags:[]};addWelcomeSample();save();savePrefs();render();toast('全データをリセットし、見本プロンプトを復帰しました')};
+$('deleteAllBtn').onclick=()=>{const n=items.length;if(!confirm(`⚠️ Prompt Pocketのデータをすべてリセットします。\n\n登録プロンプト ${n}件、フォルダ、表示設定・カスタムタグも初期化されます。\nこの操作は元に戻せません。\n続けますか？`))return;if(!confirm(`最終確認\n本当にすべてのデータをリセットしますか？\nリセット後はサンプルフォルダが復帰します。`))return;localStorage.removeItem(KEY);localStorage.removeItem(LEGACY_KEY);localStorage.removeItem(FOLDER_KEY);localStorage.removeItem(PREF_KEY);localStorage.removeItem('promptPocket.columnWidths.v1');items=[];folders=[];undoState=null;customTags.clear();prefs={view:'card',welcomed:false,tagOrder:[],hiddenTags:[],rememberOps:false,shortcutEnabled:true,longPressMainActionsEnabled:false,shortcutDelay:800,customTags:[]};seedStarterFolders();savePrefs();render();toast('全データをリセットし、サンプルフォルダを復帰しました')};
 $('deleteAllBtn').addEventListener('click',()=>document.body.classList.toggle('buttonGlowEnabled',!!prefs.buttonGlowEnabled));
 $('addTagBtn').onclick=()=>{const t=$('customTag').value.trim();if(!t)return;customTags.add(t);prefs.hiddenTags=prefs.hiddenTags.filter(x=>x!==t);if(!prefs.tagOrder.includes(t))prefs.tagOrder.push(t);selectedTags.add(t);activeTagForManage=t;$('customTag').value='';savePrefs();renderTagChoices()};
 $('deleteTagBtn').onclick=()=>{const tag=activeTagForManage;if(!tag)return;const count=items.filter(x=>(x.tags||[]).includes(tag)).length;if(!confirm(`タグ「${tag}」は${count}件で使用されています。
@@ -990,6 +1010,7 @@ function loadImageFile(f){
       c.getContext('2d').drawImage(img,0,0,w,h);
       imageData=c.toDataURL('image/jpeg',0.70);
       updatePreview();
+      toast('画像を軽量化して保存します');
     };
     img.onerror=()=>alert('画像を読み込めませんでした。');
     img.src=r.result;
@@ -1177,7 +1198,7 @@ $('welcomeStart').onclick=()=>{
   // Ver.1.0: 通常の初回ウェルカム + 登録0件のときだけ見本を1件登録する。
   // デバッグ強制ウェルカムや既存データがある場合は絶対に初期化しない。
   const shouldSeed=!welcomeIsDebug&&!prefs.welcomed&&items.length===0;
-  if(shouldSeed&&addWelcomeSample()) save();
+  if(shouldSeed)seedStarterFolders();
   prefs.welcomed=true;savePrefs();$('welcomeDialog').close();
   welcomeIsDebug=false;
   // ダイアログを閉じた後のDOM状態で再描画し、初回からカードを確実に表示する。
@@ -1277,6 +1298,7 @@ syncStickyHeaderHeight();
 setTimeout(()=>{syncStickyHeaderHeight();updateCardJumpNav()},0);
 
 prefs.view='detail';if(prefs.rememberOps&&prefs.sort)$('sort').value=prefs.sort;else $('sort').value='manual';
+if(sessionStorage.getItem('promptPocket.migratedFrom1x')==='1')setTimeout(()=>{sessionStorage.removeItem('promptPocket.migratedFrom1x');toast('保存されていたバージョン1.xxのデータを、バージョン2.xx用に移行しました。')},250);
 if(!prefs.welcomed)setTimeout(()=>{
   if(!window.__ppExternalGuideActive && !$('externalBrowserGuide')?.open){
     const debugForced=sessionStorage.getItem('promptPocket.debugWelcome')==='1';
