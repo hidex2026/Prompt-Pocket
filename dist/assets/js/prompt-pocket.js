@@ -257,7 +257,8 @@ function initColumnResize(){
   });
 }
 
-function getOpenDetailIds(){return [...document.querySelectorAll('.rowDetail:not(.hidden)')].map(r=>r.id.replace('rowDetail-',''))}function restoreOpenDetails(ids){ids.forEach(id=>$('rowDetail-'+id)?.classList.remove('hidden'))}function renderKeepingDetails(){const open=getOpenDetailIds();render();restoreOpenDetails(open)}
+function updatePromptOverflow(detail){requestAnimationFrame(()=>{const p=detail?.querySelector('.unifiedPrompt');if(p)p.classList.toggle('hasOverflow',p.scrollHeight>p.clientHeight+1)})}
+function getOpenDetailIds(){return [...document.querySelectorAll('.rowDetail:not(.hidden)')].map(r=>r.id.replace('rowDetail-',''))}function restoreOpenDetails(ids){ids.forEach(id=>{const detail=$('rowDetail-'+id);detail?.classList.remove('hidden');updatePromptOverflow(detail)})}function renderKeepingDetails(){const open=getOpenDetailIds();render();restoreOpenDetails(open)}
 function saveManualOrderFromRows(){
   prefs.manualOrder=[...document.querySelectorAll('.unifiedRow')].map(r=>r.dataset.row);
   prefs.sort='manual';
@@ -804,7 +805,10 @@ function ppDrop(e){
 }
 
 function toggleCardDetail(row){
-  $('rowDetail-'+row.dataset.row)?.classList.toggle('hidden');
+  const detail=$('rowDetail-'+row.dataset.row);
+  if(!detail)return;
+  detail.classList.toggle('hidden');
+  if(!detail.classList.contains('hidden'))updatePromptOverflow(detail);
 }
 function bindCardPrimaryInteractions(row,area){
   let lastClick=0,lastClickX=0,lastClickY=0;
@@ -1016,15 +1020,12 @@ $('deleteBtn').onclick=()=>{const id=$('editId').value;if(!id)return;const x=ite
 
 let optionPrefsDraft=null;
 const openOptions=()=>{optionPrefsDraft=structuredClone(prefs);$('rememberOps').checked=!!optionPrefsDraft.rememberOps;$('shortcutEnabled').checked=!!optionPrefsDraft.shortcutEnabled;$('longPressMainActionsEnabled').checked=!!optionPrefsDraft.longPressMainActionsEnabled;$('shortcutDelay').value=String(optionPrefsDraft.shortcutDelay||800);$('shortcutDelay').disabled=!(optionPrefsDraft.shortcutEnabled||optionPrefsDraft.longPressMainActionsEnabled);$('optionDialog').showModal()};
-let searchRevealTimer=null;
 function openSearchKeepingScroll(){
   const panel=$('searchPanel');
   panel.classList.remove('hidden');
   panel.classList.remove('searchRevealed');
   void panel.offsetWidth;
   panel.classList.add('searchRevealed');
-  clearTimeout(searchRevealTimer);
-  searchRevealTimer=setTimeout(()=>panel.classList.remove('searchRevealed'),1600);
   requestAnimationFrame(()=>{
     panel.scrollIntoView({behavior:'smooth',block:'center'});
     setTimeout(()=>{try{$('search').focus({preventScroll:true})}catch{$('search').focus()}},220);
@@ -1168,10 +1169,10 @@ $('sampleDialog').addEventListener('cancel',e=>{e.preventDefault();closeSampleDi
 
 const toggleSearchPanel=()=>{
   if($('searchPanel').classList.contains('hidden'))openSearchKeepingScroll();
-  else $('searchPanel').classList.add('hidden');
+  else openSearchKeepingScroll();
 };
 $('searchToggleBtn').onclick=()=>toggleSearchPanel();
-$('closeSearch').onclick=()=>$('searchPanel').classList.add('hidden');
+$('closeSearch').onclick=()=>{$('searchPanel').classList.add('hidden');$('searchPanel').classList.remove('searchRevealed')};
 const openMainHelp=()=>{$('simpleHelp').classList.remove('hidden');$('detailHelp').classList.add('hidden');$('usefulHelp').classList.add('hidden');$('helpTitle').textContent='Help';$('helpDialog').showModal()};
 $('helpBtn').onclick=()=>openMainHelp();
 $('helpClose').onclick=()=>$('helpDialog').close();
