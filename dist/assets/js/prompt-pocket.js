@@ -217,6 +217,7 @@ function fmt(ts){return new Date(ts).toLocaleString('ja-JP',{year:'numeric',mont
 function sortList(list){const s=$('sort').value;if(s==='manual'){const order=Array.isArray(prefs.manualOrder)?prefs.manualOrder:[];list.sort((a,b)=>{const ai=order.indexOf(a.id),bi=order.indexOf(b.id);if(ai<0&&bi<0)return b.created-a.created;if(ai<0)return 1;if(bi<0)return -1;return ai-bi});}else if(s==='createdAsc')list.sort((a,b)=>a.created-b.created);else if(s==='updatedDesc')list.sort((a,b)=>b.updated-a.updated);else if(s==='nameAsc')list.sort((a,b)=>a.name.localeCompare(b.name,'ja'));else if(s==='nameDesc')list.sort((a,b)=>b.name.localeCompare(a.name,'ja'));else if(s==='authorAsc')list.sort((a,b)=>(a.author||'').localeCompare(b.author||'','ja'));else if(s==='fav')list.sort((a,b)=>(b.fav?1:0)-(a.fav?1:0)||b.created-a.created);else if(s==='recentUsed')list.sort((a,b)=>(b.lastUsed||0)-(a.lastUsed||0)||b.created-a.created);else if(s==='mostUsed')list.sort((a,b)=>(b.useCount||0)-(a.useCount||0)||b.created-a.created);else if(s==='random'){if(randomOrder.length!==items.length) randomOrder=[...items].sort(()=>Math.random()-.5).map(x=>x.id);list.sort((a,b)=>randomOrder.indexOf(a.id)-randomOrder.indexOf(b.id));}else list.sort((a,b)=>b.created-a.created);if(detailFavSort&&prefs.view==='detail')list.sort((a,b)=>(b.fav?1:0)-(a.fav?1:0));list.sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0));return list;}
 function actionButtons(x){return `<button data-copy="${x.id}">📋 コピー</button><button data-edit="${x.id}">✏️ 編集</button><button data-duplicate="${x.id}">📄 複製</button><button class="dangerMini" data-delete="${x.id}">🗑️ 削除</button>${x.source?`<button data-source="${x.id}">出典</button>`:''}`;}
 function render(){
+  document.querySelector('.folderPopupPortal')?.remove();
   prefs.view='detail';
   renderFilters();
   const q=$('search').value.toLowerCase().trim();
@@ -426,18 +427,29 @@ function bindFolderActions(){
   });
   document.querySelectorAll('[data-folder-menu-toggle]').forEach(b=>b.onclick=e=>{
     e.stopPropagation();
-    const wrap=b.closest('.detailMenuWrap'),menu=wrap?.querySelector('.detailPopupMenu');
-    document.querySelectorAll('.detailPopupMenu').forEach(m=>{if(m!==menu){m.classList.add('hidden');m.classList.remove('openUp')}});
-    if(!menu)return;
-    const opening=menu.classList.contains('hidden');
-    menu.classList.toggle('hidden');
-    menu.classList.remove('openUp');
-    if(opening){
-      const r=menu.getBoundingClientRect();
-      const bottomNav=document.querySelector('.bottomnav');
-      const safeBottom=bottomNav?Math.min(window.innerHeight,bottomNav.getBoundingClientRect().top):window.innerHeight;
-      if(r.bottom>safeBottom-8&&wrap.getBoundingClientRect().top-r.height-5>8)menu.classList.add('openUp');
-    }
+    const sourceMenu=b.closest('.detailMenuWrap')?.querySelector('.detailPopupMenu');
+    if(!sourceMenu)return;
+    const current=document.querySelector('.folderPopupPortal');
+    if(current?.dataset.folderPopupFor===b.dataset.folderMenuToggle){current.remove();return}
+    current?.remove();
+    const portal=sourceMenu.cloneNode(true);
+    portal.className='folderPopupPortal';
+    portal.dataset.folderPopupFor=b.dataset.folderMenuToggle;
+    portal.querySelectorAll('[id]').forEach(el=>el.removeAttribute('id'));
+    document.body.appendChild(portal);
+    portal.querySelectorAll('[data-folder-rename],[data-folder-delete]').forEach(action=>action.onclick=ev=>{
+      ev.stopPropagation();
+      const selector=action.hasAttribute('data-folder-rename')?'[data-folder-rename]':'[data-folder-delete]';
+      portal.remove();sourceMenu.querySelector(selector)?.click();
+    });
+    const buttonRect=b.getBoundingClientRect(),menuRect=portal.getBoundingClientRect();
+    const bottomNav=document.querySelector('.bottomnav');
+    const safeBottom=bottomNav?Math.min(window.innerHeight,bottomNav.getBoundingClientRect().top):window.innerHeight;
+    const width=Math.max(170,menuRect.width),height=menuRect.height;
+    const left=Math.max(8,Math.min(window.innerWidth-width-8,buttonRect.right-width));
+    const roomBelow=safeBottom-buttonRect.bottom-5;
+    const top=roomBelow>=height?buttonRect.bottom+5:Math.max(8,buttonRect.top-height-5);
+    portal.style.left=left+'px';portal.style.top=top+'px';portal.style.width=width+'px';
   });
   document.querySelectorAll('[data-folder-rename]').forEach(b=>b.onclick=()=>{
     const f=folderById(b.dataset.folderRename);if(!f)return;
@@ -536,6 +548,7 @@ function ppBegin(row,x,y,source=row,pcMode=false){
 }
 
 function ppCollapseForDrag(st){
+  document.querySelector('.folderPopupPortal')?.remove();
   const sourceFolderId=st.row.classList.contains('folderChildRow')?st.row.dataset.folderChild:null;
 
   // Details and popup menus must not keep occupying space while a card or
@@ -645,6 +658,10 @@ function ppRootRows(exclude=null){
     .filter(row=>row!==exclude);
 }
 function ppRootKey(row){return row.dataset.folder?'folder:'+row.dataset.folder:row.dataset.row}
+function ppLineAfterRootRow(row){
+  const roots=ppRootRows(null),at=roots.indexOf(row),next=at>=0?roots[at+1]:null;
+  return {kind:'line',y:ppGroupBottom(row),beforeKey:next?ppRootKey(next):null};
+}
 function ppGroupBottom(row){
   let bottom=row.getBoundingClientRect().bottom;
   let next=row.nextElementSibling;
@@ -727,7 +744,13 @@ function ppCardInsertion(st,x,y){
     if(draggedCard?.folderId===folder.dataset.folder){
       return {kind:'line',y:r.top,beforeKey:'folder:'+folder.dataset.folder};
     }
+    // A folder has three deliberate drop zones: above line, folder body, and
+    // below line.  Judge them from the ghost's TOP edge (the visible insertion
+    // reference), not the finger position, which changes with the hold point.
     const ghostTop=y-st.offsetY;
+    const edge=Math.max(18,Math.min(30,r.height*.32));
+    if(Math.abs(ghostTop-r.top)<=edge)return {kind:'line',y:r.top,beforeKey:'folder:'+folder.dataset.folder};
+    if(Math.abs(ghostTop-r.bottom)<=edge)return ppLineAfterRootRow(folder);
     const ghostBottom=ghostTop+st.ghostHeight;
     const overlap=Math.max(0,Math.min(ghostBottom,r.bottom)-Math.max(ghostTop,r.top));
     // Enter when the ghost visibly overlaps the folder.  Only a thin band at
@@ -1056,7 +1079,10 @@ document.addEventListener('selectstart',e=>{if(e.target.closest?.('.unifiedDragA
 document.addEventListener('contextmenu',e=>{if(e.target.closest?.('.unifiedDragArea, .folderInteractArea, [data-menu-toggle], .folderMenuBtn'))e.preventDefault()},true);
 document.addEventListener('dragstart',e=>{if(e.target.closest?.('.unifiedDragArea, .folderInteractArea, [data-menu-toggle], .folderMenuBtn'))e.preventDefault()},true);
 
-document.addEventListener('click',e=>{if(!e.target.closest('.detailMenuWrap'))document.querySelectorAll('.detailPopupMenu').forEach(m=>m.classList.add('hidden'))});
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.detailMenuWrap'))document.querySelectorAll('.detailPopupMenu').forEach(m=>m.classList.add('hidden'));
+  if(!e.target.closest('.folderPopupPortal,[data-folder-menu-toggle]'))document.querySelector('.folderPopupPortal')?.remove();
+});
 function openEditor(x=null){$('form').reset();editorTagDraft={customTags:new Set(customTags),hiddenTags:[...(prefs.hiddenTags||[])],tagOrder:[...(prefs.tagOrder||[])],deletedTags:new Set()};selectedTags=new Set(x?.tags||[]);activeTagForManage='';imageData=x?.image||'';$('editId').value=x?.id||'';$('dialogTitle').textContent=x?'プロンプトを編集':'プロンプトを登録';['name','prompt','author','xhandle','source','memo'].forEach(k=>$(k).value=x?.[k]||'');updatePreview();renderTagChoices();document.body.classList.add('editor-open');$('editor').showModal();}
 function updatePreview(){$('imagePreview').classList.toggle('hidden',!imageData);$('imagePreview').innerHTML=imageData?`<img src="${imageData}" alt="">`:'';}
 function deleteItem(id){const x=items.find(i=>i.id===id);if(!x)return;if(confirm(`「${x.name}」を削除しますか？\nこの操作は「戻す」で復元できます。`)){snapshot('削除');items=items.filter(i=>i.id!==id);save();render();toast('削除しました')}}
