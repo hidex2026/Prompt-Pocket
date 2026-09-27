@@ -115,10 +115,13 @@ prefs.tagOrder=Array.isArray(prefs.tagOrder)?prefs.tagOrder:[];
 prefs.hiddenTags=Array.isArray(prefs.hiddenTags)?prefs.hiddenTags:[];
 prefs.rememberOps=!!prefs.rememberOps;
 prefs.shortcutEnabled=Object.prototype.hasOwnProperty.call(prefs,'shortcutEnabled')?!!prefs.shortcutEnabled:true;
-// TEST34: 個別の検索/ヘルプ長押し設定を廃止し、ボタン共通設定へ移行。
-prefs.longPressAllButtonsEnabled=Object.prototype.hasOwnProperty.call(prefs,'longPressAllButtonsEnabled')
-  ?!!prefs.longPressAllButtonsEnabled
-  :(!!prefs.longPressHelpEnabled||!!prefs.longPressSearchEnabled);
+// TEST34: 検索とヘルプだけを誤タッチ防止の長押し対象にする。
+prefs.longPressMainActionsEnabled=Object.prototype.hasOwnProperty.call(prefs,'longPressMainActionsEnabled')
+  ?!!prefs.longPressMainActionsEnabled
+  :(Object.prototype.hasOwnProperty.call(prefs,'longPressAllButtonsEnabled')
+    ?!!prefs.longPressAllButtonsEnabled
+    :(!!prefs.longPressHelpEnabled||!!prefs.longPressSearchEnabled));
+delete prefs.longPressAllButtonsEnabled;
 delete prefs.longPressHelpEnabled;
 delete prefs.longPressSearchEnabled;
 prefs.shortcutDelay=[500,800,1000].includes(Number(prefs.shortcutDelay))?Number(prefs.shortcutDelay):800;
@@ -949,7 +952,7 @@ bottomNew.onpointerdown=e=>{if(!prefs.shortcutEnabled)return;shortcutFired=false
 bottomNew.addEventListener('contextmenu',e=>{if(prefs.shortcutEnabled)e.preventDefault()});
 function closeEditor(){ $('editor').close();document.body.classList.remove('editor-open') }
 $('cancelBtn').onclick=closeEditor;$('editorCloseBtn').onclick=closeEditor;$('search').oninput=render;$('sort').onchange=()=>{randomOrder=[];if(prefs.rememberOps){prefs.sort=$('sort').value;savePrefs()}render()};$('clearFilters').onclick=()=>{$('search').value='';filterTags.clear();render()};$('undoBtn').onclick=()=>{if(!undoState)return;if(!confirm('前の状態に戻しますか？\n\n直前の操作を取り消して、前の状態に戻します。'))return;const current=structuredClone(items);items=structuredClone(undoState.items);undoState={label:'元に戻す前の状態',items:current};save();render();toast('前の状態に戻しました')};
-$('deleteAllBtn').onclick=()=>{const n=items.length;if(!confirm(`⚠️ Prompt Pocketのデータをすべてリセットします。\n\n登録プロンプト ${n}件に加えて、表示設定・カスタムタグも初期化されます。\nこの操作は元に戻せません。\n続けますか？`))return;if(!confirm(`最終確認\n本当にすべてのデータをリセットしますか？\nリセット後は「（見本）雨上がりの少女」だけが復帰します。`))return;localStorage.removeItem(KEY);localStorage.removeItem(LEGACY_KEY);localStorage.removeItem(PREF_KEY);localStorage.removeItem('promptPocket.columnWidths.v1');items=[];undoState=null;customTags.clear();prefs={view:'card',welcomed:false,tagOrder:[],hiddenTags:[],rememberOps:false,shortcutEnabled:true,longPressAllButtonsEnabled:false,shortcutDelay:800,customTags:[]};addWelcomeSample();save();savePrefs();render();toast('全データをリセットし、見本プロンプトを復帰しました')};
+$('deleteAllBtn').onclick=()=>{const n=items.length;if(!confirm(`⚠️ Prompt Pocketのデータをすべてリセットします。\n\n登録プロンプト ${n}件に加えて、表示設定・カスタムタグも初期化されます。\nこの操作は元に戻せません。\n続けますか？`))return;if(!confirm(`最終確認\n本当にすべてのデータをリセットしますか？\nリセット後は「（見本）雨上がりの少女」だけが復帰します。`))return;localStorage.removeItem(KEY);localStorage.removeItem(LEGACY_KEY);localStorage.removeItem(PREF_KEY);localStorage.removeItem('promptPocket.columnWidths.v1');items=[];undoState=null;customTags.clear();prefs={view:'card',welcomed:false,tagOrder:[],hiddenTags:[],rememberOps:false,shortcutEnabled:true,longPressMainActionsEnabled:false,shortcutDelay:800,customTags:[]};addWelcomeSample();save();savePrefs();render();toast('全データをリセットし、見本プロンプトを復帰しました')};
 $('addTagBtn').onclick=()=>{const t=$('customTag').value.trim();if(!t)return;customTags.add(t);prefs.hiddenTags=prefs.hiddenTags.filter(x=>x!==t);if(!prefs.tagOrder.includes(t))prefs.tagOrder.push(t);selectedTags.add(t);activeTagForManage=t;$('customTag').value='';savePrefs();renderTagChoices()};
 $('deleteTagBtn').onclick=()=>{const tag=activeTagForManage;if(!tag)return;const count=items.filter(x=>(x.tags||[]).includes(tag)).length;if(!confirm(`タグ「${tag}」は${count}件で使用されています。
 削除すると、これらのプロンプトからこのタグだけが削除されます。
@@ -1001,8 +1004,8 @@ $('form').onsubmit=e=>{e.preventDefault();const id=$('editId').value||crypto.ran
 $('deleteBtn').onclick=()=>{const id=$('editId').value;if(!id)return;const x=items.find(i=>i.id===id);if(x&&confirm(`「${x.name}」を削除しますか？\nこの操作は「戻す」で復元できます。`)){snapshot('削除');items=items.filter(i=>i.id!==id);save();$('editor').close();document.body.classList.remove('editor-open');render();toast('削除しました')}};
 
 
-let optionPrefsBackup=null;
-const openOptions=()=>{optionPrefsBackup=structuredClone(prefs);$('rememberOps').checked=!!prefs.rememberOps;$('shortcutEnabled').checked=!!prefs.shortcutEnabled;$('longPressAllButtonsEnabled').checked=!!prefs.longPressAllButtonsEnabled;$('shortcutDelay').value=String(prefs.shortcutDelay||800);$('shortcutDelay').disabled=!(prefs.shortcutEnabled||prefs.longPressAllButtonsEnabled);$('optionDialog').showModal()};
+let optionPrefsDraft=null;
+const openOptions=()=>{optionPrefsDraft=structuredClone(prefs);$('rememberOps').checked=!!optionPrefsDraft.rememberOps;$('shortcutEnabled').checked=!!optionPrefsDraft.shortcutEnabled;$('longPressMainActionsEnabled').checked=!!optionPrefsDraft.longPressMainActionsEnabled;$('shortcutDelay').value=String(optionPrefsDraft.shortcutDelay||800);$('shortcutDelay').disabled=!(optionPrefsDraft.shortcutEnabled||optionPrefsDraft.longPressMainActionsEnabled);$('optionDialog').showModal()};
 function openSearchKeepingScroll(){
   const y=window.scrollY||document.documentElement.scrollTop;
   $('searchPanel').classList.remove('hidden');
@@ -1011,66 +1014,67 @@ function openSearchKeepingScroll(){
 }
 $('viewOptionBtn').onclick=openOptions;
 
-/* TEST34: 「＋追加」以外のすべての button を、設定ON時だけ共通の長押し操作にする。
+/* TEST34: 設定ON時はメイン画面の検索・ヘルプだけを長押し操作にする。
    キーボード操作やコードからの .click() は従来どおり通し、実際のポインター短押しだけ抑止する。 */
-let ppAllButtonHold=null;
+let ppMainActionHold=null;
 function ppLongPressTarget(target){
   const btn=target?.closest?.('button');
-  if(!btn||btn.disabled||btn.id==='bottomNew')return null;
+  if(!btn||btn.disabled||!['searchMobile','searchToggleBtn','helpMobile','helpBtn'].includes(btn.id))return null;
   return btn;
 }
-function ppCancelAllButtonHold(){
-  if(!ppAllButtonHold)return;
-  clearTimeout(ppAllButtonHold.timer);
-  ppAllButtonHold=null;
+function ppCancelMainActionHold(){
+  if(!ppMainActionHold)return;
+  clearTimeout(ppMainActionHold.timer);
+  ppMainActionHold=null;
 }
 document.addEventListener('pointerdown',e=>{
-  if(!prefs.longPressAllButtonsEnabled)return;
+  if(!prefs.longPressMainActionsEnabled)return;
   if(e.pointerType==='mouse'&&e.button!==0)return;
   const btn=ppLongPressTarget(e.target);
   if(!btn)return;
-  ppCancelAllButtonHold();
+  ppCancelMainActionHold();
   const st={btn,pointerId:e.pointerId,x:e.clientX,y:e.clientY,timer:null};
   st.timer=setTimeout(()=>{
-    if(ppAllButtonHold!==st)return;
-    ppAllButtonHold=null;
+    if(ppMainActionHold!==st)return;
+    ppMainActionHold=null;
     if(btn.isConnected&&!btn.disabled)btn.click();
   },Number(prefs.shortcutDelay)||800);
-  ppAllButtonHold=st;
+  ppMainActionHold=st;
 },true);
 document.addEventListener('pointermove',e=>{
-  const st=ppAllButtonHold;
+  const st=ppMainActionHold;
   if(!st||e.pointerId!==st.pointerId)return;
-  if(Math.hypot(e.clientX-st.x,e.clientY-st.y)>12)ppCancelAllButtonHold();
+  if(Math.hypot(e.clientX-st.x,e.clientY-st.y)>12)ppCancelMainActionHold();
 },true);
 ['pointerup','pointercancel'].forEach(type=>document.addEventListener(type,e=>{
-  if(ppAllButtonHold&&e.pointerId===ppAllButtonHold.pointerId)ppCancelAllButtonHold();
+  if(ppMainActionHold&&e.pointerId===ppMainActionHold.pointerId)ppCancelMainActionHold();
 },true));
 document.addEventListener('click',e=>{
-  if(!prefs.longPressAllButtonsEnabled||e.detail===0)return;
+  if(!prefs.longPressMainActionsEnabled||e.detail===0)return;
   const btn=ppLongPressTarget(e.target);
   if(!btn)return;
   e.preventDefault();
   e.stopImmediatePropagation();
 },true);
 document.addEventListener('contextmenu',e=>{
-  if(!prefs.longPressAllButtonsEnabled)return;
+  if(!prefs.longPressMainActionsEnabled)return;
   if(ppLongPressTarget(e.target))e.preventDefault();
 },true);
-/* TEST34: 検索/ヘルプの個別長押しは廃止。通常動作を共通長押しゲートに通す。 */
 $('searchMobile').onclick=()=>openSearchKeepingScroll();
 $('helpMobile').onclick=()=>openMainHelp();
 
-$('optionSave').onclick=()=>{optionPrefsBackup=null;$('optionDialog').close();toast('オプションを保存しました')};
-$('optionCancel').onclick=()=>{if(optionPrefsBackup){prefs=structuredClone(optionPrefsBackup);savePrefs();detailFavSort=!!prefs.detailFavSort;render()}optionPrefsBackup=null;$('optionDialog').close()};
-$('deleteAllMobile').onclick=()=>{$('optionDialog').close();$('deleteAllBtn').click()};$('rememberOps').onchange=e=>{prefs.rememberOps=e.target.checked;if(prefs.rememberOps){prefs.view=prefs.view||'card';prefs.sort=$('sort').value;prefs.detailFavSort=detailFavSort}else{delete prefs.sort;delete prefs.detailFavSort;detailFavSort=false}savePrefs();toast(prefs.rememberOps?'操作状態を記憶します':'操作状態の記憶をOFFにしました')};
-$('shortcutEnabled').onchange=e=>{prefs.shortcutEnabled=e.target.checked;$('shortcutDelay').disabled=!(prefs.shortcutEnabled||prefs.longPressAllButtonsEnabled);savePrefs();toast(prefs.shortcutEnabled?'長押しショートカットをONにしました':'長押しショートカットをOFFにしました')};$('longPressAllButtonsEnabled').onchange=e=>{prefs.longPressAllButtonsEnabled=e.target.checked;$('shortcutDelay').disabled=!(prefs.shortcutEnabled||prefs.longPressAllButtonsEnabled);savePrefs();toast(prefs.longPressAllButtonsEnabled?'ボタンを長押しで実行します':'ボタンは通常タップで実行します')};
-$('shortcutDelay').onchange=e=>{prefs.shortcutDelay=Number(e.target.value)||800;savePrefs();toast('長押し時間を変更しました')};
+$('optionSave').onclick=()=>{if(optionPrefsDraft){prefs=structuredClone(optionPrefsDraft);if(prefs.rememberOps){prefs.view=prefs.view||'card';prefs.sort=$('sort').value;prefs.detailFavSort=detailFavSort}else{delete prefs.sort;delete prefs.detailFavSort;detailFavSort=false}savePrefs()}optionPrefsDraft=null;$('optionDialog').close();toast('オプションを保存しました')};
+$('optionCancel').onclick=()=>{optionPrefsDraft=null;$('optionDialog').close()};
+$('deleteAllMobile').onclick=()=>{$('optionDialog').close();$('deleteAllBtn').click()};
+$('rememberOps').onchange=e=>{if(optionPrefsDraft)optionPrefsDraft.rememberOps=e.target.checked};
+$('shortcutEnabled').onchange=e=>{if(optionPrefsDraft)optionPrefsDraft.shortcutEnabled=e.target.checked;$('shortcutDelay').disabled=!(e.target.checked||$('longPressMainActionsEnabled').checked)};
+$('longPressMainActionsEnabled').onchange=e=>{if(optionPrefsDraft)optionPrefsDraft.longPressMainActionsEnabled=e.target.checked;$('shortcutDelay').disabled=!($('shortcutEnabled').checked||e.target.checked)};
+$('shortcutDelay').onchange=e=>{if(optionPrefsDraft)optionPrefsDraft.shortcutDelay=Number(e.target.value)||800};
 $('optionDialog').addEventListener('cancel',e=>{e.preventDefault();$('optionCancel').click()});
 
 $('exportBtn').onclick=()=>{syncTagOrder();const data={app:'Prompt Pocket',version:APP_VERSION,exportedAt:new Date().toISOString(),items,folders,prefs,customTags:[...customTags]};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`prompt-pocket-backup-${new Date().toISOString().slice(0,10)}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast('バックアップを保存しました')};
 $('importBtn').onclick=()=>$('importFile').click();
-$('importFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const data=JSON.parse(await f.text());const restored=Array.isArray(data)?data:data.items;if(!Array.isArray(restored))throw new Error();const ok=confirm(`⚠️ データを読み込みますか？\n\n現在保存されている${items.length}件のデータは削除され、読み込んだ${restored.length}件のデータに置き換わります。\nこの操作は元に戻せません。`);if(!ok)return;items=restored;folders=Array.isArray(data.folders)?data.folders:[];normalize();if(data.prefs&&typeof data.prefs==='object'){prefs={...prefs,...data.prefs};prefs.tagOrder=Array.isArray(prefs.tagOrder)?prefs.tagOrder:[];prefs.hiddenTags=Array.isArray(prefs.hiddenTags)?prefs.hiddenTags:[];if(!Object.prototype.hasOwnProperty.call(data.prefs,'longPressAllButtonsEnabled'))prefs.longPressAllButtonsEnabled=!!data.prefs.longPressHelpEnabled||!!data.prefs.longPressSearchEnabled;else prefs.longPressAllButtonsEnabled=!!data.prefs.longPressAllButtonsEnabled;delete prefs.longPressHelpEnabled;delete prefs.longPressSearchEnabled;}customTags=new Set(Array.isArray(data.customTags)?data.customTags:[]);prefs.customTags=[...customTags];undoState=null;save();saveFolders();savePrefs();$('optionDialog').close();render();toast('データを復元しました')}catch{alert('このデータファイルは読み込めませんでした。')}finally{e.target.value=''}};
+$('importFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const data=JSON.parse(await f.text());const restored=Array.isArray(data)?data:data.items;if(!Array.isArray(restored))throw new Error();const ok=confirm(`⚠️ データを読み込みますか？\n\n現在保存されている${items.length}件のデータは削除され、読み込んだ${restored.length}件のデータに置き換わります。\nこの操作は元に戻せません。`);if(!ok)return;items=restored;folders=Array.isArray(data.folders)?data.folders:[];normalize();if(data.prefs&&typeof data.prefs==='object'){prefs={...prefs,...data.prefs};prefs.tagOrder=Array.isArray(prefs.tagOrder)?prefs.tagOrder:[];prefs.hiddenTags=Array.isArray(prefs.hiddenTags)?prefs.hiddenTags:[];prefs.longPressMainActionsEnabled=Object.prototype.hasOwnProperty.call(data.prefs,'longPressMainActionsEnabled')?!!data.prefs.longPressMainActionsEnabled:(Object.prototype.hasOwnProperty.call(data.prefs,'longPressAllButtonsEnabled')?!!data.prefs.longPressAllButtonsEnabled:(!!data.prefs.longPressHelpEnabled||!!data.prefs.longPressSearchEnabled));delete prefs.longPressAllButtonsEnabled;delete prefs.longPressHelpEnabled;delete prefs.longPressSearchEnabled;}customTags=new Set(Array.isArray(data.customTags)?data.customTags:[]);prefs.customTags=[...customTags];undoState=null;save();saveFolders();savePrefs();$('optionDialog').close();render();toast('データを復元しました')}catch{alert('このデータファイルは読み込めませんでした。')}finally{e.target.value=''}};
 
 
 /* TEST41: 正式サンプル管理 */

@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#ffffff">
-  <title>Prompt Pocket PP_v1.9_TEST33</title>
+  <title>Prompt Pocket PP_v1.9_TEST34</title>
   <!--
   Prompt Pocket ver.1.9 / FOLDER TEST1
   Folder feature baseline:
@@ -21,7 +21,7 @@
 <header class="topbar">
   <div>
     <div class="eyebrow">AI IMAGE & VIDEO PROMPT LIBRARY</div>
-    <div class="titleLine"><h1>Prompt Pocket</h1><span class="headerVersion">PP_v1.9_TEST33</span></div>
+    <div class="titleLine"><h1>Prompt Pocket</h1><span class="headerVersion">PP_v1.9_TEST34</span></div>
   </div>
   <div class="topActions">
     <button id="newBtn" class="primary">＋ 新規登録</button>
@@ -222,8 +222,8 @@
         <section>
         <label class="rememberOption"><input id="rememberOps" type="checkbox"> <span><b>操作状態を記憶する</b><small>並び順・カード／一覧・★お気に入り優先の状態を、次回起動時も引き継ぎます。</small></span></label>
         <label class="rememberOption"><input id="shortcutEnabled" type="checkbox"> <span><b>長押しでプロンプトを貼り付け</b><small>「＋追加」の長押しでコピー中のプロンプトを読み込み、「画像を選択」の長押しでコピー中の画像を貼り付けます。</small></span></label>
-        <label class="rememberOption"><input id="longPressAllButtonsEnabled" type="checkbox"> <span><b>すべてのボタンを長押しで開く</b><small>誤操作防止のため、「＋追加」を除くすべてのボタンを長押ししたときだけ実行します。「＋追加」は上の貼り付け設定とは別に動作します。</small></span></label>
-        <div class="shortcutRow"><span>長押し時間（すべて共通）</span><select id="shortcutDelay"><option value="500">0.5秒</option><option value="800">0.8秒</option><option value="1000">1.0秒</option></select></div>
+        <label class="rememberOption"><input id="longPressMainActionsEnabled" type="checkbox"> <span><b>メイン画面の検索、ヘルプを長押しで開く</b><small>誤タッチを防ぐため、検索とヘルプだけを長押ししたときに開きます。ほかのボタンは通常どおりタップで操作できます。</small></span></label>
+        <div class="shortcutRow"><span>長押し時間</span><select id="shortcutDelay"><option value="500">0.5秒</option><option value="800">0.8秒</option><option value="1000">1.0秒</option></select></div>
       </section>
       </details>
 <details class="optionOther optionDataFold"><summary>📦 データの保存・復元</summary><section><p>書き出したデータはバックアップとして保管できます。別のスマホで読み込めば、データを引き継げます。</p><div class="manageActions"><button id="exportBtn" class="primary">📤 データを書き出す</button><button id="importBtn" class="ghost">📥 データを読み込む</button><input id="importFile" type="file" accept="application/json,.json" hidden></div><button id="migrationHelpBtn" class="textButton" type="button">機種変更の方法を見る</button></section></details>
