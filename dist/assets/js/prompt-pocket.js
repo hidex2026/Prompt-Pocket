@@ -652,6 +652,24 @@ function ppInsertLine(show){
   if(!r){line.remove();return}
   line.style.left=r.left+'px';line.style.top=(show.y-2)+'px';line.style.width=r.width+'px';
 }
+function ppFolderChildInsertion(st,y){
+  if(!st.row.classList.contains('folderChildRow'))return null;
+  const folderId=st.row.dataset.folderChild;
+  const all=[...document.querySelectorAll(`.folderChildRow[data-folder-child="${CSS.escape(folderId)}"]`)];
+  if(!all.length)return null;
+  const first=all[0].getBoundingClientRect(),last=all[all.length-1].getBoundingClientRect();
+  if(y<first.top-8||y>last.bottom+8)return null;
+  const rows=all.filter(row=>row!==st.row);
+  const sourceRect=st.row.getBoundingClientRect();
+  const lines=[
+    {kind:'folder-line',folderId,y:sourceRect.top,cancel:true},
+    {kind:'folder-line',folderId,y:sourceRect.bottom,cancel:true}
+  ];
+  rows.forEach(row=>lines.push({kind:'folder-line',folderId,y:row.getBoundingClientRect().top,beforeId:row.dataset.row}));
+  if(rows.length)lines.push({kind:'folder-line',folderId,y:rows[rows.length-1].getBoundingClientRect().bottom,beforeId:null});
+  lines.sort((a,b)=>Math.abs(a.y-y)-Math.abs(b.y-y));
+  return lines[0]||null;
+}
 function ppCardInsertion(st,x,y){
   const folder=document.elementFromPoint(x,y)?.closest?.('tr[data-folder]');
   if(folder&&!st.row.classList.contains('folderRow')){
@@ -671,7 +689,22 @@ function ppCardInsertion(st,x,y){
     const needed=Math.min(18,Math.max(8,Math.min(st.ghostHeight,r.height)*.16));
     if(overlap>=needed)return {kind:'folder',folderId:folder.dataset.folder};
   }
+  const childInsert=ppFolderChildInsertion(st,y);
+  if(childInsert)return childInsert;
   return {kind:'line',...(ppRootInsertion(st.row,y-st.offsetY)||{})};
+}
+function ppCommitInFolder(st,insert){
+  if(insert.cancel)return;
+  const dragId=st.row.dataset.row,card=items.find(x=>x.id===dragId);
+  if(!card||card.folderId!==insert.folderId)return;
+  const before=items,remaining=items.filter(x=>x.id!==dragId);
+  let at;
+  if(insert.beforeId)at=remaining.findIndex(x=>x.id===insert.beforeId);
+  else{const indices=remaining.map((x,i)=>x.folderId===insert.folderId?i:-1).filter(i=>i>=0);at=indices.length?indices.at(-1)+1:remaining.length}
+  if(at<0)at=remaining.length;
+  const next=[...remaining];next.splice(at,0,card);
+  if(next.length===before.length&&next.every((x,i)=>x===before[i]))return;
+  snapshot('フォルダ内の並べ替え');card.updated=Date.now();items=next;ppSaveOrder(items.map(x=>x.id));save();render();toast('フォルダ内で移動しました');
 }
 function ppCommitAtLine(st,beforeKey){
   const dragId=st.row.dataset.row;
@@ -706,6 +739,7 @@ function ppRelease(st,x,y){
     if(card){card.folderId=insert.folderId;card.updated=Date.now();save();openFolders.add(insert.folderId);render();toast('フォルダに入れました')}
     return;
   }
+  if(insert.kind==='folder-line'){ppCommitInFolder(st,insert);return}
   if(insert.beforeKey!==undefined)ppCommitAtLine(st,insert.beforeKey);
 }
 
@@ -720,7 +754,7 @@ function ppMove(x,y){
   const folderEl=st.insert.kind==='folder'?document.querySelector(`tr[data-folder="${st.insert.folderId}"]`):null;
   document.querySelectorAll('.folderRow.folderDropTarget').forEach(r=>{if(r!==folderEl)r.classList.remove('folderDropTarget')});
   folderEl?.classList.add('folderDropTarget');
-  ppInsertLine(st.insert.kind==='line'&&Number.isFinite(st.insert.y)?st.insert:null);
+  ppInsertLine((st.insert.kind==='line'||st.insert.kind==='folder-line')&&Number.isFinite(st.insert.y)?st.insert:null);
 }
 
 

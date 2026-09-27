@@ -1248,3 +1248,10 @@ body.buttonGlowEnabled button:not(:disabled):active{
 #sampleDialog>.samplePanel>.sampleActions{grid-template-columns:1fr}
 #sampleExecute{width:100%;min-height:52px;font-size:16px}
 @media(max-width:560px){.sampleListItem{grid-template-columns:22px 58px minmax(0,1fr);gap:8px;padding:9px}.sampleListItem img{width:58px;height:54px}}
+
+/* TEST52: 開いている詳細を柔らかなコーラル枠で明確にする。 */
+.rowDetail:not(.hidden)>td{background:#fff4f2!important;padding:6px!important}
+.rowDetail:not(.hidden) .unifiedCardDetail{
+  border:2px solid #e8796b;border-radius:12px;background:#fffaf9;
+  box-shadow:0 3px 12px rgba(232,121,107,.18);overflow:hidden;
+}
