@@ -521,6 +521,20 @@ function ppLoadOrder(){try{return JSON.parse(localStorage.getItem(PP_ORDER_KEY)|
 function ppSaveOrder(ids){localStorage.setItem(PP_ORDER_KEY,JSON.stringify(ids))}
 function ppPoint(ev){const t=ev.changedTouches?.[0]||ev.touches?.[0]||ev;return{x:t.clientX,y:t.clientY}}
 function ppRows(){return [...document.querySelectorAll('.detailTable tbody > tr[data-row]')]}
+function ppRemoveFolderExitSlot(){document.getElementById('ppFolderExitSlot')?.remove()}
+function ppEnsureFolderExitSlot(st){
+  if(!st.row.classList.contains('folderChildRow'))return;
+  const folderId=st.row.dataset.folderChild;
+  const children=[...document.querySelectorAll(`.folderChildRow[data-folder-child="${CSS.escape(folderId)}"]`)];
+  const last=children.at(-1);if(!last)return;
+  let anchor=last;
+  if(anchor.nextElementSibling?.classList.contains('rowDetail'))anchor=anchor.nextElementSibling;
+  ppRemoveFolderExitSlot();
+  const slot=document.createElement('tr');
+  slot.id='ppFolderExitSlot';slot.dataset.folderExit=folderId;
+  slot.innerHTML='<td colspan="3"><div>↳ フォルダの外へ移動</div></td>';
+  anchor.insertAdjacentElement('afterend',slot);
+}
 
 function ppFinishCancel(){
   if(!ppDnd)return;
@@ -529,6 +543,7 @@ function ppFinishCancel(){
   ppDnd.ghost?.remove();
   ppDnd.row?.classList.remove('pp-dnd-source');
   ppDnd.pcTarget?.classList.remove('pp-pc-drop-target');
+  ppRemoveFolderExitSlot();
   ppInsertLine?.(null);
   document.body.classList.remove('pp-dnd-active');
   ppDnd=null;
@@ -574,6 +589,7 @@ function ppCollapseForDrag(st){
 function ppStart(st){
   if(ppDnd!==st)return;
   ppCollapseForDrag(st);
+  ppEnsureFolderExitSlot(st);
   st.active=true;
   const handle=st.source?.matches?.('[data-menu-toggle]')?st.source:null;
   if(handle)handle.dataset.dndSuppress='1';
@@ -710,7 +726,13 @@ function ppInsertLine(show){
   const table=document.querySelector('.detailTable');
   const r=table?.getBoundingClientRect();
   if(!r){line.remove();return}
-  line.style.left=r.left+'px';line.style.top=(show.y-2)+'px';line.style.width=r.width+'px';
+  let left=r.left,width=r.width;
+  if(show.indent){
+    const child=document.querySelector(`.folderChildRow[data-folder-child="${CSS.escape(show.folderId)}"]`);
+    const cell=child?.children[1]?.getBoundingClientRect();
+    if(cell){left=cell.left+16;width=Math.max(40,r.right-left)}
+  }
+  line.style.left=left+'px';line.style.top=(show.y-2)+'px';line.style.width=width+'px';
 }
 function ppFolderChildInsertion(st,y){
   if(!st.row.classList.contains('folderChildRow'))return null;
@@ -718,7 +740,8 @@ function ppFolderChildInsertion(st,y){
   const all=[...document.querySelectorAll(`.folderChildRow[data-folder-child="${CSS.escape(folderId)}"]`)];
   if(!all.length)return null;
   const first=all[0].getBoundingClientRect(),last=all[all.length-1].getBoundingClientRect();
-  if(y<first.top-8||y>last.bottom+8)return null;
+  const ghostTop=y-st.offsetY;
+  if(ghostTop<first.top-8||ghostTop>last.bottom+8)return null;
   const rows=all.filter(row=>row!==st.row);
   const sourceRect=st.row.getBoundingClientRect();
   const lines=[
@@ -727,8 +750,18 @@ function ppFolderChildInsertion(st,y){
   ];
   rows.forEach(row=>lines.push({kind:'folder-line',folderId,y:row.getBoundingClientRect().top,beforeId:row.dataset.row}));
   if(rows.length)lines.push({kind:'folder-line',folderId,y:rows[rows.length-1].getBoundingClientRect().bottom,beforeId:null});
-  lines.sort((a,b)=>Math.abs(a.y-y)-Math.abs(b.y-y));
-  return lines[0]||null;
+  lines.sort((a,b)=>Math.abs(a.y-ghostTop)-Math.abs(b.y-ghostTop));
+  return lines[0]?{...lines[0],indent:true}:null;
+}
+function ppFolderExitInsertion(st,y){
+  if(!st.row.classList.contains('folderChildRow'))return null;
+  const slot=document.getElementById('ppFolderExitSlot');
+  if(!slot||slot.dataset.folderExit!==st.row.dataset.folderChild)return null;
+  const r=slot.getBoundingClientRect(),ghostTop=y-st.offsetY;
+  if(ghostTop<r.top+10||ghostTop>r.bottom+10)return null;
+  const folder=document.querySelector(`tr.folderRow[data-folder="${CSS.escape(slot.dataset.folderExit)}"]`);
+  if(!folder)return null;
+  return {kind:'folder-exit',folderId:slot.dataset.folderExit,beforeKey:ppLineAfterRootRow(folder).beforeKey};
 }
 function ppCardInsertion(st,x,y){
   if(st.forceSourceTop&&st.row.classList.contains('folderChildRow')){
@@ -758,6 +791,8 @@ function ppCardInsertion(st,x,y){
     const needed=Math.min(18,Math.max(8,Math.min(st.ghostHeight,r.height)*.16));
     if(overlap>=needed)return {kind:'folder',folderId:folder.dataset.folder};
   }
+  const exitInsert=ppFolderExitInsertion(st,y);
+  if(exitInsert)return exitInsert;
   const childInsert=ppFolderChildInsertion(st,y);
   if(childInsert)return childInsert;
   return {kind:'line',...(ppRootInsertion(st.row,y-st.offsetY)||{})};
@@ -802,6 +837,7 @@ function ppRelease(st,x,y){
   document.querySelectorAll('.folderRow.folderDropTarget').forEach(row=>row.classList.remove('folderDropTarget'));
   document.body.classList.remove('pp-dnd-active');
   ppInsertLine(null);
+  ppRemoveFolderExitSlot();
   ppDnd=null;
   if(insert.kind==='folder'&&insert.folderId){
     const card=items.find(item=>item.id===st.row.dataset.row);
@@ -809,6 +845,7 @@ function ppRelease(st,x,y){
     return;
   }
   if(insert.kind==='folder-line'){ppCommitInFolder(st,insert);return}
+  if(insert.kind==='folder-exit'){ppCommitAtLine(st,insert.beforeKey);return}
   if(insert.beforeKey!==undefined)ppCommitAtLine(st,insert.beforeKey);
 }
 
@@ -820,6 +857,7 @@ function ppMove(x,y){
   const ghostTop=y-st.offsetY;
   st.ghost.style.transform=`translate3d(${sr.left}px,${ghostTop}px,0) scale(.985)`;
   st.insert=ppCardInsertion(st,x,y);
+  document.getElementById('ppFolderExitSlot')?.classList.toggle('active',st.insert.kind==='folder-exit');
   const folderEl=st.insert.kind==='folder'?document.querySelector(`tr[data-folder="${st.insert.folderId}"]`):null;
   document.querySelectorAll('.folderRow.folderDropTarget').forEach(r=>{if(r!==folderEl)r.classList.remove('folderDropTarget')});
   folderEl?.classList.add('folderDropTarget');

@@ -505,6 +505,13 @@ fieldset{border:1px solid #ddd8cf;border-radius:16px;margin:14px 0;padding:12px}
   position:fixed;z-index:10020;height:4px;background:#111;border-radius:999px;
   pointer-events:none;box-shadow:0 1px 0 rgba(255,255,255,.8);
 }
+#ppFolderExitSlot td{padding:0!important;border:0!important;background:transparent!important}
+#ppFolderExitSlot div{
+  margin:4px 10px 4px 126px;padding:7px 10px;border:2px dashed #8a6d18;
+  border-radius:9px;background:#fff9df;color:#705600;font-size:13px;font-weight:800;text-align:center;
+}
+#ppFolderExitSlot.active div{background:#e6f7ea;border-color:#23824b;color:#155b32}
+@media(max-width:560px){#ppFolderExitSlot div{margin-left:78px;font-size:14px;padding:9px 10px}}
 .pp-dnd-hold{background:#fff7d6!important}
 body.pp-dnd-active{user-select:none;-webkit-user-select:none;overscroll-behavior:none}
 
