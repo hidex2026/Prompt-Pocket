@@ -68,7 +68,7 @@ const presetPrompts={
 
 const isFreshInstall=localStorage.getItem(KEY)===null&&localStorage.getItem(LEGACY_KEY)===null;
 let items=JSON.parse(localStorage.getItem(KEY)||localStorage.getItem(LEGACY_KEY)||'[]');
-const APP_VERSION='1.99';
+const APP_VERSION='1.16';
 const VERSION_KEY='promptPocket.lastSeenVersion';
 const DATA_VERSION_KEY='promptPocket.dataVersion';
 const UPDATE_116_NOTICE_KEY='promptPocket.updateNotice.1.16.final';
