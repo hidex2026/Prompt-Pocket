@@ -150,9 +150,9 @@ function save(){
 function savePrefs(){prefs.customTags=[...customTags];localStorage.setItem(PREF_KEY,JSON.stringify(prefs));}
 function seedStarterFolders(){
   if(items.length||folders.length)return false;
-  const groups=[['実用',['three-view','character-sheet','expressions']],['アレンジ',['illustration-to-photo','photo-to-illustration','outfit','background','transparent-bg','enhance']],['その他',['fantasy-art','handdrawn','deformed']]];
+  const groups=[['実用',sampleCatalog.practical||[]],['アレンジ',sampleCatalog.arrange||[]],['その他',[...(sampleCatalog.style||[]),...(sampleCatalog.other||[])]]];
   const now=Date.now();
-  groups.forEach(([name,keys],groupIndex)=>{const folder={id:'starter-folder-'+groupIndex,name,created:now+groupIndex,isNew:false};folders.push(folder);keys.forEach((key,index)=>{const source=presetPrompts[key];if(!source)return;items.push({id:'starter-'+key,name:source.name,prompt:source.prompt,author:'',xhandle:'',source:'',memo:'サンプルです。自由に編集・削除できます。',tags:source.tags||[],image:source.image||'',folderId:folder.id,fav:false,pinned:false,useCount:0,lastUsed:0,created:now+groupIndex*20+index,updated:now+groupIndex*20+index});});});
+  groups.forEach(([name,samples],groupIndex)=>{const folder={id:'starter-folder-'+groupIndex,name,created:now+groupIndex,isNew:false};folders.push(folder);samples.forEach((source,index)=>items.push({id:'starter-'+source.key,presetKey:source.key,name:source.name,prompt:source.prompt,author:'',xhandle:'',source:'',memo:'サンプルです。自由に編集・削除できます。',tags:source.tags||[],image:source.image||'',folderId:folder.id,fav:false,pinned:false,useCount:0,lastUsed:0,created:now+groupIndex*20+index,updated:now+groupIndex*20+index}));});
   save();saveFolders();return true;
 }
 function migrate1xData(){
@@ -1141,6 +1141,18 @@ const sampleText={
  'deformed':{description:'大きな表情とポーズが特徴のデフォルメキャラクターを作ります。',prompt:'白い無地の背景に、1人の可愛らしいデフォルメされたアニメ風の少女を描く。太くはっきりした輪郭線、くっきりしたセル塗り、パステル調のハイライト、艶のある大きな瞳、鮮やかで柔らかな配色にする。少女は片方の膝を上げて前に踏み出すように身を乗り出し、大きく描かれた手でピースサインをこちらへ伸ばし、ウインクしながら明るく笑顔を見せる。流れるような暗い茶色の髪には彩りのあるハイライトと淡い色のヘアピンを付ける。ゆったりした白いシャツ、ダメージのある薄青のデニムショーツ、ベルト、ピンクの差し色が入ったボリュームのあるスニーカー、金色の金具が付いた暗い色のバッグを身に付ける。'}
 };
 Object.values(sampleCatalog).flat().forEach(x=>Object.assign(x,sampleText[x.key]||{}));
+// TEST45で旧サンプル元から作られた未編集カードだけを、現在のサンプル一覧へ差し替える。
+(()=>{
+ const marker='promptPocket.starterSamples.current.v1';if(localStorage.getItem(marker)==='done')return;
+ const old=items.filter(x=>String(x.id||'').startsWith('starter-')&&x.memo==='サンプルです。自由に編集・削除できます。');
+ if(old.length){
+  const oldIds=new Set(old.map(x=>x.id));items=items.filter(x=>!oldIds.has(x.id));
+  const groups=[['実用',sampleCatalog.practical||[]],['アレンジ',sampleCatalog.arrange||[]],['その他',[...(sampleCatalog.style||[]),...(sampleCatalog.other||[])]]];
+  const now=Date.now();groups.forEach(([name,samples],gi)=>{let folder=folders.find(f=>f.name===name);if(!folder){folder={id:'starter-folder-'+gi,name,created:now+gi,isNew:false};folders.push(folder)}samples.forEach((source,index)=>items.push({id:'starter-'+source.key,presetKey:source.key,name:source.name,prompt:source.prompt,author:'',xhandle:'',source:'',memo:'サンプルです。自由に編集・削除できます。',tags:source.tags||[],image:source.image||'',folderId:folder.id,fav:false,pinned:false,useCount:0,lastUsed:0,created:now+gi*20+index,updated:now+gi*20+index}));});
+  save();saveFolders();
+ }
+ localStorage.setItem(marker,'done');
+})();
 let sampleSelection=new Set(),samplePending=[];
 function sampleCurrentList(){return sampleCatalog[$('sampleCategory').value]||[]}
 function allSamples(){return Object.values(sampleCatalog).flat()}
