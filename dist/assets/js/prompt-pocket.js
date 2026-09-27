@@ -212,6 +212,8 @@ function render(){
       if(ai<0)return 1;if(bi<0)return -1;return ai-bi;
     });
   }
+  // 新しく作成したフォルダは、初めて触られるまで一覧の先頭に置く。
+  mixed.sort((a,b)=>Number(b.type==='folder'&&b.folder.isNew)-Number(a.type==='folder'&&a.folder.isNew));
 
   $('count').textContent=`カード：${items.length}枚`;
   $('empty').classList.toggle('hidden',items.length>0||folders.length>0);
@@ -221,7 +223,7 @@ function render(){
 
   const folderHtml=f=>{
     const open=openFolders.has(f.id), kids=items.filter(x=>x.folderId===f.id&&matches(x));
-    let s=`<tr class="folderRow" data-folder="${f.id}" data-sort-key="folder:${f.id}"><td><span class="tableIcon">☆</span></td><td class="nameCell folderInteractArea" data-folder-toggle="${f.id}"><span class="folderNameBtn"><span>${open?'📂':'📁'}</span><span>${esc(f.name)}</span></span><span class="folderDragSpace" aria-label="フォルダを移動"></span></td><td><div class="tableActions folderActions"><span class="folderCountInline">${folderCount(f.id)}枚</span><span class="detailMenuWrap"><button class="folderMenuBtn" data-folder-menu-toggle="${f.id}" aria-label="フォルダのメニューを開く">⋯</button><div class="detailPopupMenu hidden"><button data-folder-rename="${f.id}">✏️ 名前を変更</button><button class="dangerMenu" data-folder-delete="${f.id}">🗑️ フォルダを削除</button></div></span></div></td></tr>`;
+    let s=`<tr class="folderRow" data-folder="${f.id}" data-sort-key="folder:${f.id}"><td><span class="tableIcon">☆</span></td><td class="nameCell folderInteractArea" data-folder-toggle="${f.id}"><span class="folderNameBtn"><span>${open?'📂':'📁'}</span><span>${esc(f.name)}</span>${f.isNew?'<span class="folderNewBadge">NEW</span>':''}</span><span class="folderDragSpace" aria-label="フォルダを移動"></span></td><td><div class="tableActions folderActions"><span class="folderCountInline">${folderCount(f.id)}枚</span><span class="detailMenuWrap"><button class="folderMenuBtn" data-folder-menu-toggle="${f.id}" aria-label="フォルダのメニューを開く">⋯</button><div class="detailPopupMenu hidden"><button data-folder-rename="${f.id}">✏️ 名前を変更</button><button class="dangerMenu" data-folder-delete="${f.id}">🗑️ フォルダを削除</button></div></span></div></td></tr>`;
     if(open){
       if(kids.length)s+=kids.map(x=>cardRows(x,true)).join('');
       else s+=`<tr class="folderEmptyRow"><td colspan="3">このフォルダは空です</td></tr>`;
@@ -376,6 +378,11 @@ function bindFolderReorder(){
 }
 function bindFolderActions(){
   bindFolderReorder();
+  document.querySelectorAll('.folderRow[data-folder]').forEach(row=>row.addEventListener('pointerdown',()=>{
+    const f=folderById(row.dataset.folder);
+    if(!f?.isNew)return;
+    f.isNew=false;saveFolders();row.querySelector('.folderNewBadge')?.remove();
+  },{once:true}));
   document.querySelectorAll('[data-folder-remove]').forEach(b=>b.onclick=()=>{
     const x=items.find(i=>i.id===b.dataset.folderRemove);if(!x)return;
     delete x.folderId;x.updated=Date.now();save();render();toast('フォルダから出しました');
@@ -1065,6 +1072,7 @@ $('helpMobile').onclick=()=>openMainHelp();
 
 $('optionSave').onclick=()=>{if(optionPrefsDraft){prefs=structuredClone(optionPrefsDraft);if(prefs.rememberOps){prefs.view=prefs.view||'card';prefs.sort=$('sort').value;prefs.detailFavSort=detailFavSort}else{delete prefs.sort;delete prefs.detailFavSort;detailFavSort=false}savePrefs()}optionPrefsDraft=null;$('optionDialog').close();toast('オプションを保存しました')};
 $('optionCancel').onclick=()=>{optionPrefsDraft=null;$('optionDialog').close()};
+$('optionClose').onclick=()=>$('optionCancel').click();
 $('deleteAllMobile').onclick=()=>{$('optionDialog').close();$('deleteAllBtn').click()};
 $('rememberOps').onchange=e=>{if(optionPrefsDraft)optionPrefsDraft.rememberOps=e.target.checked};
 $('shortcutEnabled').onchange=e=>{if(optionPrefsDraft)optionPrefsDraft.shortcutEnabled=e.target.checked;$('shortcutDelay').disabled=!(e.target.checked||$('longPressMainActionsEnabled').checked)};
@@ -1371,7 +1379,13 @@ document.addEventListener('dragstart', function(e){
      else if(bad.test(name)||name==='.'||name==='..'||reserved.test(name))msg='このフォルダ名は使えません。';
      else if(folders.some(f=>f.name===name))msg='同じ名前のフォルダがあります。';
      if(msg){err.textContent=msg;input.classList.add('folderInputError');input.focus();return}
-     folders.push({id:'folder-'+crypto.randomUUID(),name,created:Date.now()});
+      const folder={id:'folder-'+crypto.randomUUID(),name,created:Date.now(),isNew:true};
+      folders.unshift(folder);
+      if($('sort').value==='manual'){
+        const key='folder:'+folder.id;
+        prefs.manualOrder=[key,...(Array.isArray(prefs.manualOrder)?prefs.manualOrder:[]).filter(x=>x!==key)];
+        savePrefs();
+      }
      saveFolders();dlg.close();render();toast('フォルダ「'+name+'」を作成しました');
    };
  });
