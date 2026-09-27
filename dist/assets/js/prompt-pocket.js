@@ -426,9 +426,18 @@ function bindFolderActions(){
   });
   document.querySelectorAll('[data-folder-menu-toggle]').forEach(b=>b.onclick=e=>{
     e.stopPropagation();
-    const menu=b.parentElement?.querySelector('.detailPopupMenu');
-    document.querySelectorAll('.detailPopupMenu').forEach(m=>{if(m!==menu)m.classList.add('hidden')});
-    menu?.classList.toggle('hidden');
+    const wrap=b.closest('.detailMenuWrap'),menu=wrap?.querySelector('.detailPopupMenu');
+    document.querySelectorAll('.detailPopupMenu').forEach(m=>{if(m!==menu){m.classList.add('hidden');m.classList.remove('openUp')}});
+    if(!menu)return;
+    const opening=menu.classList.contains('hidden');
+    menu.classList.toggle('hidden');
+    menu.classList.remove('openUp');
+    if(opening){
+      const r=menu.getBoundingClientRect();
+      const bottomNav=document.querySelector('.bottomnav');
+      const safeBottom=bottomNav?Math.min(window.innerHeight,bottomNav.getBoundingClientRect().top):window.innerHeight;
+      if(r.bottom>safeBottom-8&&wrap.getBoundingClientRect().top-r.height-5>8)menu.classList.add('openUp');
+    }
   });
   document.querySelectorAll('[data-folder-rename]').forEach(b=>b.onclick=()=>{
     const f=folderById(b.dataset.folderRename);if(!f)return;
@@ -655,10 +664,14 @@ function ppSourceBottom(row){
   return bottom;
 }
 function ppRootInsertion(sourceRow,ghostTop){
-  const rows=ppRootRows(sourceRow);
+  const sourceIsChild=sourceRow.classList.contains('folderChildRow');
+  // Once a child leaves its folder, calculate against the root list. Its old
+  // child slot is no longer a cancellation target, and its parent folder must
+  // be included so the card can be placed directly below it.
+  const rows=ppRootRows(sourceIsChild?null:sourceRow);
   // Both boundaries around the original slot remain visible. Dropping on
   // either one is a deliberate no-op because the order would not change.
-  const lines=[
+  const lines=sourceIsChild?[]:[
     {y:sourceRow.getBoundingClientRect().top,cancel:true},
     {y:ppSourceBottom(sourceRow),cancel:true}
   ];
