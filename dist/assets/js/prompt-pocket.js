@@ -68,7 +68,7 @@ const presetPrompts={
 
 const isFreshInstall=localStorage.getItem(KEY)===null&&localStorage.getItem(LEGACY_KEY)===null;
 let items=JSON.parse(localStorage.getItem(KEY)||localStorage.getItem(LEGACY_KEY)||'[]');
-const APP_VERSION='2.0';
+const APP_VERSION='1.99';
 const VERSION_KEY='promptPocket.lastSeenVersion';
 const DATA_VERSION_KEY='promptPocket.dataVersion';
 const UPDATE_116_NOTICE_KEY='promptPocket.updateNotice.1.16.final';
@@ -156,6 +156,13 @@ function seedStarterFolders(){
   save();saveFolders();return true;
 }
 function migrate1xData(){
+  // テスト版は1.xxとして扱い、正式2.0の公開時まで移行を実行しない。
+  if(!APP_VERSION.startsWith('2.')){
+    if(localStorage.getItem(DATA_VERSION_KEY)==='2')localStorage.setItem(DATA_VERSION_KEY,'1');
+    if((localStorage.getItem(VERSION_KEY)||'').startsWith('2.'))localStorage.setItem(VERSION_KEY,APP_VERSION);
+    sessionStorage.removeItem('promptPocket.migratedFrom1x');
+    return;
+  }
   if(localStorage.getItem(DATA_VERSION_KEY)==='2')return;
   const savedVersion=localStorage.getItem(VERSION_KEY)||'';
   const hasOldData=items.length>0||folders.length>0||localStorage.getItem(PREF_KEY)!==null;
