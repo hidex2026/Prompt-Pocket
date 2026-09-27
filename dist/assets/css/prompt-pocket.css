@@ -1177,13 +1177,37 @@ button,[role="button"]{
 .unifiedTable .dragSpace,
 .unifiedTable .folderDragSpace{flex:0 0 18px!important;min-width:18px!important}
 .folderChildRow .folderBranch{
-  display:inline-block!important;
+  position:relative!important;
+  display:block!important;
+  align-self:stretch!important;
   flex:0 0 18px!important;
   width:18px!important;
   margin-right:3px!important;
-  color:#ad7d00!important;
-  font-size:18px!important;
-  font-weight:1000!important;
-  line-height:1!important;
-  text-shadow:0 0 .35px currentColor;
+  color:transparent!important;
+  font-size:0!important;
+  border-left:3px solid #ad7d00;
+  box-sizing:border-box;
 }
+.folderChildRow .folderBranch::before{
+  content:'';position:absolute;left:0;top:50%;width:15px;
+  border-top:3px solid #ad7d00;transform:translateY(-1.5px);
+}
+.folderChildRow.folderTreeLast .folderBranch{border-left:0}
+.folderChildRow.folderTreeLast .folderBranch::after{
+  content:'';position:absolute;left:0;top:0;height:50%;border-left:3px solid #ad7d00;
+}
+.searchPanel.searchRevealed{
+  border:3px solid #2f7de1!important;border-radius:14px!important;
+  background:#eef6ff!important;padding:10px!important;
+  box-shadow:0 0 0 5px rgba(47,125,225,.16),0 8px 22px rgba(33,90,160,.16)!important;
+  animation:searchRevealPulse .8s ease-out;
+}
+@keyframes searchRevealPulse{
+  0%{transform:scale(.985);box-shadow:0 0 0 0 rgba(47,125,225,.34)}
+  100%{transform:scale(1);box-shadow:0 0 0 5px rgba(47,125,225,.16),0 8px 22px rgba(33,90,160,.16)}
+}
+.unifiedPrompt{
+  display:-webkit-box!important;-webkit-box-orient:vertical;-webkit-line-clamp:5;
+  overflow:hidden;text-overflow:ellipsis;white-space:pre-wrap;
+}
+@media(prefers-reduced-motion:reduce){.searchPanel.searchRevealed{animation:none}}

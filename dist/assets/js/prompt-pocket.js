@@ -222,16 +222,18 @@ function render(){
   const cardRows=(x,child=false)=>`<tr class="unifiedRow ${child?'folderChildRow':''}" data-row="${x.id}"${child?' data-folder-child="'+esc(x.folderId)+'"':''}><td><button class="tableIcon" data-fav="${x.id}" title="お気に入り">${x.fav?'★':'☆'}</button></td><td class="nameCell unifiedDragArea" title="${esc(x.name)}">${child?'<span class="folderBranch">└</span>':''}${x.image?`<img class="tinyThumb" src="${x.image}" alt="" loading="lazy" decoding="async">`:``}${x.pinned?'<span class="miniPin">📌</span>':''}<span class="rowName">${esc(x.name)}</span><span class="dragSpace" aria-hidden="true"></span></td><td><div class="tableActions"><button data-copy="${x.id}">📋 コピー</button><span class="detailMenuWrap"><button data-menu-toggle="${x.id}" aria-label="メニューを開く">⋯</button><div class="detailPopupMenu hidden" id="detailMenu-${x.id}"><button data-edit="${x.id}">✏️ 編集</button><button data-copy="${x.id}">📋 コピー</button><button data-move-folder="${x.id}">📁 フォルダへ移動</button>${child?`<button data-folder-remove="${x.id}">📤 フォルダから出す</button>`:''}<button data-pin="${x.id}">${x.pinned?'📌 ピン留めを解除':'📌 ピン留めする'}</button><button class="dangerMenu" data-delete="${x.id}">🗑️ 削除</button></div></span></div></td></tr><tr class="rowDetail hidden" id="rowDetail-${x.id}"><td colspan="3"><div class="unifiedCardDetail">${x.image?`<div class="unifiedThumb"><img src="${x.image}" alt="" loading="lazy" decoding="async"></div>`:'<div class="unifiedThumb unifiedNoImage"><span>サムネイル</span></div>'}<div class="unifiedCardBody"><div class="meta">${x.author?`作者：${esc(x.author)}`:'自作 / 作者未登録'}</div><div class="unifiedPrompt">${esc(x.prompt)}</div><div class="chips">${(x.tags||[]).map(t=>`<span class="chip">${esc(t)}</span>`).join('')}</div><div class="cardactions">${actionButtons(x)}</div></div></div></td></tr>`;
 
   const folderHtml=f=>{
-    const open=openFolders.has(f.id), kids=items.filter(x=>x.folderId===f.id&&matches(x));
+    const kids=items.filter(x=>x.folderId===f.id&&matches(x));
+    const open=kids.length>0&&openFolders.has(f.id);
     let s=`<tr class="folderRow" data-folder="${f.id}" data-sort-key="folder:${f.id}"><td><span class="tableIcon">☆</span></td><td class="nameCell folderInteractArea" data-folder-toggle="${f.id}"><span class="folderNameBtn"><span>${open?'📂':'📁'}</span><span>${esc(f.name)}</span>${f.isNew?'<span class="folderNewBadge">NEW</span>':''}</span><span class="folderDragSpace" aria-label="フォルダを移動"></span></td><td><div class="tableActions folderActions"><span class="folderCountInline">${folderCount(f.id)}枚</span><span class="detailMenuWrap"><button class="folderMenuBtn" data-folder-menu-toggle="${f.id}" aria-label="フォルダのメニューを開く">⋯</button><div class="detailPopupMenu hidden"><button data-folder-rename="${f.id}">✏️ 名前を変更</button><button class="dangerMenu" data-folder-delete="${f.id}">🗑️ フォルダを削除</button></div></span></div></td></tr>`;
-    if(open){
-      if(kids.length)s+=kids.map(x=>cardRows(x,true)).join('');
-      else s+=`<tr class="folderEmptyRow"><td colspan="3">このフォルダは空です</td></tr>`;
-    }
+    if(open)s+=kids.map(x=>cardRows(x,true)).join('');
     return s;
   };
 
   $('cards').innerHTML=`<div class="detailScroll"><table class="detailTable unifiedTable"><colgroup><col class="col-star"><col class="col-name"><col class="col-actions"></colgroup><thead><tr><th class="starCol">★</th><th>名前</th><th class="opCol">操作</th></tr></thead><tbody>${mixed.map(v=>v.type==='folder'?folderHtml(v.folder):cardRows(v.card)).join('')}</tbody></table></div>`;
+  folders.forEach(f=>{
+    const rows=[...document.querySelectorAll('.folderChildRow')].filter(row=>row.dataset.folderChild===f.id);
+    rows.at(-1)?.classList.add('folderTreeLast');
+  });
   bindActions();
   bindFolderActions();
   updateUndo();
@@ -313,6 +315,7 @@ function bindFolderReorder(){
       const clear=()=>{if(timer){clearTimeout(timer);timer=null}};
       const toggleFolder=()=>{
         const id=row.dataset.folder;
+        if(folderCount(id)===0){openFolders.delete(id);return}
         openFolders.has(id)?openFolders.delete(id):openFolders.add(id);
         render();
       };
@@ -1013,11 +1016,19 @@ $('deleteBtn').onclick=()=>{const id=$('editId').value;if(!id)return;const x=ite
 
 let optionPrefsDraft=null;
 const openOptions=()=>{optionPrefsDraft=structuredClone(prefs);$('rememberOps').checked=!!optionPrefsDraft.rememberOps;$('shortcutEnabled').checked=!!optionPrefsDraft.shortcutEnabled;$('longPressMainActionsEnabled').checked=!!optionPrefsDraft.longPressMainActionsEnabled;$('shortcutDelay').value=String(optionPrefsDraft.shortcutDelay||800);$('shortcutDelay').disabled=!(optionPrefsDraft.shortcutEnabled||optionPrefsDraft.longPressMainActionsEnabled);$('optionDialog').showModal()};
+let searchRevealTimer=null;
 function openSearchKeepingScroll(){
-  const y=window.scrollY||document.documentElement.scrollTop;
-  $('searchPanel').classList.remove('hidden');
-  try{$('search').focus({preventScroll:true})}catch{$('search').focus()}
-  requestAnimationFrame(()=>window.scrollTo({top:y,behavior:'auto'}));
+  const panel=$('searchPanel');
+  panel.classList.remove('hidden');
+  panel.classList.remove('searchRevealed');
+  void panel.offsetWidth;
+  panel.classList.add('searchRevealed');
+  clearTimeout(searchRevealTimer);
+  searchRevealTimer=setTimeout(()=>panel.classList.remove('searchRevealed'),1600);
+  requestAnimationFrame(()=>{
+    panel.scrollIntoView({behavior:'smooth',block:'center'});
+    setTimeout(()=>{try{$('search').focus({preventScroll:true})}catch{$('search').focus()}},220);
+  });
 }
 $('viewOptionBtn').onclick=openOptions;
 
