@@ -1141,7 +1141,7 @@ sampleCatalog.practical.push({
  tags:['🖼️ 画像','実用'],image:'assets/media/prompt-pocket-11.webp'
 });
 sampleCatalog.other.push(
- {key:'sns-profile-icons',name:'SNSプロフィールアイコンセット',description:'同じキャラクターで、表情や服装を変えたSNS用アイコンを作ります。',prompt:'添付した画像の人物またはキャラクターの顔立ち、髪型、特徴を維持して、SNSプロフィール用の正方形アイコンセットを作成してください。表情、服装、背景色に変化を付けながら、すべて同じ人物に見えるよう統一してください。小さく表示しても顔が分かる肩から上の構図にし、文字やロゴは入れないでください。',tags:['🖼️ 画像'],image:'assets/media/prompt-pocket-12.webp'},
+ {key:'sns-profile-icons',name:'丸型SNSアイコンセット',description:'同じキャラクターを、テーマの異なる6種類の丸型プロフィールアイコンにします。',prompt:'添付した画像の人物またはキャラクターの顔立ち、髪型、特徴を維持して、SNSプロフィール用の丸型アイコンを3列×2行で6種類作成してください。すべて肩から上の構図で顔を大きく中央に配置し、丸く切り抜かれても髪や顔が欠けない余白を確保してください。6種類は、自然光のナチュラル、ピンクで可愛い、青系でクール、夜景とネオン、季節の花、モノクロで大人風のテーマに分け、表情、服装、背景、円形フレームの装飾を変えてください。すべて同じ人物に見えるよう統一し、文字、SNSロゴ、透かしは入れないでください。',tags:['🖼️ 画像'],image:'assets/media/prompt-pocket-12-v2.webp'},
  {key:'line-stickers',name:'LINEスタンプセット',description:'9種類の言葉と表情を組み合わせた、3×3のリアクションスタンプを作ります。',prompt:'添付した画像の人物またはキャラクターの顔立ち、髪型、特徴を維持して、日常会話で使いやすいLINEスタンプを3×3の配置で9種類作成してください。左上から順に「わ～い」「ありがとう」「OK」「マジ？」「了解」「お願い」「おつかれ」「がんばれ」「ごめん」の文字を、各キャラクターの下または横に正確に入れてください。それぞれの言葉に合う表情とポーズにし、各スタンプを独立して切り抜きやすく配置してください。背景は透明にし、指定した言葉以外の文字、ロゴ、透かしは入れないでください。',tags:['🖼️ 画像','可愛い'],image:'assets/media/prompt-pocket-13-v2.webp'},
  {key:'trading-card',name:'カードゲーム風',description:'キャラクターを魔法演出と豪華な枠で、レアなゲームカード風に仕上げます。',prompt:'添付した画像の人物またはキャラクターの顔立ち、髪型、特徴を維持して、豪華なファンタジーカードゲーム風のイラストを作成してください。衣装は白と青を基調とした華やかな魔法使い風に変更し、片手から青白い魔法を放つ躍動的なポーズにしてください。金色と青色の装飾的なカード枠、光、粒子、舞う花びらを加え、希少なカードらしい仕上がりにしてください。人物は1人だけにし、腕と手の本数や指を自然に描いてください。読める文字、能力値、ロゴ、透かしは入れないでください。',tags:['🖼️ 画像'],image:'assets/media/prompt-pocket-14-v2.webp'}
 );
@@ -1156,7 +1156,7 @@ const sampleText={
 Object.values(sampleCatalog).flat().forEach(x=>Object.assign(x,sampleText[x.key]||{}));
 // TEST45で旧サンプル元から作られた未編集カードだけを、現在のサンプル一覧へ差し替える。
 (()=>{
- const marker='promptPocket.starterSamples.current.v3';if(localStorage.getItem(marker)==='done')return;
+ const marker='promptPocket.starterSamples.current.v4';if(localStorage.getItem(marker)==='done')return;
  const old=items.filter(x=>String(x.id||'').startsWith('starter-')&&x.memo==='サンプルです。自由に編集・削除できます。');
  if(old.length){
   const oldIds=new Set(old.map(x=>x.id));items=items.filter(x=>!oldIds.has(x.id));
