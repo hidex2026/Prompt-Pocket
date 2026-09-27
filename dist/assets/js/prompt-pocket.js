@@ -523,8 +523,32 @@ function ppBegin(row,x,y,source=row,pcMode=false){
   st.timer=setTimeout(()=>ppStart(st),800);
 }
 
+function ppCollapseForDrag(st){
+  const sourceFolderId=st.row.classList.contains('folderChildRow')?st.row.dataset.folderChild:null;
+
+  // Details and popup menus must not keep occupying space while a card or
+  // folder is being moved.  Close them in place so the live drag row is not
+  // destroyed by a full render.
+  document.querySelectorAll('.rowDetail:not(.hidden),.detailPopupMenu:not(.hidden)').forEach(el=>el.classList.add('hidden'));
+
+  // Keep only the source folder open.  Closing that folder as well would make
+  // it impossible to reorder its children during the same drag operation.
+  [...openFolders].forEach(folderId=>{
+    if(folderId===sourceFolderId)return;
+    openFolders.delete(folderId);
+    const folderRow=document.querySelector(`tr.folderRow[data-folder="${CSS.escape(folderId)}"]`);
+    const icon=folderRow?.querySelector('.folderNameBtn > span:first-child');
+    if(icon)icon.textContent='📁';
+    document.querySelectorAll(`tr.folderChildRow[data-folder-child="${CSS.escape(folderId)}"]`).forEach(row=>{
+      row.nextElementSibling?.classList.contains('rowDetail')&&row.nextElementSibling.classList.add('hidden');
+      row.classList.add('hidden');
+    });
+  });
+}
+
 function ppStart(st){
   if(ppDnd!==st)return;
+  ppCollapseForDrag(st);
   st.active=true;
   const handle=st.source?.matches?.('[data-menu-toggle]')?st.source:null;
   if(handle)handle.dataset.dndSuppress='1';
@@ -556,6 +580,9 @@ function ppStart(st){
   st.ghost=g;
   st.ghostHeight=r.height;
   st.offsetY=Math.min(Math.max(st.lastY-r.top,8),r.height-8);
+  // The first guide always represents the original slot above the source.
+  // Once the pointer actually moves, normal nearest-boundary tracking resumes.
+  st.forceSourceTop=st.row.classList.contains('folderChildRow');
   ppMove(st.lastX,st.lastY);
 }
 
@@ -671,6 +698,9 @@ function ppFolderChildInsertion(st,y){
   return lines[0]||null;
 }
 function ppCardInsertion(st,x,y){
+  if(st.forceSourceTop&&st.row.classList.contains('folderChildRow')){
+    return {kind:'folder-line',folderId:st.row.dataset.folderChild,y:st.row.getBoundingClientRect().top,cancel:true};
+  }
   const folder=document.elementFromPoint(x,y)?.closest?.('tr[data-folder]');
   if(folder&&!st.row.classList.contains('folderRow')){
     const r=folder.getBoundingClientRect();
@@ -755,6 +785,7 @@ function ppMove(x,y){
   document.querySelectorAll('.folderRow.folderDropTarget').forEach(r=>{if(r!==folderEl)r.classList.remove('folderDropTarget')});
   folderEl?.classList.add('folderDropTarget');
   ppInsertLine((st.insert.kind==='line'||st.insert.kind==='folder-line')&&Number.isFinite(st.insert.y)?st.insert:null);
+  st.forceSourceTop=false;
 }
 
 
