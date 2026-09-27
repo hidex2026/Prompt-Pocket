@@ -1340,18 +1340,20 @@ if(document.readyState==='loading'){
   handleVersionNotice();
 }
 
-/* v1.02: X / Discord in-app browser guidance. X Articles: use ?from=x. Test: ?pp_test=x */
+/* X / Discord 内蔵ブラウザだけで、通常ブラウザへの切り替えを案内する。 */
 (()=>{
   const dlg=document.getElementById('externalBrowserGuide'); if(!dlg)return;
   const ua=navigator.userAgent||'', ref=(document.referrer||'').toLowerCase();
   const qs=new URLSearchParams(location.search), forced=(qs.get('pp_test')||'').toLowerCase(), source=(qs.get('from')||'').toLowerCase();
   const mobile=/Android|iPhone|iPad|iPod/i.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-  const fromX=source==='x'||forced==='x'||ref.includes('x.com')||ref.includes('twitter.com')||ref.includes('t.co');
-  const fromDiscord=forced==='discord'||ref.includes('discord.com')||ref.includes('discordapp.com');
-  // X Articles can open the app without a usable referrer. On mobile, also detect
-  // common X/Discord in-app browser user-agent markers so the guide still appears.
-  const inAppUA=/Twitter|X\/|Discord/i.test(ua);
-  if(!mobile||(!fromX&&!fromDiscord&&!inAppUA))return;
+  const sourceHint=['x','discord'].includes(source)||['x','discord'].includes(forced);
+  const socialReferrer=/https?:\/\/[^/]*(?:x\.com|twitter\.com|t\.co|discord(?:app)?\.com)/i.test(ref);
+  // 外部Chrome/SafariでURLの ?from=x / ?from=discord が残っても案内を出さない。
+  // X・Discordが付与するUA、またはWebViewの印とリンク元の印が両方ある場合だけ案内する。
+  const inAppUA=/Twitter|TwitterAndroid|Twitter-iPhone|\bX\/|Discord/i.test(ua);
+  const genericWebView=/\bwv\b|Version\/4\.0/i.test(ua);
+  const isInApp=inAppUA||((sourceHint||socialReferrer)&&genericWebView);
+  if(!mobile||!isInApp)return;
   window.__ppExternalGuideActive=true;
   setTimeout(()=>{if(!dlg.open)dlg.showModal()},80);
 })();
