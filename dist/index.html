@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#ffffff">
-  <title>Prompt Pocket PP_v1.9_TEST39</title>
+  <title>Prompt Pocket PP_v1.9_TEST40</title>
   <!--
   Prompt Pocket ver.1.9 / FOLDER TEST1
   Folder feature baseline:
@@ -21,7 +21,7 @@
 <header class="topbar">
   <div>
     <div class="eyebrow">AI IMAGE & VIDEO PROMPT LIBRARY</div>
-    <div class="titleLine"><h1>Prompt Pocket</h1><span class="headerVersion">PP_v1.9_TEST39</span></div>
+    <div class="titleLine"><h1>Prompt Pocket</h1><span class="headerVersion">PP_v1.9_TEST40</span></div>
   </div>
   <div class="topActions">
     <button id="newBtn" class="primary">＋ 新規登録</button>
@@ -187,29 +187,29 @@
       <div><h2>サンプルの追加</h2><p class="sampleSub">サンプルプロンプトを追加します。</p></div>
       <button id="sampleClose" class="ghost" type="button" aria-label="閉じる">×</button>
     </div>
-    <div class="samplePicker">
-      <label>項目
-        <select id="sampleCategory">
-          <option value="practical">実用</option>
-          <option value="style">スタイル</option>
-          <option value="arrange">アレンジ</option>
-        </select>
-      </label>
-      <label>サンプル
-        <select id="sampleChoice"></select>
-      </label>
-      <button id="sampleAdd" class="primary" type="button">追加</button>
+    <div class="sampleGenrePicker">
+      <label for="sampleCategory">ジャンル</label>
+      <select id="sampleCategory">
+        <option value="practical">実用</option>
+        <option value="style">スタイル</option>
+        <option value="arrange">アレンジ</option>
+        <option value="game">ゲーム</option>
+        <option value="other">その他</option>
+      </select>
     </div>
-    <div id="sampleGuide" class="sampleGuide">項目とサンプルを選んで、追加ボタンを押してください</div>
-    <div class="samplePreviewWrap">
-      <div id="samplePreview" class="samplePreview"></div>
-    </div>
-    <div class="sampleQueueTitle">今回追加するサンプル</div>
-    <div id="sampleQueue" class="sampleQueue"><div class="sampleQueueEmpty">まだ追加されていません</div></div>
+    <div id="sampleList" class="sampleList"></div>
     <div class="sampleActions">
-      <button id="sampleExecute" class="primary" type="button">実行する</button>
+      <button id="sampleExecute" class="primary" type="button">選択した項目を追加</button>
       <button id="sampleCancel" class="ghost" type="button">キャンセル</button>
     </div>
+  </div>
+</dialog>
+
+<dialog id="sampleConfirmDialog" class="sampleConfirmDialog">
+  <div class="sampleConfirmPanel">
+    <h2>サンプルの追加</h2>
+    <p id="sampleConfirmMessage"></p>
+    <div class="sampleActions"><button id="sampleConfirmYes" class="primary" type="button">はい</button><button id="sampleConfirmNo" class="ghost" type="button">いいえ</button></div>
   </div>
 </dialog>
 
@@ -221,6 +221,7 @@
         <summary>⚙ 操作</summary>
         <section>
         <label class="rememberOption"><input id="rememberOps" type="checkbox"> <span><b>操作状態を記憶する</b><small>並び順・カード／一覧・★お気に入り優先の状態を、次回起動時も引き継ぎます。</small></span></label>
+        <label class="rememberOption"><input id="buttonGlowEnabled" type="checkbox"> <span><b>ボタンをタップ時に光らせる</b><small>ボタンをタップまたは長押ししている間、控えめに光らせて操作中であることを分かりやすくします。</small></span></label>
         <label class="rememberOption"><input id="shortcutEnabled" type="checkbox"> <span><b>長押しでプロンプトを貼り付け</b><small>「＋追加」の長押しでコピー中のプロンプトを読み込み、「画像を選択」の長押しでコピー中の画像を貼り付けます。</small></span></label>
         <label class="rememberOption"><input id="longPressMainActionsEnabled" type="checkbox"> <span><b>長押しで検索、ヘルプを開く</b><small>メイン画面にある、「検索」「ヘルプ」を長押しで開くことによって誤タッチを防ぎます。</small></span></label>
         <div class="shortcutRow"><span>長押し時間</span><select id="shortcutDelay"><option value="500">0.5秒</option><option value="800">0.8秒</option><option value="1000">1.0秒</option></select></div>

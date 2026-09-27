@@ -115,6 +115,8 @@ prefs.tagOrder=Array.isArray(prefs.tagOrder)?prefs.tagOrder:[];
 prefs.hiddenTags=Array.isArray(prefs.hiddenTags)?prefs.hiddenTags:[];
 prefs.rememberOps=!!prefs.rememberOps;
 prefs.shortcutEnabled=Object.prototype.hasOwnProperty.call(prefs,'shortcutEnabled')?!!prefs.shortcutEnabled:true;
+prefs.buttonGlowEnabled=!!prefs.buttonGlowEnabled;
+document.body.classList.toggle('buttonGlowEnabled',prefs.buttonGlowEnabled);
 // TEST34: 検索とヘルプだけを誤タッチ防止の長押し対象にする。
 prefs.longPressMainActionsEnabled=Object.prototype.hasOwnProperty.call(prefs,'longPressMainActionsEnabled')
   ?!!prefs.longPressMainActionsEnabled
@@ -316,7 +318,7 @@ function bindFolderReorder(){
       const clear=()=>{if(timer){clearTimeout(timer);timer=null}};
       const toggleFolder=()=>{
         const id=row.dataset.folder;
-        if(folderCount(id)===0){openFolders.delete(id);return}
+        if(folderCount(id)===0){openFolders.delete(id);alert('このフォルダにはカードがありません');return}
         openFolders.has(id)?openFolders.delete(id):openFolders.add(id);
         render();
       };
@@ -967,6 +969,7 @@ bottomNew.addEventListener('contextmenu',e=>{if(prefs.shortcutEnabled)e.preventD
 function closeEditor(){ $('editor').close();document.body.classList.remove('editor-open') }
 $('cancelBtn').onclick=closeEditor;$('editorCloseBtn').onclick=closeEditor;$('search').oninput=render;$('sort').onchange=()=>{randomOrder=[];if(prefs.rememberOps){prefs.sort=$('sort').value;savePrefs()}render()};$('clearFilters').onclick=()=>{$('search').value='';filterTags.clear();render()};$('undoBtn').onclick=()=>{if(!undoState)return;if(!confirm('前の状態に戻しますか？\n\n直前の操作を取り消して、前の状態に戻します。'))return;const current=structuredClone(items);items=structuredClone(undoState.items);undoState={label:'元に戻す前の状態',items:current};save();render();toast('前の状態に戻しました')};
 $('deleteAllBtn').onclick=()=>{const n=items.length;if(!confirm(`⚠️ Prompt Pocketのデータをすべてリセットします。\n\n登録プロンプト ${n}件に加えて、表示設定・カスタムタグも初期化されます。\nこの操作は元に戻せません。\n続けますか？`))return;if(!confirm(`最終確認\n本当にすべてのデータをリセットしますか？\nリセット後は「（見本）雨上がりの少女」だけが復帰します。`))return;localStorage.removeItem(KEY);localStorage.removeItem(LEGACY_KEY);localStorage.removeItem(PREF_KEY);localStorage.removeItem('promptPocket.columnWidths.v1');items=[];undoState=null;customTags.clear();prefs={view:'card',welcomed:false,tagOrder:[],hiddenTags:[],rememberOps:false,shortcutEnabled:true,longPressMainActionsEnabled:false,shortcutDelay:800,customTags:[]};addWelcomeSample();save();savePrefs();render();toast('全データをリセットし、見本プロンプトを復帰しました')};
+$('deleteAllBtn').addEventListener('click',()=>document.body.classList.toggle('buttonGlowEnabled',!!prefs.buttonGlowEnabled));
 $('addTagBtn').onclick=()=>{const t=$('customTag').value.trim();if(!t)return;customTags.add(t);prefs.hiddenTags=prefs.hiddenTags.filter(x=>x!==t);if(!prefs.tagOrder.includes(t))prefs.tagOrder.push(t);selectedTags.add(t);activeTagForManage=t;$('customTag').value='';savePrefs();renderTagChoices()};
 $('deleteTagBtn').onclick=()=>{const tag=activeTagForManage;if(!tag)return;const count=items.filter(x=>(x.tags||[]).includes(tag)).length;if(!confirm(`タグ「${tag}」は${count}件で使用されています。
 削除すると、これらのプロンプトからこのタグだけが削除されます。
@@ -1019,7 +1022,7 @@ $('deleteBtn').onclick=()=>{const id=$('editId').value;if(!id)return;const x=ite
 
 
 let optionPrefsDraft=null;
-const openOptions=()=>{optionPrefsDraft=structuredClone(prefs);$('rememberOps').checked=!!optionPrefsDraft.rememberOps;$('shortcutEnabled').checked=!!optionPrefsDraft.shortcutEnabled;$('longPressMainActionsEnabled').checked=!!optionPrefsDraft.longPressMainActionsEnabled;$('shortcutDelay').value=String(optionPrefsDraft.shortcutDelay||800);$('shortcutDelay').disabled=!(optionPrefsDraft.shortcutEnabled||optionPrefsDraft.longPressMainActionsEnabled);$('optionDialog').showModal()};
+const openOptions=()=>{optionPrefsDraft=structuredClone(prefs);$('rememberOps').checked=!!optionPrefsDraft.rememberOps;$('buttonGlowEnabled').checked=!!optionPrefsDraft.buttonGlowEnabled;$('shortcutEnabled').checked=!!optionPrefsDraft.shortcutEnabled;$('longPressMainActionsEnabled').checked=!!optionPrefsDraft.longPressMainActionsEnabled;$('shortcutDelay').value=String(optionPrefsDraft.shortcutDelay||800);$('shortcutDelay').disabled=!(optionPrefsDraft.shortcutEnabled||optionPrefsDraft.longPressMainActionsEnabled);$('optionDialog').showModal()};
 function openSearchKeepingScroll(){
   const panel=$('searchPanel');
   panel.classList.remove('hidden');
@@ -1082,11 +1085,12 @@ document.addEventListener('contextmenu',e=>{
 $('searchMobile').onclick=()=>openSearchKeepingScroll();
 $('helpMobile').onclick=()=>openMainHelp();
 
-$('optionSave').onclick=()=>{if(optionPrefsDraft){prefs=structuredClone(optionPrefsDraft);if(prefs.rememberOps){prefs.view=prefs.view||'card';prefs.sort=$('sort').value;prefs.detailFavSort=detailFavSort}else{delete prefs.sort;delete prefs.detailFavSort;detailFavSort=false}savePrefs()}optionPrefsDraft=null;$('optionDialog').close();toast('オプションを保存しました')};
+$('optionSave').onclick=()=>{if(optionPrefsDraft){prefs=structuredClone(optionPrefsDraft);if(prefs.rememberOps){prefs.view=prefs.view||'card';prefs.sort=$('sort').value;prefs.detailFavSort=detailFavSort}else{delete prefs.sort;delete prefs.detailFavSort;detailFavSort=false}savePrefs();document.body.classList.toggle('buttonGlowEnabled',!!prefs.buttonGlowEnabled)}optionPrefsDraft=null;$('optionDialog').close();toast('オプションを保存しました')};
 $('optionCancel').onclick=()=>{optionPrefsDraft=null;$('optionDialog').close()};
 $('optionClose').onclick=()=>$('optionCancel').click();
 $('deleteAllMobile').onclick=()=>{$('optionDialog').close();$('deleteAllBtn').click()};
 $('rememberOps').onchange=e=>{if(optionPrefsDraft)optionPrefsDraft.rememberOps=e.target.checked};
+$('buttonGlowEnabled').onchange=e=>{if(optionPrefsDraft)optionPrefsDraft.buttonGlowEnabled=e.target.checked};
 $('shortcutEnabled').onchange=e=>{if(optionPrefsDraft)optionPrefsDraft.shortcutEnabled=e.target.checked;$('shortcutDelay').disabled=!(e.target.checked||$('longPressMainActionsEnabled').checked)};
 $('longPressMainActionsEnabled').onchange=e=>{if(optionPrefsDraft)optionPrefsDraft.longPressMainActionsEnabled=e.target.checked;$('shortcutDelay').disabled=!($('shortcutEnabled').checked||e.target.checked)};
 $('shortcutDelay').onchange=e=>{if(optionPrefsDraft)optionPrefsDraft.shortcutDelay=Number(e.target.value)||800};
@@ -1097,72 +1101,60 @@ $('importBtn').onclick=()=>$('importFile').click();
 $('importFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const data=JSON.parse(await f.text());const restored=Array.isArray(data)?data:data.items;if(!Array.isArray(restored))throw new Error();const ok=confirm(`⚠️ データを読み込みますか？\n\n現在保存されている${items.length}件のデータは削除され、読み込んだ${restored.length}件のデータに置き換わります。\nこの操作は元に戻せません。`);if(!ok)return;items=restored;folders=Array.isArray(data.folders)?data.folders:[];normalize();if(data.prefs&&typeof data.prefs==='object'){prefs={...prefs,...data.prefs};prefs.tagOrder=Array.isArray(prefs.tagOrder)?prefs.tagOrder:[];prefs.hiddenTags=Array.isArray(prefs.hiddenTags)?prefs.hiddenTags:[];prefs.longPressMainActionsEnabled=Object.prototype.hasOwnProperty.call(data.prefs,'longPressMainActionsEnabled')?!!data.prefs.longPressMainActionsEnabled:(Object.prototype.hasOwnProperty.call(data.prefs,'longPressAllButtonsEnabled')?!!data.prefs.longPressAllButtonsEnabled:(!!data.prefs.longPressHelpEnabled||!!data.prefs.longPressSearchEnabled));delete prefs.longPressAllButtonsEnabled;delete prefs.longPressHelpEnabled;delete prefs.longPressSearchEnabled;}customTags=new Set(Array.isArray(data.customTags)?data.customTags:[]);prefs.customTags=[...customTags];undoState=null;save();saveFolders();savePrefs();$('optionDialog').close();render();toast('データを復元しました')}catch{alert('このデータファイルは読み込めませんでした。')}finally{e.target.value=''}};
 
 
-/* TEST41: 正式サンプル管理 */
+/* TEST40: ジャンル別チェック一覧によるサンプル管理 */
 const sampleCatalog={"practical":[{"key":"three-view","name":"三面図","prompt":"てんぷしたきゃらくたーがぞうをさんしょうして、おなじきゃらくたーのさんめんずをさくせいしてください。しょうめん・まよこ・はいめんのぜんしんをよこいちれつにならべ、かみがた、かおだち、たいかく、いしょう、そうしょく、はいしょくをとういつしてください。かくほうこうででざいんがむじゅんしないようにし、せっていしりょうとしてかくにんしやすいしんぷるなはいけいとれいあうとにしてください。","tags":["🖼️ 画像","アニメ","女の子"],"image":"assets/media/prompt-pocket-05.webp"},{"key":"character-sheet","name":"キャラクターシート","prompt":"てんぷしたがぞうのきゃらくたーをさんしょうして、きゃらくたーしーとをさくせいしてください。きゃらくたーのでざいん、かみがた、いしょう、そうしょく、はいしょくなどのとくちょうをいじし、ぜんしんず、かおのあっぷ、だいひょうてきなひょうじょうやぽーずをみやすくはいちしてください。おなじきゃらくたーとしてとういつかんをたもち、せっていしりょうとしてつかいやすいしんぷるなれいあうとにしてください。","tags":["🖼️ 画像","アニメ","女の子"],"image":"assets/media/prompt-pocket-06.webp"},{"key":"expressions","name":"表情差分","prompt":"てんぷしたきゃらくたーがぞうをさんしょうして、おなじきゃらくたーでざいんをいじしたままふくすうのひょうじょうさぶんをさくせいしてください。つうじょう、えがお、うぃんく、てれ、すこしかなしそう、おどろき、むすっとしたひょうじょう、かんがえちゅう、にっこり、ねむそうなど、わかりやすくことなるひょうじょうをならべてください。かみがた、かおだち、いしょう、はいしょくはかえず、かおのひょうじょうだけがしぜんにへんかするようにしてください。","tags":["🖼️ 画像","アニメ","女の子","可愛い"],"image":"assets/media/prompt-pocket-07.webp"}],"style":[{"key":"fantasy-art","name":"幻想アート","prompt":"きょだいなまんげつのしたにひろがる、えいがのようにちょうみつどでげんそうてきなあにめふうのせかい。ながれるようなとうめいかんのあるあおとしろのどれすをまとったわかいじょせいが、はなとつたにおおわれたいせきからこちらへてをのばしている。くろいかみ、りぼん、はなびら、ひかるちょうがよるかぜにただよい、そばにはちいさなしろいねこがいる。おくには、しろ、はし、たき、とう、うかぶしま、みずかがみ、らんたん、すいしょう、てんたいのそうしょくでかざられたひかりかがやくとしがひろがる。あお、むらさき、ぴんく、きんいろのゆめのようなひかりと、ほし、きり、きらめきにつつまれた、おくゆきのあるげんそうてきなふんいき。","tags":["🖼️ 画像","アニメ","ファンタジー","女の子"],"image":"assets/media/prompt-pocket-08.webp"},{"key":"handdrawn","name":"手描きイラスト風","prompt":"あらくいろえんぴつでえがいた、いきいきとしたあにめふうのいらすと。ひざしのあたるまちのかいだんにえがおのしょうじょがすわり、かたほうのてでほおをささえながらまえにみをのりだし、もうかたほうのてをこちらへのばしている。かぜになびくくろいかみ、かじゅあるなしゃつ、でにむしょーつ、ばっぐを、らふでいろあざやかなせんでえがく。てすり、たてもの、でんちゅう、でんせん、しょくぶつ、はな、かんばん、とおくのまちなみをすけっちのようにえがき、あたたかいかみのしつかん、はっちんぐのかげ、ぱすてるちょうのらくがきのようなせんで、えこんてのようないきおいのあるふんいきにする。よめるもじはいれない。","tags":["🖼️ 画像","アニメ","女の子"],"image":"assets/media/prompt-pocket-09.webp"},{"key":"deformed","name":"デフォルメ・マスコット","prompt":"しろいむじのはいけいに、ひとりのかわいらしいでふぉるめされたあにめふうのしょうじょをえがく。ふとくはっきりしたりんかくせん、くっきりしたせるぬり、ぱすてるちょうのはいらいと、つやのあるおおきなひとみ、あざやかでやわらかなはいしょくにする。しょうじょはかたほうのひざをあげてまえにふみだすようにみをのりだし、おおきくえがかれたてでぴーすさいんをこちらへのばし、うぃんくしながらあかるくえがおをみせる。ながれるようなくらいちゃいろのかみにはいろどりのあるはいらいととあわいいろのへあぴんをつける。ゆったりしたしろいしゃつ、だめーじのあるうすあおのでにむしょーつ、べると、ぴんくのさし色がはいったぼりゅーむのあるすにーかー、きんいろのかなぐがついたくらいいろのばっぐをみにつける。","tags":["🖼️ 画像","アニメ","可愛い","女の子"],"image":"assets/media/prompt-pocket-10.webp"}],"arrange":[]};
-let sampleStaging=[];
-let sampleGuideTimer=null;
-function sampleCurrentList(){return sampleCatalog[$('sampleCategory').value]||[]}
-function refreshSampleChoices(){
- const sel=$('sampleChoice'), list=sampleCurrentList();
- sel.innerHTML='';
- if(!list.length){
-   const o=document.createElement('option');o.value='';o.textContent='準備中';sel.appendChild(o);sel.disabled=true;$('sampleAdd').disabled=true;
- }else{
-   sel.disabled=false;$('sampleAdd').disabled=false;
-   list.forEach(x=>{const o=document.createElement('option');o.value=x.key;o.textContent=x.name;sel.appendChild(o)});
- }
- renderSamplePreview();
-}
-function getSelectedSample(){
- const key=$('sampleChoice').value;
- return sampleCurrentList().find(x=>x.key===key)||null;
-}
-function renderSamplePreview(){
- const x=getSelectedSample(), box=$('samplePreview');
- if(!x){box.innerHTML='<div style="grid-column:1/-1;text-align:center;color:#999;padding:28px 8px">この項目のサンプルは準備中です</div>';return}
- box.innerHTML='';
- const img=document.createElement('img');img.src=x.image;img.alt=x.name;
- const d=document.createElement('div'),h=document.createElement('h3'),p=document.createElement('p');
- h.textContent=x.name;p.textContent=x.prompt;
- d.append(h,p);box.append(img,d);
-}
-function renderSampleQueue(lastKey=''){
- const box=$('sampleQueue');box.innerHTML='';
- if(!sampleStaging.length){box.innerHTML='<div class="sampleQueueEmpty">まだ追加されていません</div>';return}
- sampleStaging.forEach((x,i)=>{
-   const row=document.createElement('div');row.className='sampleQueueRow'+(x.uid===lastKey?' sampleJustAdded':'');
-   const name=document.createElement('strong');name.textContent=(x.uid===lastKey?'✓ ':'')+x.name;
-   const del=document.createElement('button');del.type='button';del.className='ghost';del.textContent='削除';
-   del.onclick=()=>{sampleStaging.splice(i,1);renderSampleQueue()};
-   row.append(name,del);box.appendChild(row);
- });
-}
-function resetSampleStaging(){sampleStaging=[];renderSampleQueue();clearTimeout(sampleGuideTimer);$('sampleGuide').textContent='項目とサンプルを選んで、追加ボタンを押してください'}
-function openSampleDialog(){resetSampleStaging();refreshSampleChoices();$('sampleDialog').showModal()}
-$('sampleBtn').onclick=openSampleDialog;
-$('sampleCategory').onchange=refreshSampleChoices;
-$('sampleChoice').onchange=renderSamplePreview;
-$('sampleAdd').onclick=()=>{
- const x=getSelectedSample();if(!x)return;
- const uid=x.key+'-'+Date.now()+'-'+Math.random();
- sampleStaging.push({...x,uid});
- renderSampleQueue(uid);
- clearTimeout(sampleGuideTimer);
- $('sampleGuide').textContent='✓ 「'+x.name+'」を追加しました。下の一覧に追加されています。';
- sampleGuideTimer=setTimeout(()=>{$('sampleGuide').textContent='項目とサンプルを選んで、追加ボタンを押してください'},1600);
+sampleCatalog.game=[];sampleCatalog.other=[];
+const sampleText={
+ 'three-view':{description:'同じキャラクターの正面・側面・背面を並べた設定資料を作ります。',prompt:'添付したキャラクター画像を参照して、同じキャラクターの三面図を作成してください。正面・真横・背面の全身を横一列に並べ、髪型、顔立ち、体格、衣装、装飾、配色を統一してください。各方向でデザインが矛盾しないようにし、設定資料として確認しやすいシンプルな背景とレイアウトにしてください。'},
+ 'character-sheet':{description:'全身・顔・表情・ポーズをまとめたキャラクター設定資料を作ります。',prompt:'添付した画像のキャラクターを参照して、キャラクターシートを作成してください。キャラクターのデザイン、髪型、衣装、装飾、配色などの特徴を維持し、全身図、顔のアップ、代表的な表情やポーズを見やすく配置してください。同じキャラクターとして統一感を保ち、設定資料として使いやすいシンプルなレイアウトにしてください。'},
+ 'expressions':{description:'同じキャラクターで複数の表情差分を作ります。',prompt:'添付したキャラクター画像を参照して、同じキャラクターデザインを維持したまま複数の表情差分を作成してください。通常、笑顔、ウインク、照れ、少し悲しそうな表情、驚き、むすっとした表情、考え中、にっこり、眠そうなど、分かりやすく異なる表情を並べてください。髪型、顔立ち、衣装、配色は変えず、顔の表情だけが自然に変化するようにしてください。'},
+ 'fantasy-art':{description:'月夜の幻想都市を舞台にした高密度なファンタジー作品を作ります。',prompt:'巨大な満月の下に広がる、映画のように高密度で幻想的なアニメ風の世界。流れるような透明感のある青と白のドレスをまとった若い女性が、花と蔦に覆われた遺跡からこちらへ手を伸ばしている。黒い髪、リボン、花びら、光る蝶が夜風に漂い、そばには小さな白い猫がいる。奥には、城、橋、滝、塔、浮かぶ島、水鏡、ランタン、水晶、天体の装飾で飾られた光り輝く都市が広がる。青、紫、ピンク、金色の夢のような光と、星、霧、きらめきに包まれた、奥行きのある幻想的な雰囲気。'},
+ 'handdrawn':{description:'色鉛筆とラフな線を使った手描き風イラストを作ります。',prompt:'粗い色鉛筆で描いた、生き生きとしたアニメ風のイラスト。日差しの当たる街の階段に笑顔の少女が座り、片方の手で頬を支えながら前に身を乗り出し、もう片方の手をこちらへ伸ばしている。風になびく黒い髪、カジュアルなシャツ、デニムショーツ、バッグを、ラフで色鮮やかな線で描く。手すり、建物、電柱、電線、植物、花、看板、遠くの街並みをスケッチのように描き、温かい紙の質感、ハッチングの影、パステル調の落書きのような線で、絵コンテのような勢いのある雰囲気にする。読める文字は入れない。'},
+ 'deformed':{description:'大きな表情とポーズが特徴のデフォルメキャラクターを作ります。',prompt:'白い無地の背景に、1人の可愛らしいデフォルメされたアニメ風の少女を描く。太くはっきりした輪郭線、くっきりしたセル塗り、パステル調のハイライト、艶のある大きな瞳、鮮やかで柔らかな配色にする。少女は片方の膝を上げて前に踏み出すように身を乗り出し、大きく描かれた手でピースサインをこちらへ伸ばし、ウインクしながら明るく笑顔を見せる。流れるような暗い茶色の髪には彩りのあるハイライトと淡い色のヘアピンを付ける。ゆったりした白いシャツ、ダメージのある薄青のデニムショーツ、ベルト、ピンクの差し色が入ったボリュームのあるスニーカー、金色の金具が付いた暗い色のバッグを身に付ける。'}
 };
+Object.values(sampleCatalog).flat().forEach(x=>Object.assign(x,sampleText[x.key]||{}));
+let sampleSelection=new Set(),samplePending=[];
+function sampleCurrentList(){return sampleCatalog[$('sampleCategory').value]||[]}
+function allSamples(){return Object.values(sampleCatalog).flat()}
+function renderSampleList(){
+ const box=$('sampleList'),list=sampleCurrentList();box.innerHTML='';
+ if(!list.length){box.innerHTML='<div class="sampleListEmpty">このジャンルのサンプルは準備中です</div>';$('sampleExecute').disabled=sampleSelection.size===0;return}
+ list.forEach(x=>{
+  const label=document.createElement('label');label.className='sampleListItem';
+  const check=document.createElement('input');check.type='checkbox';check.checked=sampleSelection.has(x.key);
+  const img=document.createElement('img');img.src=x.image;img.alt='';img.loading='lazy';
+  const text=document.createElement('span'),name=document.createElement('strong'),desc=document.createElement('small');name.textContent=x.name;desc.textContent=x.description;
+  text.append(name,desc);label.append(check,img,text);box.appendChild(label);
+  check.onchange=()=>{check.checked?sampleSelection.add(x.key):sampleSelection.delete(x.key);$('sampleExecute').disabled=sampleSelection.size===0};
+ });
+ $('sampleExecute').disabled=sampleSelection.size===0;
+}
+function resetSampleSelection(){sampleSelection.clear();samplePending=[];renderSampleList()}
+function openSampleDialog(){sampleSelection.clear();renderSampleList();$('sampleDialog').showModal()}
+$('sampleBtn').onclick=openSampleDialog;
+$('sampleCategory').onchange=renderSampleList;
 $('sampleExecute').onclick=()=>{
- if(!sampleStaging.length){toast('追加するサンプルがありません');return}
+ samplePending=allSamples().filter(x=>sampleSelection.has(x.key));
+ if(!samplePending.length)return;
+ const duplicate=samplePending.find(x=>items.some(item=>item.presetKey===x.key));
+ if(duplicate){alert('「'+duplicate.name+'」はすでに追加されています。');return}
+ $('sampleConfirmMessage').textContent=samplePending.length===1?'「'+samplePending[0].name+'」を追加します。よろしいですか？':samplePending.length+'件のサンプルを追加します。よろしいですか？';
+ $('sampleConfirmDialog').showModal();
+};
+$('sampleConfirmYes').onclick=()=>{
+ if(!samplePending.length)return;
  snapshot('サンプル追加');
  const now=Date.now();
- sampleStaging.forEach((x,i)=>items.push({
+ samplePending.forEach((x,i)=>items.push({
    id:crypto.randomUUID(),presetKey:x.key,name:x.name,prompt:x.prompt,author:'',xhandle:'',source:'',
    memo:'Prompt Pocketに用意されているサンプルプロンプトです。自由に編集して使えます。',
    tags:[...x.tags],image:x.image,pinned:false,fav:false,favorite:false,useCount:0,lastUsed:0,created:now+i,updated:now+i,createdAt:now+i,updatedAt:now+i
  }));
- const n=sampleStaging.length;save();render();resetSampleStaging();$('sampleDialog').close();toast(n+'件追加しました');
+ const n=samplePending.length;samplePending.forEach(x=>sampleSelection.delete(x.key));samplePending=[];save();render();renderSampleList();$('sampleConfirmDialog').close();toast(n+'件追加しました');
 };
-function closeSampleDialog(){resetSampleStaging();$('sampleDialog').close()}
+$('sampleConfirmNo').onclick=()=>{samplePending=[];$('sampleConfirmDialog').close()};
+$('sampleConfirmDialog').addEventListener('cancel',e=>{e.preventDefault();$('sampleConfirmNo').click()});
+function closeSampleDialog(){sampleSelection.clear();samplePending=[];$('sampleConfirmDialog').close();$('sampleDialog').close()}
 $('sampleCancel').onclick=closeSampleDialog;
 $('sampleClose').onclick=closeSampleDialog;
 $('sampleDialog').addEventListener('cancel',e=>{e.preventDefault();closeSampleDialog()});
