@@ -1166,3 +1166,24 @@ button,[role="button"]{
   .folderActions{gap:4px}
   .folderActions .folderCountInline{font-size:15px!important;padding:4px 5px!important}
 }
+
+/* TEST37: keep menus above following rows and use the title area efficiently. */
+.folderRow:has(.detailPopupMenu:not(.hidden))>td{
+  position:relative;
+  z-index:60;
+}
+.folderRow:has(.detailPopupMenu:not(.hidden)) .detailPopupMenu{z-index:80}
+.unifiedTable .nameCell .rowName{flex:1 1 auto;min-width:0}
+.unifiedTable .dragSpace,
+.unifiedTable .folderDragSpace{flex:0 0 18px!important;min-width:18px!important}
+.folderChildRow .folderBranch{
+  display:inline-block!important;
+  flex:0 0 18px!important;
+  width:18px!important;
+  margin-right:3px!important;
+  color:#ad7d00!important;
+  font-size:18px!important;
+  font-weight:1000!important;
+  line-height:1!important;
+  text-shadow:0 0 .35px currentColor;
+}
