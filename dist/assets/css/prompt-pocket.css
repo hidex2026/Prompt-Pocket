@@ -988,7 +988,6 @@ main{padding-top:6px}
 .sampleActions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
 .sampleActions button{height:44px;border-radius:12px;font-weight:900}
 #sampleExecute{background:#111;color:#fff;border-color:#111}
-#sampleCancel{background:#fff;color:#222;border:1px solid #bbb}
 @media(max-width:600px){
  .samplePanel{padding:14px}
  .samplePicker{grid-template-columns:1fr 1fr}
@@ -1246,4 +1245,6 @@ body.buttonGlowEnabled button:not(:disabled):active{
 .sampleConfirmDialog{border:0;padding:0;background:transparent}
 .sampleConfirmPanel{width:min(420px,calc(100vw - 32px));box-sizing:border-box;padding:20px;border-radius:18px;background:#fff;box-shadow:0 18px 55px #0003}
 .sampleConfirmPanel h2{margin:0 0 10px}.sampleConfirmPanel p{line-height:1.65;margin:0}
+#sampleDialog>.samplePanel>.sampleActions{grid-template-columns:1fr}
+#sampleExecute{width:100%;min-height:52px;font-size:16px}
 @media(max-width:560px){.sampleListItem{grid-template-columns:22px 58px minmax(0,1fr);gap:8px;padding:9px}.sampleListItem img{width:58px;height:54px}}

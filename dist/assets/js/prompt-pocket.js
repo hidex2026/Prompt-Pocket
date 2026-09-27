@@ -1155,7 +1155,6 @@ $('sampleConfirmYes').onclick=()=>{
 $('sampleConfirmNo').onclick=()=>{samplePending=[];$('sampleConfirmDialog').close()};
 $('sampleConfirmDialog').addEventListener('cancel',e=>{e.preventDefault();$('sampleConfirmNo').click()});
 function closeSampleDialog(){sampleSelection.clear();samplePending=[];$('sampleConfirmDialog').close();$('sampleDialog').close()}
-$('sampleCancel').onclick=closeSampleDialog;
 $('sampleClose').onclick=closeSampleDialog;
 $('sampleDialog').addEventListener('cancel',e=>{e.preventDefault();closeSampleDialog()});
 
