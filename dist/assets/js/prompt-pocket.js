@@ -902,29 +902,31 @@ function ppCardInsertion(st,x,y){
   if(st.forceSourceTop&&st.row.classList.contains('folderChildRow')){
     return {kind:'folder-line',folderId:st.row.dataset.folderChild,y:st.row.getBoundingClientRect().top,cancel:true};
   }
-  const folder=document.elementFromPoint(x,y)?.closest?.('tr[data-folder]');
+  const ghostTop=y-st.offsetY,ghostBottom=ghostTop+st.ghostHeight,ghostCenter=(ghostTop+ghostBottom)/2;
+  // Judge a folder from the visible ghost card rather than the finger point.
+  // This makes the center drop zone stable regardless of where the user held
+  // the card and allows a small alignment error on touch screens.
+  const folder=[...document.querySelectorAll('tr.folderRow[data-folder]')].map(row=>{
+    const r=row.getBoundingClientRect();
+    return {row,r,overlap:Math.max(0,Math.min(ghostBottom,r.bottom)-Math.max(ghostTop,r.top))};
+  }).filter(v=>v.overlap>0).sort((a,b)=>b.overlap-a.overlap)[0];
   if(folder&&!st.row.classList.contains('folderRow')){
-    const r=folder.getBoundingClientRect();
+    const folderRow=folder.row,r=folder.r;
     const draggedCard=items.find(item=>item.id===st.row.dataset.row);
     // A card already inside this folder cannot be "put into" the same folder.
     // Dragging it back over its parent always offers the line above the folder,
     // which moves the card out to the root list before that folder.
-    if(draggedCard?.folderId===folder.dataset.folder){
-      return {kind:'line',y:r.top,beforeKey:'folder:'+folder.dataset.folder};
+    if(draggedCard?.folderId===folderRow.dataset.folder){
+      return {kind:'line',y:r.top,beforeKey:'folder:'+folderRow.dataset.folder};
     }
-    // A folder has three deliberate drop zones: above line, folder body, and
-    // below line.  Judge them from the ghost's TOP edge (the visible insertion
-    // reference), not the finger position, which changes with the hold point.
-    const ghostTop=y-st.offsetY;
-    const edge=Math.max(18,Math.min(30,r.height*.32));
-    if(Math.abs(ghostTop-r.top)<=edge)return {kind:'line',y:r.top,beforeKey:'folder:'+folder.dataset.folder};
-    if(Math.abs(ghostTop-r.bottom)<=edge)return ppLineAfterRootRow(folder);
-    const ghostBottom=ghostTop+st.ghostHeight;
-    const overlap=Math.max(0,Math.min(ghostBottom,r.bottom)-Math.max(ghostTop,r.top));
-    // Enter when the ghost visibly overlaps the folder.  Only a thin band at
-    // either edge remains available for the before/after insertion lines.
-    const needed=Math.min(18,Math.max(8,Math.min(st.ghostHeight,r.height)*.16));
-    if(overlap>=needed)return {kind:'folder',folderId:folder.dataset.folder};
+    // The middle 64% is the forgiving "put into folder" zone.  Moving clearly
+    // beyond it switches to the insertion line above or below the folder.
+    const tolerance=Math.max(10,r.height*.18);
+    if(ghostCenter>=r.top+tolerance&&ghostCenter<=r.bottom-tolerance){
+      return {kind:'folder',folderId:folderRow.dataset.folder};
+    }
+    if(ghostCenter<r.top+r.height/2)return {kind:'line',y:r.top,beforeKey:'folder:'+folderRow.dataset.folder};
+    return ppLineAfterRootRow(folderRow);
   }
   const exitInsert=ppFolderExitInsertion(st,y);
   if(exitInsert)return exitInsert;
