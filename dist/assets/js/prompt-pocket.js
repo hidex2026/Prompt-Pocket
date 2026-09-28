@@ -343,7 +343,7 @@ function bindFolderReorder(){
   document.querySelectorAll('.folderRow').forEach(row=>{
     const handles=[...row.querySelectorAll('.folderInteractArea,.folderMenuBtn')];
     handles.forEach(handle=>{
-      let timer=null,drag=false,sx=0,sy=0,suppressClick=false,ghost=null,ghostOffsetY=0,lastClick=0,lastClickX=0,lastClickY=0;
+      let timer=null,drag=false,moved=false,sx=0,sy=0,suppressClick=false,ghost=null,ghostOffsetY=0;
       const clear=()=>{if(timer){clearTimeout(timer);timer=null}};
       const toggleFolder=()=>{
         const id=row.dataset.folder;
@@ -353,7 +353,7 @@ function bindFolderReorder(){
       };
       handle.addEventListener('pointerdown',e=>{
       if(e.pointerType==='mouse'&&e.button!==0)return;
-      sx=e.clientX;sy=e.clientY;drag=false;suppressClick=false;
+      sx=e.clientX;sy=e.clientY;drag=false;moved=false;suppressClick=false;
       timer=setTimeout(()=>{
         drag=true;suppressClick=true;row.classList.add('folderDragging');
         // Folder reordering has its own drag path, so collapse expanded
@@ -370,7 +370,7 @@ function bindFolderReorder(){
       },800);
       });
       handle.addEventListener('pointermove',e=>{
-      if(!drag){if(timer&&Math.hypot(e.clientX-sx,e.clientY-sy)>10)clear();return}
+      if(!drag){if(timer&&Math.hypot(e.clientX-sx,e.clientY-sy)>10){moved=true;clear()}return}
       e.preventDefault();
       const r0=row.getBoundingClientRect();
       ghost.style.transform=`translate3d(${r0.left}px,${e.clientY-ghostOffsetY}px,0) scale(.985)`;
@@ -404,12 +404,9 @@ function bindFolderReorder(){
       handle.addEventListener('pointerup',finish);
       handle.addEventListener('pointercancel',()=>{clear();drag=false;row.classList.remove('folderDragging');ghost?.remove();ghost=null;ppInsertLine(null)});
       handle.addEventListener('click',e=>{
-        if(suppressClick){e.preventDefault();e.stopImmediatePropagation();return}
+        if(suppressClick||moved){moved=false;e.preventDefault();e.stopImmediatePropagation();return}
         if(!handle.classList.contains('folderInteractArea'))return;
-        const now=Date.now();
-        if(now-lastClick<650&&Math.hypot(e.clientX-lastClickX,e.clientY-lastClickY)<32){
-          lastClick=0;e.preventDefault();e.stopImmediatePropagation();toggleFolder();
-        }else{lastClick=now;lastClickX=e.clientX;lastClickY=e.clientY}
+        e.preventDefault();e.stopImmediatePropagation();toggleFolder();
       },true);
     });
   });
@@ -538,6 +535,7 @@ function ppEnsureFolderExitSlot(st){
 
 function ppFinishCancel(){
   if(!ppDnd)return;
+  const source=ppDnd.source;
   clearTimeout(ppDnd.timer);
   ppDnd.scrollDir=0;
   ppDnd.ghost?.remove();
@@ -546,6 +544,7 @@ function ppFinishCancel(){
   ppRemoveFolderExitSlot();
   ppInsertLine?.(null);
   document.body.classList.remove('pp-dnd-active');
+  if(source?.dataset?.dndSuppress)setTimeout(()=>{delete source.dataset.dndSuppress},400);
   ppDnd=null;
 }
 
@@ -591,8 +590,7 @@ function ppStart(st){
   ppCollapseForDrag(st);
   ppEnsureFolderExitSlot(st);
   st.active=true;
-  const handle=st.source?.matches?.('[data-menu-toggle]')?st.source:null;
-  if(handle)handle.dataset.dndSuppress='1';
+  if(st.source?.dataset)st.source.dataset.dndSuppress='1';
   st.row.classList.add('pp-dnd-source');
   document.body.classList.add('pp-dnd-active');
   navigator.vibrate?.(20);
@@ -838,6 +836,7 @@ function ppRelease(st,x,y){
   document.body.classList.remove('pp-dnd-active');
   ppInsertLine(null);
   ppRemoveFolderExitSlot();
+  if(st.source?.dataset)setTimeout(()=>{delete st.source.dataset.dndSuppress},400);
   ppDnd=null;
   if(insert.kind==='folder'&&insert.folderId){
     const card=items.find(item=>item.id===st.row.dataset.row);
@@ -983,23 +982,23 @@ function toggleCardDetail(row){
   if(!detail.classList.contains('hidden'))updatePromptOverflow(detail);
 }
 function bindCardPrimaryInteractions(row,area){
-  let lastClick=0,lastClickX=0,lastClickY=0;
+  let moved=false;
   area.addEventListener('pointerdown',e=>{
     if(e.pointerType==='mouse'&&e.button!==0)return;
+    moved=false;
     ppBegin(row,e.clientX,e.clientY,area,e.pointerType==='mouse');
   });
   area.addEventListener('pointermove',e=>{
-    if(ppDnd?.row===row&&!ppDnd.active&&Math.hypot(e.clientX-ppDnd.startX,e.clientY-ppDnd.startY)>10)ppFinishCancel();
+    if(ppDnd?.row===row&&!ppDnd.active&&Math.hypot(e.clientX-ppDnd.startX,e.clientY-ppDnd.startY)>10){moved=true;ppFinishCancel()}
   });
-  area.addEventListener('pointercancel',()=>{if(ppDnd?.row===row&&!ppDnd.active)ppFinishCancel()});
+  area.addEventListener('pointercancel',()=>{moved=true;if(ppDnd?.row===row&&!ppDnd.active)ppFinishCancel()});
   area.addEventListener('click',e=>{
-    const now=Date.now();
-    if(now-lastClick<650&&Math.hypot(e.clientX-lastClickX,e.clientY-lastClickY)<32){
-      lastClick=0;
-      e.preventDefault();
-      if(ppDnd?.row===row&&!ppDnd.active)ppFinishCancel();
-      toggleCardDetail(row);
-    }else{lastClick=now;lastClickX=e.clientX;lastClickY=e.clientY}
+    if(moved||area.dataset.dndSuppress==='1'){
+      moved=false;delete area.dataset.dndSuppress;e.preventDefault();e.stopImmediatePropagation();return;
+    }
+    e.preventDefault();
+    if(ppDnd?.row===row&&!ppDnd.active)ppFinishCancel();
+    toggleCardDetail(row);
   });
   area.addEventListener('pointerup',e=>{
     if(ppDnd?.row!==row||ppDnd.active)return;

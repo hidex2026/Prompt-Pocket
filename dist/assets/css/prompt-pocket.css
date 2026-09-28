@@ -1144,7 +1144,7 @@ main{padding-top:6px}
 .folderActions .folderMenuBtn{min-width:42px}
 .unifiedTable .col-actions,.unifiedTable .opCol{width:128px}
 .unifiedDragArea{cursor:pointer;touch-action:pan-y}
-.folderInteractArea{cursor:pointer;touch-action:none}
+.folderInteractArea{cursor:pointer;touch-action:pan-y}
 .unifiedDragArea .rowName{cursor:inherit;text-decoration:none}
 .unifiedDragArea .rowName:hover{text-decoration:none}
 .unifiedDragArea,.unifiedDragArea *{
