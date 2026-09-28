@@ -1219,6 +1219,36 @@ button,[role="button"]{
 .folderChildRow.folderTreeLast .folderBranch::after{
   content:'';position:absolute;left:0;top:0;height:50%;border-left:2px solid #ad7d00;
 }
+
+/* TEST63: folder groups, explicit hit zones, compact controls and sortable headers */
+.toolbarClose{white-space:nowrap;padding:8px 10px;font-weight:800}
+.favoriteHit{display:flex!important;align-items:center;justify-content:center;width:100%;min-width:42px;min-height:54px;padding:0!important;touch-action:manipulation}
+.cardThumbDeadZone{display:flex;align-items:center;flex:0 0 auto;align-self:stretch;pointer-events:none;user-select:none;-webkit-user-select:none}
+.unifiedTable .nameCell>.unifiedDragArea{display:flex;align-items:center;flex:1 1 auto;align-self:stretch;min-width:0;touch-action:pan-y;padding:0 2px}
+.unifiedTable .nameCell>.unifiedDragArea .rowName{flex:1 1 auto;min-width:0}
+.sortableHead{cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:pan-y}
+.sortableHead.active{color:#8a6400;background:#fff5c9!important;box-shadow:inset 0 -3px 0 #d5a30e}
+.sortArrow{font-size:.58em;margin-left:5px;vertical-align:middle}
+
+.folderRow.folderOpen>td{border-top:3px solid #c89612!important;box-shadow:inset 0 2px 0 #fff9d9,inset 0 -1px 0 #eadb9c!important}
+.folderRow.folderOpen>td:first-child{border-left:3px solid #c89612!important;border-radius:13px 0 0 0!important}
+.folderRow.folderOpen>td:last-child{border-right:3px solid #c89612!important;border-radius:0 13px 0 0!important}
+.folderRow.folderOpen{filter:drop-shadow(0 3px 3px rgba(95,65,0,.18))}
+.folderChildRow>td{background:#fffefa!important}
+.folderChildRow>td:first-child,.folderChildDetail>td{border-left:3px solid #c89612!important}
+.folderChildRow>td:last-child,.folderChildDetail>td{border-right:3px solid #c89612!important}
+.folderChildRow.folderTreeLast>td{border-bottom:3px solid #c89612!important}
+.folderChildRow.folderTreeLast>td:first-child{border-radius:0 0 0 13px}
+.folderChildRow.folderTreeLast>td:last-child{border-radius:0 0 13px 0}
+.folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td{border-bottom:0!important;border-radius:0}
+.folderFrameLastDetail:not(.hidden)>td{border-bottom:3px solid #c89612!important;border-radius:0 0 13px 13px!important}
+#ppInsertLine{z-index:120!important}
+
+@media(max-width:560px){
+  .stickyViewBar .viewCountRow{gap:5px!important}
+  .toolbarClose{padding:7px 7px!important;font-size:13px!important}
+  .favoriteHit{min-width:36px;min-height:58px}
+}
 .searchPanel.searchRevealed{
   border:3px solid #2f7de1!important;border-radius:14px!important;
   background:#eef6ff!important;padding:10px!important;

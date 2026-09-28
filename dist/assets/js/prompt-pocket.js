@@ -121,6 +121,7 @@ prefs.hiddenTags=Array.isArray(prefs.hiddenTags)?prefs.hiddenTags:[];
 prefs.rememberOps=!!prefs.rememberOps;
 prefs.shortcutEnabled=Object.prototype.hasOwnProperty.call(prefs,'shortcutEnabled')?!!prefs.shortcutEnabled:true;
 prefs.buttonGlowEnabled=!!prefs.buttonGlowEnabled;
+prefs.doubleTapOpenEnabled=!!prefs.doubleTapOpenEnabled;
 document.body.classList.toggle('buttonGlowEnabled',prefs.buttonGlowEnabled);
 // TEST34: 検索とヘルプだけを誤タッチ防止の長押し対象にする。
 prefs.longPressMainActionsEnabled=Object.prototype.hasOwnProperty.call(prefs,'longPressMainActionsEnabled')
@@ -142,7 +143,7 @@ function normalize(){items=items.map(x=>({...x,created:x.created||Date.now(),upd
 normalize();
 const FOLDER_KEY='promptPocketFolders.v1';
 let folders=[];
-try{folders=JSON.parse(localStorage.getItem(FOLDER_KEY)||'[]');if(!Array.isArray(folders))folders=[]}catch{folders=[]}
+try{folders=JSON.parse(localStorage.getItem(FOLDER_KEY)||'[]');if(!Array.isArray(folders))folders=[];folders=folders.map(f=>({...f,fav:!!f.fav}))}catch{folders=[]}
 const openFolders=new Set();
 function saveFolders(){localStorage.setItem(FOLDER_KEY,JSON.stringify(folders))}
 function folderById(id){return folders.find(f=>f.id===id)}
@@ -334,7 +335,7 @@ function renderTagChoices(){
 function renderFilters(){const used=allTags().filter(t=>items.some(x=>(x.tags||[]).includes(t)));$('filterTags').innerHTML=used.map(t=>`<button class="chip ${filterTags.has(t)?'on':''}" data-tag="${esc(t)}">${esc(t)}</button>`).join('');$('filterTags').querySelectorAll('.chip').forEach(b=>b.onclick=()=>{const t=b.dataset.tag;filterTags.has(t)?filterTags.delete(t):filterTags.add(t);render()});}
 function xUrl(h){if(!h)return'';h=h.trim();if(h.startsWith('http'))return h;return 'https://x.com/'+h.replace(/^@/,'');}
 function fmt(ts){return new Date(ts).toLocaleString('ja-JP',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});}
-function sortList(list){const s=$('sort').value;if(s==='manual'){const order=Array.isArray(prefs.manualOrder)?prefs.manualOrder:[];list.sort((a,b)=>{const ai=order.indexOf(a.id),bi=order.indexOf(b.id);if(ai<0&&bi<0)return b.created-a.created;if(ai<0)return 1;if(bi<0)return -1;return ai-bi});}else if(s==='createdAsc')list.sort((a,b)=>a.created-b.created);else if(s==='updatedDesc')list.sort((a,b)=>b.updated-a.updated);else if(s==='nameAsc')list.sort((a,b)=>a.name.localeCompare(b.name,'ja'));else if(s==='nameDesc')list.sort((a,b)=>b.name.localeCompare(a.name,'ja'));else if(s==='authorAsc')list.sort((a,b)=>(a.author||'').localeCompare(b.author||'','ja'));else if(s==='fav')list.sort((a,b)=>(b.fav?1:0)-(a.fav?1:0)||b.created-a.created);else if(s==='recentUsed')list.sort((a,b)=>(b.lastUsed||0)-(a.lastUsed||0)||b.created-a.created);else if(s==='mostUsed')list.sort((a,b)=>(b.useCount||0)-(a.useCount||0)||b.created-a.created);else if(s==='random'){if(randomOrder.length!==items.length) randomOrder=[...items].sort(()=>Math.random()-.5).map(x=>x.id);list.sort((a,b)=>randomOrder.indexOf(a.id)-randomOrder.indexOf(b.id));}else list.sort((a,b)=>b.created-a.created);if(detailFavSort&&prefs.view==='detail')list.sort((a,b)=>(b.fav?1:0)-(a.fav?1:0));list.sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0));return list;}
+function sortList(list){const s=$('sort').value;if(s==='manual'||s==='foldersFirst'){const order=Array.isArray(prefs.manualOrder)?prefs.manualOrder:[];list.sort((a,b)=>{const ai=order.indexOf(a.id),bi=order.indexOf(b.id);if(ai<0&&bi<0)return b.created-a.created;if(ai<0)return 1;if(bi<0)return -1;return ai-bi});}else if(s==='nameAsc')list.sort((a,b)=>a.name.localeCompare(b.name,'ja'));else if(s==='fav')list.sort((a,b)=>(b.fav?1:0)-(a.fav?1:0)||b.created-a.created);else list.sort((a,b)=>b.created-a.created);list.sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0));return list;}
 function actionButtons(x){return `<button data-copy="${x.id}">📋 コピー</button><button data-edit="${x.id}">✏️ 編集</button><button data-duplicate="${x.id}">📄 複製</button><button class="dangerMini" data-delete="${x.id}">🗑️ 削除</button>${x.source?`<button data-source="${x.id}">出典</button>`:''}`;}
 function render(){
   document.querySelector('.folderPopupPortal')?.remove();
@@ -350,11 +351,11 @@ function render(){
 
   const folderRows=folders.map(f=>({type:'folder',folder:f,created:f.created||0}));
   let mixed=[...folderRows,...topCards.map(x=>({type:'card',card:x,created:x.created||0}))];
-  if($('sort').value==='createdDesc')mixed.sort((a,b)=>b.created-a.created);
-  if($('sort').value==='createdAsc')mixed.sort((a,b)=>a.created-b.created);
-  if($('sort').value==='nameAsc')mixed.sort((a,b)=>(a.folder?.name||a.card?.name||'').localeCompare(b.folder?.name||b.card?.name||'','ja'));
-  if($('sort').value==='nameDesc')mixed.sort((a,b)=>(b.folder?.name||b.card?.name||'').localeCompare(a.folder?.name||a.card?.name||'','ja'));
-  if($('sort').value==='manual'){
+  const sortMode=$('sort').value;
+  if(sortMode==='createdDesc')mixed.sort((a,b)=>b.created-a.created);
+  if(sortMode==='nameAsc')mixed.sort((a,b)=>(a.folder?.name||a.card?.name||'').localeCompare(b.folder?.name||b.card?.name||'','ja'));
+  if(sortMode==='fav')mixed.sort((a,b)=>Number(b.folder?.fav||b.card?.fav)-Number(a.folder?.fav||a.card?.fav)||b.created-a.created);
+  if(sortMode==='manual'||sortMode==='foldersFirst'){
     const order=Array.isArray(prefs.manualOrder)?prefs.manualOrder:[];
     const key=v=>v.type==='folder'?'folder:'+v.folder.id:v.card.id;
     mixed.sort((a,b)=>{
@@ -363,6 +364,7 @@ function render(){
       if(ai<0)return 1;if(bi<0)return -1;return ai-bi;
     });
   }
+  if(sortMode==='foldersFirst')mixed.sort((a,b)=>Number(b.type==='folder')-Number(a.type==='folder'));
   // 新しく作成したフォルダは、初めて触られるまで一覧の先頭に置く。
   mixed.sort((a,b)=>Number(b.type==='folder'&&b.folder.isNew)-Number(a.type==='folder'&&a.folder.isNew));
 
@@ -370,25 +372,28 @@ function render(){
   $('empty').classList.toggle('hidden',items.length>0||folders.length>0);
   $('cards').className='detailExplorer unifiedExplorer';
 
-  const cardRows=(x,child=false)=>`<tr class="unifiedRow ${child?'folderChildRow':''}" data-row="${x.id}"${child?' data-folder-child="'+esc(x.folderId)+'"':''}><td><button class="tableIcon" data-fav="${x.id}" title="お気に入り">${x.fav?'★':'☆'}</button></td><td class="nameCell unifiedDragArea" title="${esc(x.name)}">${child?'<span class="folderBranch">└</span>':''}${imageTag(x.image,'tinyThumb')}${x.pinned?'<span class="miniPin">📌</span>':''}<span class="rowName">${esc(x.name)}</span><span class="dragSpace" aria-hidden="true"></span></td><td><div class="tableActions"><button data-copy="${x.id}">📋 コピー</button><span class="detailMenuWrap"><button data-menu-toggle="${x.id}" aria-label="メニューを開く">⋯</button><div class="detailPopupMenu hidden" id="detailMenu-${x.id}"><button data-edit="${x.id}">✏️ 編集</button><button data-copy="${x.id}">📋 コピー</button><button data-move-folder="${x.id}">📁 フォルダへ移動</button>${child?`<button data-folder-remove="${x.id}">📤 フォルダから出す</button>`:''}<button data-pin="${x.id}">${x.pinned?'📌 ピン留めを解除':'📌 ピン留めする'}</button><button class="dangerMenu" data-delete="${x.id}">🗑️ 削除</button></div></span></div></td></tr><tr class="rowDetail hidden" id="rowDetail-${x.id}"><td colspan="3"><div class="unifiedCardDetail">${x.image?`<div class="unifiedThumb">${imageTag(x.image)}</div>`:'<div class="unifiedThumb unifiedNoImage"><span>サムネイル</span></div>'}<div class="unifiedCardBody"><div class="meta">${x.author?`作者：${esc(x.author)}`:'自作 / 作者未登録'}</div><div class="unifiedPrompt">${esc(x.prompt)}</div><div class="chips">${(x.tags||[]).map(t=>`<span class="chip">${esc(t)}</span>`).join('')}</div><div class="cardactions">${actionButtons(x)}</div></div></div></td></tr>`;
+  const cardRows=(x,child=false)=>`<tr class="unifiedRow ${child?'folderChildRow':''}" data-row="${x.id}"${child?' data-folder-child="'+esc(x.folderId)+'"':''}><td><button class="tableIcon favoriteHit" data-fav="${x.id}" title="お気に入り">${x.fav?'★':'☆'}</button></td><td class="nameCell"><span class="cardThumbDeadZone">${child?'<span class="folderBranch">└</span>':''}${imageTag(x.image,'tinyThumb')}</span><span class="unifiedDragArea" title="${esc(x.name)}">${x.pinned?'<span class="miniPin">📌</span>':''}<span class="rowName">${esc(x.name)}</span><span class="dragSpace" aria-hidden="true"></span></span></td><td><div class="tableActions"><button data-copy="${x.id}">📋 コピー</button><span class="detailMenuWrap"><button data-menu-toggle="${x.id}" aria-label="メニューを開く">⋯</button><div class="detailPopupMenu hidden" id="detailMenu-${x.id}"><button data-edit="${x.id}">✏️ 編集</button><button data-copy="${x.id}">📋 コピー</button><button data-move-folder="${x.id}">📁 フォルダへ移動</button>${child?`<button data-folder-remove="${x.id}">📤 フォルダから出す</button>`:''}<button data-pin="${x.id}">${x.pinned?'📌 ピン留めを解除':'📌 ピン留めする'}</button><button class="dangerMenu" data-delete="${x.id}">🗑️ 削除</button></div></span></div></td></tr><tr class="rowDetail ${child?'folderChildDetail ':''}hidden" id="rowDetail-${x.id}"${child?' data-folder-detail="'+esc(x.folderId)+'"':''}><td colspan="3"><div class="unifiedCardDetail">${x.image?`<div class="unifiedThumb">${imageTag(x.image)}</div>`:'<div class="unifiedThumb unifiedNoImage"><span>サムネイル</span></div>'}<div class="unifiedCardBody"><div class="meta">${x.author?`作者：${esc(x.author)}`:'自作 / 作者未登録'}</div><div class="unifiedPrompt">${esc(x.prompt)}</div><div class="chips">${(x.tags||[]).map(t=>`<span class="chip">${esc(t)}</span>`).join('')}</div><div class="cardactions">${actionButtons(x)}</div></div></div></td></tr>`;
 
   const folderHtml=f=>{
     const kids=items.filter(x=>x.folderId===f.id&&matches(x));
     const open=kids.length>0&&openFolders.has(f.id);
-    let s=`<tr class="folderRow" data-folder="${f.id}" data-sort-key="folder:${f.id}"><td><span class="tableIcon">☆</span></td><td class="nameCell folderInteractArea" data-folder-toggle="${f.id}"><span class="folderNameBtn"><span>${open?'📂':'📁'}</span><span>${esc(f.name)}</span>${f.isNew?'<span class="folderNewBadge">NEW</span>':''}</span><span class="folderDragSpace" aria-label="フォルダを移動"></span></td><td><div class="tableActions folderActions"><span class="folderCountInline">${folderCount(f.id)}枚</span><span class="detailMenuWrap"><button class="folderMenuBtn" data-folder-menu-toggle="${f.id}" aria-label="フォルダのメニューを開く">⋯</button><div class="detailPopupMenu hidden"><button data-folder-rename="${f.id}">✏️ 名前を変更</button><button class="dangerMenu" data-folder-delete="${f.id}">🗑️ フォルダを削除</button></div></span></div></td></tr>`;
+    let s=`<tr class="folderRow ${open?'folderOpen':''}" data-folder="${f.id}" data-sort-key="folder:${f.id}"><td><button class="tableIcon favoriteHit" data-folder-fav="${f.id}" title="フォルダのお気に入り">${f.fav?'★':'☆'}</button></td><td class="nameCell folderInteractArea" data-folder-toggle="${f.id}"><span class="folderNameBtn"><span>${open?'📂':'📁'}</span><span>${esc(f.name)}</span>${f.isNew?'<span class="folderNewBadge">NEW</span>':''}</span><span class="folderDragSpace" aria-label="フォルダを移動"></span></td><td><div class="tableActions folderActions"><span class="folderCountInline">${folderCount(f.id)}枚</span><span class="detailMenuWrap"><button class="folderMenuBtn" data-folder-menu-toggle="${f.id}" aria-label="フォルダのメニューを開く">⋯</button><div class="detailPopupMenu hidden"><button data-folder-rename="${f.id}">✏️ 名前を変更</button><button class="dangerMenu" data-folder-delete="${f.id}">🗑️ フォルダを削除</button></div></span></div></td></tr>`;
     if(open)s+=kids.map(x=>cardRows(x,true)).join('');
     return s;
   };
 
-  $('cards').innerHTML=`<div class="detailScroll"><table class="detailTable unifiedTable"><colgroup><col class="col-star"><col class="col-name"><col class="col-actions"></colgroup><thead><tr><th class="starCol">★</th><th>名前</th><th class="opCol">操作</th></tr></thead><tbody>${mixed.map(v=>v.type==='folder'?folderHtml(v.folder):cardRows(v.card)).join('')}</tbody></table></div>`;
+  $('cards').innerHTML=`<div class="detailScroll"><table class="detailTable unifiedTable"><colgroup><col class="col-star"><col class="col-name"><col class="col-actions"></colgroup><thead><tr><th class="starCol sortableHead ${sortMode==='fav'?'active':''}" data-header-sort="fav" role="button" tabindex="0">★${sortMode==='fav'?'<span class="sortArrow">▲</span>':''}</th><th class="sortableHead ${sortMode==='nameAsc'?'active':''}" data-header-sort="nameAsc" role="button" tabindex="0">名前${sortMode==='nameAsc'?'<span class="sortArrow">▲</span>':''}</th><th class="opCol">操作</th></tr></thead><tbody>${mixed.map(v=>v.type==='folder'?folderHtml(v.folder):cardRows(v.card)).join('')}</tbody></table></div>`;
   folders.forEach(f=>{
     const rows=[...document.querySelectorAll('.folderChildRow')].filter(row=>row.dataset.folderChild===f.id);
-    rows.at(-1)?.classList.add('folderTreeLast');
+    const last=rows.at(-1);last?.classList.add('folderTreeLast');
+    last?.nextElementSibling?.classList.contains('folderChildDetail')&&last.nextElementSibling.classList.add('folderFrameLastDetail');
   });
   bindActions();
   bindFolderActions();
   hydrateLazyImages($('cards'));
   updateUndo();
+  bindHeaderSort();
+  updateCloseAllButton();
 }
 function initColumnResize(){
   const table=document.querySelector('.detailTable'); if(!table)return;
@@ -410,7 +415,12 @@ function initColumnResize(){
 }
 
 function updatePromptOverflow(detail){requestAnimationFrame(()=>{const p=detail?.querySelector('.unifiedPrompt');if(p)p.classList.toggle('hasOverflow',p.scrollHeight>p.clientHeight+1)})}
-function getOpenDetailIds(){return [...document.querySelectorAll('.rowDetail:not(.hidden)')].map(r=>r.id.replace('rowDetail-',''))}function restoreOpenDetails(ids){ids.forEach(id=>{const detail=$('rowDetail-'+id);detail?.classList.remove('hidden');updatePromptOverflow(detail)})}function renderKeepingDetails(){const open=getOpenDetailIds();render();restoreOpenDetails(open)}
+function hasOpenContent(){return openFolders.size>0||!!document.querySelector('.rowDetail:not(.hidden)')}
+function updateCloseAllButton(){$('closeAllBtn')?.classList.toggle('hidden',!hasOpenContent())}
+function closeAllOpenContent(){openFolders.clear();document.querySelector('.folderPopupPortal')?.remove();render()}
+function getOpenDetailIds(){return [...document.querySelectorAll('.rowDetail:not(.hidden)')].map(r=>r.id.replace('rowDetail-',''))}function restoreOpenDetails(ids){ids.forEach(id=>{const detail=$('rowDetail-'+id);detail?.classList.remove('hidden');updatePromptOverflow(detail)});updateCloseAllButton()}function renderKeepingDetails(){const open=getOpenDetailIds();render();restoreOpenDetails(open)}
+function setSortMode(mode){const allowed=['manual','foldersFirst','createdDesc','nameAsc','fav'];if(!allowed.includes(mode))mode='manual';$('sort').value=mode;if(prefs.rememberOps){prefs.sort=mode;savePrefs()}render()}
+function bindHeaderSort(){document.querySelectorAll('[data-header-sort]').forEach(head=>{let sx=0,sy=0,moved=false;head.onpointerdown=e=>{sx=e.clientX;sy=e.clientY;moved=false};head.onpointermove=e=>{if(Math.hypot(e.clientX-sx,e.clientY-sy)>9)moved=true};head.onpointerup=e=>{if(!moved)setSortMode(head.dataset.headerSort)};head.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();setSortMode(head.dataset.headerSort)}}})}
 function saveManualOrderFromRows(){
   prefs.manualOrder=[...document.querySelectorAll('.unifiedRow')].map(r=>r.dataset.row);
   prefs.sort='manual';
@@ -464,7 +474,7 @@ function bindFolderReorder(){
   document.querySelectorAll('.folderRow').forEach(row=>{
     const handles=[...row.querySelectorAll('.folderInteractArea,.folderMenuBtn')];
     handles.forEach(handle=>{
-      let timer=null,drag=false,moved=false,sx=0,sy=0,suppressClick=false,ghost=null,ghostOffsetY=0;
+      let timer=null,drag=false,moved=false,sx=0,sy=0,suppressClick=false,ghost=null,ghostOffsetY=0,lastTap=0;
       const clear=()=>{if(timer){clearTimeout(timer);timer=null}};
       const toggleFolder=()=>{
         const id=row.dataset.folder;
@@ -527,13 +537,16 @@ function bindFolderReorder(){
       handle.addEventListener('click',e=>{
         if(suppressClick||moved){moved=false;e.preventDefault();e.stopImmediatePropagation();return}
         if(!handle.classList.contains('folderInteractArea'))return;
-        e.preventDefault();e.stopImmediatePropagation();toggleFolder();
+        e.preventDefault();e.stopImmediatePropagation();
+        if(prefs.doubleTapOpenEnabled){const now=Date.now();if(now-lastTap<=450){lastTap=0;toggleFolder()}else lastTap=now;return}
+        toggleFolder();
       },true);
     });
   });
 }
 function bindFolderActions(){
   bindFolderReorder();
+  document.querySelectorAll('[data-folder-fav]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();const f=folderById(b.dataset.folderFav);if(!f)return;f.fav=!f.fav;saveFolders();renderKeepingDetails()});
   document.querySelectorAll('.folderRow[data-folder]').forEach(row=>row.addEventListener('pointerdown',()=>{
     const f=folderById(row.dataset.folder);
     if(!f?.isNew)return;
@@ -1101,9 +1114,10 @@ function toggleCardDetail(row){
   if(!detail)return;
   detail.classList.toggle('hidden');
   if(!detail.classList.contains('hidden'))updatePromptOverflow(detail);
+  updateCloseAllButton();
 }
 function bindCardPrimaryInteractions(row,area){
-  let moved=false;
+  let moved=false,lastTap=0;
   area.addEventListener('pointerdown',e=>{
     if(e.pointerType==='mouse'&&e.button!==0)return;
     moved=false;
@@ -1119,6 +1133,7 @@ function bindCardPrimaryInteractions(row,area){
     }
     e.preventDefault();
     if(ppDnd?.row===row&&!ppDnd.active)ppFinishCancel();
+    if(prefs.doubleTapOpenEnabled){const now=Date.now();if(now-lastTap<=450){lastTap=0;toggleCardDetail(row)}else lastTap=now;return}
     toggleCardDetail(row);
   });
   area.addEventListener('pointerup',e=>{
@@ -1278,8 +1293,9 @@ bottomNew.onpointerdown=e=>{if(!prefs.shortcutEnabled)return;shortcutFired=false
 bottomNew.addEventListener('contextmenu',e=>{if(prefs.shortcutEnabled)e.preventDefault()});
 function closeEditor(){editorTagDraft=null;imageBlob=null;if(editorImageObjectUrl){URL.revokeObjectURL(editorImageObjectUrl);editorImageObjectUrl=''}$('editor').close();document.body.classList.remove('editor-open')}
 $('editor').addEventListener('cancel',e=>{e.preventDefault();closeEditor()});
-$('cancelBtn').onclick=closeEditor;$('editorCloseBtn').onclick=closeEditor;$('search').oninput=render;$('sort').onchange=()=>{randomOrder=[];if(prefs.rememberOps){prefs.sort=$('sort').value;savePrefs()}render()};$('clearFilters').onclick=()=>{$('search').value='';filterTags.clear();render()};$('undoBtn').onclick=()=>{if(!undoState)return;if(!confirm('前の状態に戻しますか？\n\n直前の操作を取り消して、前の状態に戻します。'))return;const current=structuredClone(items);items=structuredClone(undoState.items);undoState={label:'元に戻す前の状態',items:current};save();render();toast('前の状態に戻しました')};
-function defaultPrefs(){return {view:'card',welcomed:false,tagOrder:[],hiddenTags:[],rememberOps:false,shortcutEnabled:true,buttonGlowEnabled:false,longPressMainActionsEnabled:false,shortcutDelay:800,customTags:[]}}
+$('cancelBtn').onclick=closeEditor;$('editorCloseBtn').onclick=closeEditor;$('search').oninput=render;$('sort').onchange=()=>{randomOrder=[];setSortMode($('sort').value)};$('clearFilters').onclick=()=>{$('search').value='';filterTags.clear();render()};$('undoBtn').onclick=()=>{if(!undoState)return;if(!confirm('前の状態に戻しますか？\n\n直前の操作を取り消して、前の状態に戻します。'))return;const current=structuredClone(items);items=structuredClone(undoState.items);undoState={label:'元に戻す前の状態',items:current};save();render();toast('前の状態に戻しました')};
+$('closeAllBtn').onclick=closeAllOpenContent;
+function defaultPrefs(){return {view:'card',welcomed:false,tagOrder:[],hiddenTags:[],rememberOps:false,shortcutEnabled:true,buttonGlowEnabled:false,doubleTapOpenEnabled:false,longPressMainActionsEnabled:false,shortcutDelay:800,customTags:[]}}
 async function resetDataToInitial(){
   if(!confirm('登録したカード、フォルダ、タグ、設定、画像を削除して初期状態に戻しますか？\n\nサイト本体のキャッシュは残ります。'))return;
   localStorage.clear();await deleteImageDb();items=[];folders=[];undoState=null;customTags.clear();prefs=defaultPrefs();
@@ -1355,7 +1371,7 @@ $('imageDropZone').ondragover=e=>{e.preventDefault();$('imageDropZone').classLis
 $('pastePromptBtn').onclick=async()=>{const field=$('prompt');let text='';try{if(navigator.clipboard?.readText){text=await navigator.clipboard.readText()}else{throw new Error('clipboard unavailable')}}catch(err){alert('クリップボードを読み取れませんでした。\nブラウザの権限設定を確認するか、入力欄を長押しして貼り付けてください。');return}if(!text)return toast('クリップボードに文字がありません');if(field.value.trim()&&!confirm('現在のプロンプトは上書きされます。\n貼り付けますか？'))return;field.value=text;field.dispatchEvent(new Event('input',{bubbles:true}));field.focus();toast('プロンプトを貼り付けました')};
 $('form').onsubmit=async e=>{e.preventDefault();const id=$('editId').value||crypto.randomUUID();const old=items.find(x=>x.id===id);const now=Date.now();let storedImage=imageData;if(imageBlob){try{await putImageBlob(id,imageBlob);storedImage='idb:'+id}catch{storedImage=await blobToDataUrl(imageBlob);toast('この環境では画像を従来方式で保存します')}}const obj={id,name:$('name').value.trim(),prompt:$('prompt').value.trim(),author:$('author').value.trim(),xhandle:$('xhandle').value.trim(),source:$('source').value.trim(),memo:$('memo').value.trim(),tags:[...selectedTags],image:storedImage,fav:old?.fav||false,pinned:old?.pinned||false,useCount:old?.useCount||0,lastUsed:old?.lastUsed||0,created:old?.created||now,updated:now};if(!obj.name||!obj.prompt)return;snapshot(old?'編集':'新規登録');const before=items,deleted=editorTagDraft?.deletedTags||new Set();let next=items.map(x=>deleted.size?{...x,tags:(x.tags||[]).filter(t=>!deleted.has(t))}:x);items=old?next.map(x=>x.id===id?obj:x):[...next,obj];if(!save()){items=before;return}if(editorTagDraft){customTags=new Set(editorTagDraft.customTags);prefs.hiddenTags=[...editorTagDraft.hiddenTags];prefs.tagOrder=[...editorTagDraft.tagOrder];filterTags=new Set([...filterTags].filter(t=>!deleted.has(t)));savePrefs()}editorTagDraft=null;imageBlob=null;if(editorImageObjectUrl){URL.revokeObjectURL(editorImageObjectUrl);editorImageObjectUrl=''}$('editor').close();document.body.classList.remove('editor-open');render();toast('設定を保存しました')};
 let optionPrefsDraft=null;
-const openOptions=()=>{optionPrefsDraft=structuredClone(prefs);$('rememberOps').checked=!!optionPrefsDraft.rememberOps;$('buttonGlowEnabled').checked=!!optionPrefsDraft.buttonGlowEnabled;$('shortcutEnabled').checked=!!optionPrefsDraft.shortcutEnabled;$('longPressMainActionsEnabled').checked=!!optionPrefsDraft.longPressMainActionsEnabled;$('shortcutDelay').value=String(optionPrefsDraft.shortcutDelay||800);$('shortcutDelay').disabled=!(optionPrefsDraft.shortcutEnabled||optionPrefsDraft.longPressMainActionsEnabled);$('optionDialog').showModal()};
+const openOptions=()=>{optionPrefsDraft=structuredClone(prefs);$('rememberOps').checked=!!optionPrefsDraft.rememberOps;$('buttonGlowEnabled').checked=!!optionPrefsDraft.buttonGlowEnabled;$('doubleTapOpenEnabled').checked=!!optionPrefsDraft.doubleTapOpenEnabled;$('shortcutEnabled').checked=!!optionPrefsDraft.shortcutEnabled;$('longPressMainActionsEnabled').checked=!!optionPrefsDraft.longPressMainActionsEnabled;$('shortcutDelay').value=String(optionPrefsDraft.shortcutDelay||800);$('shortcutDelay').disabled=!(optionPrefsDraft.shortcutEnabled||optionPrefsDraft.longPressMainActionsEnabled);$('optionDialog').showModal()};
 function openSearchKeepingScroll(){
   const panel=$('searchPanel');
   panel.classList.remove('hidden');
@@ -1427,6 +1443,7 @@ $('eraseEverythingBtn').onclick=eraseEverything;
 $('eraseCompleteClose').onclick=()=>$('eraseCompleteDialog').close();
 $('rememberOps').onchange=e=>{if(optionPrefsDraft)optionPrefsDraft.rememberOps=e.target.checked};
 $('buttonGlowEnabled').onchange=e=>{if(optionPrefsDraft)optionPrefsDraft.buttonGlowEnabled=e.target.checked};
+$('doubleTapOpenEnabled').onchange=e=>{if(optionPrefsDraft)optionPrefsDraft.doubleTapOpenEnabled=e.target.checked};
 $('shortcutEnabled').onchange=e=>{if(optionPrefsDraft)optionPrefsDraft.shortcutEnabled=e.target.checked;$('shortcutDelay').disabled=!(e.target.checked||$('longPressMainActionsEnabled').checked)};
 $('longPressMainActionsEnabled').onchange=e=>{if(optionPrefsDraft)optionPrefsDraft.longPressMainActionsEnabled=e.target.checked;$('shortcutDelay').disabled=!($('shortcutEnabled').checked||e.target.checked)};
 $('shortcutDelay').onchange=e=>{if(optionPrefsDraft)optionPrefsDraft.shortcutDelay=Number(e.target.value)||800};
@@ -1627,9 +1644,10 @@ function addDebugLoadData(folderTotal,cardTotal){
     const folder={id:`dev-folder-${batch}-${i}`,name:`負荷テスト ${i+1}`,created:now+i,isNew:false,devTest:true,devBatch:batch};
     folders.push(folder);testFolders.push(folder);
   }
+  const debugLoadImages=[...new Set(allSamples().map(sample=>sample.image).filter(Boolean))];
   for(let i=0;i<cardTotal;i++){
     const d=debugSamples[i%debugSamples.length],folder=testFolders[i%testFolders.length];
-    items.push({id:`dev-card-${batch}-${i}`,name:`${d[0]} ${i+1}`,prompt:d[1],author:'負荷テスト',xhandle:'',source:'',memo:'開発者向け負荷テスト用カード',tags:[],image:i%4===0?presetSampleImage:'',folderId:folder.id,fav:false,pinned:false,useCount:0,lastUsed:0,created:now+folderTotal+i,updated:now+folderTotal+i,devTest:true,devBatch:batch});
+    items.push({id:`dev-card-${batch}-${i}`,name:`${d[0]} ${i+1}`,prompt:d[1],author:'負荷テスト',xhandle:'',source:'',memo:'開発者向け負荷テスト用カード',tags:[],image:debugLoadImages[i%debugLoadImages.length]||'',folderId:folder.id,fav:false,pinned:false,useCount:0,lastUsed:0,created:now+folderTotal+i,updated:now+folderTotal+i,devTest:true,devBatch:batch});
   }
   saveFolders();save();render();toast(`負荷テスト用カードを${cardTotal}枚追加しました`);
 }
@@ -1721,7 +1739,8 @@ window.addEventListener('resize',()=>{syncStickyHeaderHeight();updateCardJumpNav
 syncStickyHeaderHeight();
 setTimeout(()=>{syncStickyHeaderHeight();updateCardJumpNav()},0);
 
-prefs.view='detail';if(prefs.rememberOps&&prefs.sort)$('sort').value=prefs.sort;else $('sort').value='manual';
+const allowedSortModes=['manual','foldersFirst','createdDesc','nameAsc','fav'];
+prefs.view='detail';$('sort').value=prefs.rememberOps&&allowedSortModes.includes(prefs.sort)?prefs.sort:'manual';
 if(sessionStorage.getItem('promptPocket.migratedFrom1x')==='1')setTimeout(()=>{sessionStorage.removeItem('promptPocket.migratedFrom1x');toast('保存されていたバージョン1.xxのデータを、バージョン2.0用に移行しました。')},250);
 if(!prefs.welcomed)setTimeout(()=>{
   if(!window.__ppExternalGuideActive && !$('externalBrowserGuide')?.open){
@@ -1831,7 +1850,7 @@ document.addEventListener('dragstart', function(e){
      else if(bad.test(name)||name==='.'||name==='..'||reserved.test(name))msg='このフォルダ名は使えません。';
      else if(folders.some(f=>f.name===name))msg='同じ名前のフォルダがあります。';
      if(msg){err.textContent=msg;input.classList.add('folderInputError');input.focus();return}
-      const folder={id:'folder-'+crypto.randomUUID(),name,created:Date.now(),isNew:true};
+      const folder={id:'folder-'+crypto.randomUUID(),name,created:Date.now(),isNew:true,fav:false};
       folders.unshift(folder);
       if($('sort').value==='manual'){
         const key='folder:'+folder.id;
