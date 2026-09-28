@@ -112,6 +112,8 @@ let selectedTags=new Set(), filterTags=new Set(), customTags=new Set();
 let activeTagForManage='';
 let editorTagDraft=null;
 let imageData='';
+let imageBlob=null;
+let editorImageObjectUrl='';
 let undoState=null;
 let prefs=JSON.parse(localStorage.getItem(PREF_KEY)||'{"view":"card","welcomed":false,"tagOrder":[]}');
 prefs.tagOrder=Array.isArray(prefs.tagOrder)?prefs.tagOrder:[];
@@ -150,6 +152,86 @@ function save(){
   catch(err){console.error('Prompt Pocket save failed:',err);alert('データを保存できませんでした。\n画像データなどでブラウザの保存容量が不足している可能性があります。\n画像を小さくしてもう一度お試しください。');return false;}
 }
 function savePrefs(){prefs.customTags=[...customTags];localStorage.setItem(PREF_KEY,JSON.stringify(prefs));}
+const IMAGE_DB_NAME='promptPocketImages';
+const IMAGE_STORE_NAME='images';
+const IMAGE_DB_MIGRATION_KEY='promptPocket.imagesInIndexedDB.v1';
+let imageDbPromise=null;
+const imageUrlCache=new Map();
+function openImageDb(){
+  if(imageDbPromise)return imageDbPromise;
+  imageDbPromise=new Promise((resolve,reject)=>{
+    if(!window.indexedDB){reject(new Error('IndexedDB unavailable'));return}
+    const request=indexedDB.open(IMAGE_DB_NAME,1);
+    request.onupgradeneeded=()=>{if(!request.result.objectStoreNames.contains(IMAGE_STORE_NAME))request.result.createObjectStore(IMAGE_STORE_NAME)};
+    request.onsuccess=()=>resolve(request.result);
+    request.onerror=()=>reject(request.error||new Error('IndexedDB open failed'));
+  });
+  return imageDbPromise;
+}
+async function putImageBlob(key,blob){
+  const db=await openImageDb();
+  return new Promise((resolve,reject)=>{
+    const tx=db.transaction(IMAGE_STORE_NAME,'readwrite');
+    tx.objectStore(IMAGE_STORE_NAME).put(blob,key);
+    tx.oncomplete=()=>resolve();tx.onerror=()=>reject(tx.error||new Error('Image save failed'));tx.onabort=()=>reject(tx.error||new Error('Image save aborted'));
+  });
+}
+async function getImageBlob(key){
+  const db=await openImageDb();
+  return new Promise((resolve,reject)=>{
+    const request=db.transaction(IMAGE_STORE_NAME,'readonly').objectStore(IMAGE_STORE_NAME).get(key);
+    request.onsuccess=()=>resolve(request.result||null);request.onerror=()=>reject(request.error||new Error('Image read failed'));
+  });
+}
+async function clearImageDb(){
+  try{const db=await openImageDb();await new Promise((resolve,reject)=>{const tx=db.transaction(IMAGE_STORE_NAME,'readwrite');tx.objectStore(IMAGE_STORE_NAME).clear();tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)})}catch{}
+  imageUrlCache.forEach(url=>URL.revokeObjectURL(url));imageUrlCache.clear();
+}
+const isDbImage=value=>typeof value==='string'&&value.startsWith('idb:');
+const imageDbKey=value=>value.slice(4);
+function blobToDataUrl(blob){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(reader.error);reader.readAsDataURL(blob)})}
+function dataUrlToBlob(value){return fetch(value).then(response=>response.blob())}
+async function resolveImageUrl(value){
+  if(!isDbImage(value))return value||'';
+  const key=imageDbKey(value);
+  if(imageUrlCache.has(key))return imageUrlCache.get(key);
+  const blob=await getImageBlob(key);
+  if(!blob)return '';
+  const url=URL.createObjectURL(blob);imageUrlCache.set(key,url);return url;
+}
+function imageTag(value,className=''){
+  if(!value)return '';
+  if(isDbImage(value))return `<img class="${className}" data-image-ref="${esc(value)}" alt="" loading="lazy" decoding="async">`;
+  return `<img class="${className}" src="${esc(value)}" alt="" loading="lazy" decoding="async">`;
+}
+let imageObserver=null;
+function hydrateLazyImages(root=document){
+  const images=[...root.querySelectorAll('img[data-image-ref]')];
+  if(!images.length)return;
+  if(!('IntersectionObserver'in window)){
+    images.forEach(async img=>{const url=await resolveImageUrl(img.dataset.imageRef).catch(()=>"");if(url&&img.isConnected)img.src=url});return;
+  }
+  if(!imageObserver)imageObserver=new IntersectionObserver(entries=>entries.forEach(async entry=>{
+    if(!entry.isIntersecting)return;
+    const img=entry.target;imageObserver.unobserve(img);
+    const url=await resolveImageUrl(img.dataset.imageRef).catch(()=>"");if(url&&img.isConnected)img.src=url;
+  }),{rootMargin:'240px 0px'});
+  images.forEach(img=>imageObserver.observe(img));
+}
+async function moveEmbeddedImagesToDb(list){
+  let changed=false;
+  for(const item of list){
+    if(typeof item.image!=='string'||!item.image.startsWith('data:image/'))continue;
+    try{const blob=await dataUrlToBlob(item.image);await putImageBlob(item.id,blob);item.image='idb:'+item.id;changed=true}catch{return {changed,complete:false}}
+  }
+  return {changed,complete:true};
+}
+async function migrateStoredImages(){
+  if(localStorage.getItem(IMAGE_DB_MIGRATION_KEY)==='done')return;
+  const result=await moveEmbeddedImagesToDb(items);
+  if(result.changed){save();render();toast('保存画像を軽量な読み込み方式へ移行しました')}
+  if(result.complete)localStorage.setItem(IMAGE_DB_MIGRATION_KEY,'done');
+}
 function seedStarterFolders(){
   if(items.length||folders.length)return false;
   const groups=[['実用',sampleCatalog.practical||[]],['アレンジ',[...(sampleCatalog.style||[]),...(sampleCatalog.arrange||[])]],['その他',sampleCatalog.other||[]]];
@@ -282,7 +364,7 @@ function render(){
   $('empty').classList.toggle('hidden',items.length>0||folders.length>0);
   $('cards').className='detailExplorer unifiedExplorer';
 
-  const cardRows=(x,child=false)=>`<tr class="unifiedRow ${child?'folderChildRow':''}" data-row="${x.id}"${child?' data-folder-child="'+esc(x.folderId)+'"':''}><td><button class="tableIcon" data-fav="${x.id}" title="お気に入り">${x.fav?'★':'☆'}</button></td><td class="nameCell unifiedDragArea" title="${esc(x.name)}">${child?'<span class="folderBranch">└</span>':''}${x.image?`<img class="tinyThumb" src="${x.image}" alt="" loading="lazy" decoding="async">`:``}${x.pinned?'<span class="miniPin">📌</span>':''}<span class="rowName">${esc(x.name)}</span><span class="dragSpace" aria-hidden="true"></span></td><td><div class="tableActions"><button data-copy="${x.id}">📋 コピー</button><span class="detailMenuWrap"><button data-menu-toggle="${x.id}" aria-label="メニューを開く">⋯</button><div class="detailPopupMenu hidden" id="detailMenu-${x.id}"><button data-edit="${x.id}">✏️ 編集</button><button data-copy="${x.id}">📋 コピー</button><button data-move-folder="${x.id}">📁 フォルダへ移動</button>${child?`<button data-folder-remove="${x.id}">📤 フォルダから出す</button>`:''}<button data-pin="${x.id}">${x.pinned?'📌 ピン留めを解除':'📌 ピン留めする'}</button><button class="dangerMenu" data-delete="${x.id}">🗑️ 削除</button></div></span></div></td></tr><tr class="rowDetail hidden" id="rowDetail-${x.id}"><td colspan="3"><div class="unifiedCardDetail">${x.image?`<div class="unifiedThumb"><img src="${x.image}" alt="" loading="lazy" decoding="async"></div>`:'<div class="unifiedThumb unifiedNoImage"><span>サムネイル</span></div>'}<div class="unifiedCardBody"><div class="meta">${x.author?`作者：${esc(x.author)}`:'自作 / 作者未登録'}</div><div class="unifiedPrompt">${esc(x.prompt)}</div><div class="chips">${(x.tags||[]).map(t=>`<span class="chip">${esc(t)}</span>`).join('')}</div><div class="cardactions">${actionButtons(x)}</div></div></div></td></tr>`;
+  const cardRows=(x,child=false)=>`<tr class="unifiedRow ${child?'folderChildRow':''}" data-row="${x.id}"${child?' data-folder-child="'+esc(x.folderId)+'"':''}><td><button class="tableIcon" data-fav="${x.id}" title="お気に入り">${x.fav?'★':'☆'}</button></td><td class="nameCell unifiedDragArea" title="${esc(x.name)}">${child?'<span class="folderBranch">└</span>':''}${imageTag(x.image,'tinyThumb')}${x.pinned?'<span class="miniPin">📌</span>':''}<span class="rowName">${esc(x.name)}</span><span class="dragSpace" aria-hidden="true"></span></td><td><div class="tableActions"><button data-copy="${x.id}">📋 コピー</button><span class="detailMenuWrap"><button data-menu-toggle="${x.id}" aria-label="メニューを開く">⋯</button><div class="detailPopupMenu hidden" id="detailMenu-${x.id}"><button data-edit="${x.id}">✏️ 編集</button><button data-copy="${x.id}">📋 コピー</button><button data-move-folder="${x.id}">📁 フォルダへ移動</button>${child?`<button data-folder-remove="${x.id}">📤 フォルダから出す</button>`:''}<button data-pin="${x.id}">${x.pinned?'📌 ピン留めを解除':'📌 ピン留めする'}</button><button class="dangerMenu" data-delete="${x.id}">🗑️ 削除</button></div></span></div></td></tr><tr class="rowDetail hidden" id="rowDetail-${x.id}"><td colspan="3"><div class="unifiedCardDetail">${x.image?`<div class="unifiedThumb">${imageTag(x.image)}</div>`:'<div class="unifiedThumb unifiedNoImage"><span>サムネイル</span></div>'}<div class="unifiedCardBody"><div class="meta">${x.author?`作者：${esc(x.author)}`:'自作 / 作者未登録'}</div><div class="unifiedPrompt">${esc(x.prompt)}</div><div class="chips">${(x.tags||[]).map(t=>`<span class="chip">${esc(t)}</span>`).join('')}</div><div class="cardactions">${actionButtons(x)}</div></div></div></td></tr>`;
 
   const folderHtml=f=>{
     const kids=items.filter(x=>x.folderId===f.id&&matches(x));
@@ -299,6 +381,7 @@ function render(){
   });
   bindActions();
   bindFolderActions();
+  hydrateLazyImages($('cards'));
   updateUndo();
 }
 function initColumnResize(){
@@ -1152,8 +1235,25 @@ document.addEventListener('click',e=>{
   if(!e.target.closest('.detailMenuWrap'))document.querySelectorAll('.detailPopupMenu').forEach(m=>m.classList.add('hidden'));
   if(!e.target.closest('.folderPopupPortal,[data-folder-menu-toggle]'))document.querySelector('.folderPopupPortal')?.remove();
 });
-function openEditor(x=null){$('form').reset();editorTagDraft={customTags:new Set(customTags),hiddenTags:[...(prefs.hiddenTags||[])],tagOrder:[...(prefs.tagOrder||[])],deletedTags:new Set()};selectedTags=new Set(x?.tags||[]);activeTagForManage='';imageData=x?.image||'';$('editId').value=x?.id||'';$('dialogTitle').textContent=x?'プロンプトを編集':'プロンプトを登録';['name','prompt','author','xhandle','source','memo'].forEach(k=>$(k).value=x?.[k]||'');updatePreview();renderTagChoices();document.body.classList.add('editor-open');$('editor').showModal();}
-function updatePreview(){$('imagePreview').classList.toggle('hidden',!imageData);$('imagePreview').innerHTML=imageData?`<img src="${imageData}" alt="">`:'';}
+async function openEditor(x=null){
+  $('form').reset();editorTagDraft={customTags:new Set(customTags),hiddenTags:[...(prefs.hiddenTags||[])],tagOrder:[...(prefs.tagOrder||[])],deletedTags:new Set()};selectedTags=new Set(x?.tags||[]);activeTagForManage='';
+  imageData=x?.image||'';imageBlob=null;
+  if(editorImageObjectUrl){URL.revokeObjectURL(editorImageObjectUrl);editorImageObjectUrl=''}
+  $('editId').value=x?.id||'';$('dialogTitle').textContent=x?'プロンプトを編集':'プロンプトを登録';['name','prompt','author','xhandle','source','memo'].forEach(k=>$(k).value=x?.[k]||'');
+  updatePreview();renderTagChoices();document.body.classList.add('editor-open');$('editor').showModal();
+  if(isDbImage(imageData)){
+    const editingId=x?.id||'';
+    try{
+      const blob=await getImageBlob(imageDbKey(imageData));
+      if(blob&&$('editor').open&&$('editId').value===editingId){imageBlob=blob;editorImageObjectUrl=URL.createObjectURL(blob);updatePreview(editorImageObjectUrl)}
+    }catch{toast('画像を読み込めませんでした')}
+  }
+}
+function updatePreview(source=''){
+  const src=source||(!isDbImage(imageData)?imageData:'');
+  $('imagePreview').classList.toggle('hidden',!imageData);
+  $('imagePreview').innerHTML=src?`<img src="${esc(src)}" alt="">`:(imageData?'<span>画像を読み込み中…</span>':'');
+}
 function deleteItem(id){const x=items.find(i=>i.id===id);if(!x)return;if(confirm(`「${x.name}」を削除しますか？\nこの操作は「戻す」で復元できます。`)){snapshot('削除');items=items.filter(i=>i.id!==id);save();render();toast('削除しました')}}
 function duplicateItem(id){const x=items.find(i=>i.id===id);if(!x)return;snapshot('複製');const now=Date.now();const copy={...structuredClone(x),id:crypto.randomUUID(),name:`${x.name} - コピー`,fav:false,pinned:false,created:now,updated:now};items.push(copy);save();render();toast('複製しました');openEditor(copy);}
 $('newBtn').onclick=()=>openEditor();
@@ -1170,10 +1270,10 @@ bottomNew.onclick=e=>{if(shortcutFired){shortcutFired=false;e.preventDefault();r
 bottomNew.onpointerdown=e=>{if(!prefs.shortcutEnabled)return;shortcutFired=false;clearTimeout(shortcutTimer);shortcutTimer=setTimeout(()=>{shortcutFired=true;runQuickAdd()},prefs.shortcutDelay)};
 ['pointerup','pointercancel','pointerleave'].forEach(ev=>bottomNew.addEventListener(ev,()=>clearTimeout(shortcutTimer)));
 bottomNew.addEventListener('contextmenu',e=>{if(prefs.shortcutEnabled)e.preventDefault()});
-function closeEditor(){editorTagDraft=null;$('editor').close();document.body.classList.remove('editor-open')}
+function closeEditor(){editorTagDraft=null;imageBlob=null;if(editorImageObjectUrl){URL.revokeObjectURL(editorImageObjectUrl);editorImageObjectUrl=''}$('editor').close();document.body.classList.remove('editor-open')}
 $('editor').addEventListener('cancel',e=>{e.preventDefault();closeEditor()});
 $('cancelBtn').onclick=closeEditor;$('editorCloseBtn').onclick=closeEditor;$('search').oninput=render;$('sort').onchange=()=>{randomOrder=[];if(prefs.rememberOps){prefs.sort=$('sort').value;savePrefs()}render()};$('clearFilters').onclick=()=>{$('search').value='';filterTags.clear();render()};$('undoBtn').onclick=()=>{if(!undoState)return;if(!confirm('前の状態に戻しますか？\n\n直前の操作を取り消して、前の状態に戻します。'))return;const current=structuredClone(items);items=structuredClone(undoState.items);undoState={label:'元に戻す前の状態',items:current};save();render();toast('前の状態に戻しました')};
-$('deleteAllBtn').onclick=()=>{const n=items.length;if(!confirm(`⚠️ Prompt Pocketのデータをすべてリセットします。\n\n登録プロンプト ${n}件、フォルダ、表示設定・カスタムタグも初期化されます。\nこの操作は元に戻せません。\n続けますか？`))return;if(!confirm(`最終確認\n本当にすべてのデータをリセットしますか？\nリセット後はサンプルフォルダが復帰します。`))return;localStorage.removeItem(KEY);localStorage.removeItem(LEGACY_KEY);localStorage.removeItem(FOLDER_KEY);localStorage.removeItem(PREF_KEY);localStorage.removeItem('promptPocket.columnWidths.v1');items=[];folders=[];undoState=null;customTags.clear();prefs={view:'card',welcomed:false,tagOrder:[],hiddenTags:[],rememberOps:false,shortcutEnabled:true,longPressMainActionsEnabled:false,shortcutDelay:800,customTags:[]};seedStarterFolders();savePrefs();render();toast('全データをリセットし、サンプルフォルダを復帰しました')};
+$('deleteAllBtn').onclick=()=>{const n=items.length;if(!confirm(`⚠️ Prompt Pocketのデータをすべてリセットします。\n\n登録プロンプト ${n}件、フォルダ、表示設定・カスタムタグも初期化されます。\nこの操作は元に戻せません。\n続けますか？`))return;if(!confirm(`最終確認\n本当にすべてのデータをリセットしますか？\nリセット後はサンプルフォルダが復帰します。`))return;localStorage.removeItem(KEY);localStorage.removeItem(LEGACY_KEY);localStorage.removeItem(FOLDER_KEY);localStorage.removeItem(PREF_KEY);localStorage.removeItem('promptPocket.columnWidths.v1');localStorage.removeItem(IMAGE_DB_MIGRATION_KEY);clearImageDb();items=[];folders=[];undoState=null;customTags.clear();prefs={view:'card',welcomed:false,tagOrder:[],hiddenTags:[],rememberOps:false,shortcutEnabled:true,longPressMainActionsEnabled:false,shortcutDelay:800,customTags:[]};seedStarterFolders();savePrefs();render();toast('全データをリセットし、サンプルフォルダを復帰しました')};
 $('deleteAllBtn').addEventListener('click',()=>document.body.classList.toggle('buttonGlowEnabled',!!prefs.buttonGlowEnabled));
 $('addTagBtn').onclick=()=>{const t=$('customTag').value.trim();if(!t||!editorTagDraft)return;editorTagDraft.customTags.add(t);editorTagDraft.hiddenTags=editorTagDraft.hiddenTags.filter(x=>x!==t);if(!editorTagDraft.tagOrder.includes(t))editorTagDraft.tagOrder.push(t);editorTagDraft.deletedTags.delete(t);selectedTags.add(t);activeTagForManage=t;$('customTag').value='';renderTagChoices()};
 $('deleteTagBtn').onclick=()=>{const tag=activeTagForManage;if(!tag)return;const count=items.filter(x=>(x.tags||[]).includes(tag)).length;if(!confirm(`タグ「${tag}」は${count}件で使用されています。
@@ -1193,9 +1293,13 @@ function loadImageFile(f){
       w=Math.max(1,Math.round(w*scale));h=Math.max(1,Math.round(h*scale));
       const c=document.createElement('canvas');c.width=w;c.height=h;
       c.getContext('2d').drawImage(img,0,0,w,h);
-      imageData=c.toDataURL('image/jpeg',0.70);
-      updatePreview();
-      toast('画像を軽量化して保存します');
+      c.toBlob(blob=>{
+        if(!blob){imageData=c.toDataURL('image/jpeg',0.70);imageBlob=null;updatePreview();return}
+        imageBlob=blob;imageData='pending';
+        if(editorImageObjectUrl)URL.revokeObjectURL(editorImageObjectUrl);
+        editorImageObjectUrl=URL.createObjectURL(blob);updatePreview(editorImageObjectUrl);
+        toast('画像を軽量化して保存します');
+      },'image/jpeg',0.70);
     };
     img.onerror=()=>alert('画像を読み込めませんでした。');
     img.src=r.result;
@@ -1223,7 +1327,7 @@ imageDropZone.addEventListener('contextmenu',e=>{if(prefs.shortcutEnabled)e.prev
 imageDropZone.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$('image').click()}};
 $('imageDropZone').ondragover=e=>{e.preventDefault();$('imageDropZone').classList.add('dragOver')};$('imageDropZone').ondragleave=()=>$('imageDropZone').classList.remove('dragOver');$('imageDropZone').ondrop=e=>{e.preventDefault();$('imageDropZone').classList.remove('dragOver');loadImageFile(e.dataTransfer.files[0])};
 $('pastePromptBtn').onclick=async()=>{const field=$('prompt');let text='';try{if(navigator.clipboard?.readText){text=await navigator.clipboard.readText()}else{throw new Error('clipboard unavailable')}}catch(err){alert('クリップボードを読み取れませんでした。\nブラウザの権限設定を確認するか、入力欄を長押しして貼り付けてください。');return}if(!text)return toast('クリップボードに文字がありません');if(field.value.trim()&&!confirm('現在のプロンプトは上書きされます。\n貼り付けますか？'))return;field.value=text;field.dispatchEvent(new Event('input',{bubbles:true}));field.focus();toast('プロンプトを貼り付けました')};
-$('form').onsubmit=e=>{e.preventDefault();const id=$('editId').value||crypto.randomUUID();const old=items.find(x=>x.id===id);const now=Date.now();const obj={id,name:$('name').value.trim(),prompt:$('prompt').value.trim(),author:$('author').value.trim(),xhandle:$('xhandle').value.trim(),source:$('source').value.trim(),memo:$('memo').value.trim(),tags:[...selectedTags],image:imageData,fav:old?.fav||false,pinned:old?.pinned||false,useCount:old?.useCount||0,lastUsed:old?.lastUsed||0,created:old?.created||now,updated:now};if(!obj.name||!obj.prompt)return;snapshot(old?'編集':'新規登録');const before=items,deleted=editorTagDraft?.deletedTags||new Set();let next=items.map(x=>deleted.size?{...x,tags:(x.tags||[]).filter(t=>!deleted.has(t))}:x);items=old?next.map(x=>x.id===id?obj:x):[...next,obj];if(!save()){items=before;return}if(editorTagDraft){customTags=new Set(editorTagDraft.customTags);prefs.hiddenTags=[...editorTagDraft.hiddenTags];prefs.tagOrder=[...editorTagDraft.tagOrder];filterTags=new Set([...filterTags].filter(t=>!deleted.has(t)));savePrefs()}editorTagDraft=null;$('editor').close();document.body.classList.remove('editor-open');render();toast('設定を保存しました')};
+$('form').onsubmit=async e=>{e.preventDefault();const id=$('editId').value||crypto.randomUUID();const old=items.find(x=>x.id===id);const now=Date.now();let storedImage=imageData;if(imageBlob){try{await putImageBlob(id,imageBlob);storedImage='idb:'+id}catch{storedImage=await blobToDataUrl(imageBlob);toast('この環境では画像を従来方式で保存します')}}const obj={id,name:$('name').value.trim(),prompt:$('prompt').value.trim(),author:$('author').value.trim(),xhandle:$('xhandle').value.trim(),source:$('source').value.trim(),memo:$('memo').value.trim(),tags:[...selectedTags],image:storedImage,fav:old?.fav||false,pinned:old?.pinned||false,useCount:old?.useCount||0,lastUsed:old?.lastUsed||0,created:old?.created||now,updated:now};if(!obj.name||!obj.prompt)return;snapshot(old?'編集':'新規登録');const before=items,deleted=editorTagDraft?.deletedTags||new Set();let next=items.map(x=>deleted.size?{...x,tags:(x.tags||[]).filter(t=>!deleted.has(t))}:x);items=old?next.map(x=>x.id===id?obj:x):[...next,obj];if(!save()){items=before;return}if(editorTagDraft){customTags=new Set(editorTagDraft.customTags);prefs.hiddenTags=[...editorTagDraft.hiddenTags];prefs.tagOrder=[...editorTagDraft.tagOrder];filterTags=new Set([...filterTags].filter(t=>!deleted.has(t)));savePrefs()}editorTagDraft=null;imageBlob=null;if(editorImageObjectUrl){URL.revokeObjectURL(editorImageObjectUrl);editorImageObjectUrl=''}$('editor').close();document.body.classList.remove('editor-open');render();toast('設定を保存しました')};
 let optionPrefsDraft=null;
 const openOptions=()=>{optionPrefsDraft=structuredClone(prefs);$('rememberOps').checked=!!optionPrefsDraft.rememberOps;$('buttonGlowEnabled').checked=!!optionPrefsDraft.buttonGlowEnabled;$('shortcutEnabled').checked=!!optionPrefsDraft.shortcutEnabled;$('longPressMainActionsEnabled').checked=!!optionPrefsDraft.longPressMainActionsEnabled;$('shortcutDelay').value=String(optionPrefsDraft.shortcutDelay||800);$('shortcutDelay').disabled=!(optionPrefsDraft.shortcutEnabled||optionPrefsDraft.longPressMainActionsEnabled);$('optionDialog').showModal()};
 function openSearchKeepingScroll(){
@@ -1299,7 +1403,24 @@ $('longPressMainActionsEnabled').onchange=e=>{if(optionPrefsDraft)optionPrefsDra
 $('shortcutDelay').onchange=e=>{if(optionPrefsDraft)optionPrefsDraft.shortcutDelay=Number(e.target.value)||800};
 $('optionDialog').addEventListener('cancel',e=>{e.preventDefault();$('optionCancel').click()});
 
-$('exportBtn').onclick=()=>{syncTagOrder();const data={app:'Prompt Pocket',version:APP_VERSION,dataVersion:DATA_SCHEMA_VERSION,exportedAt:new Date().toISOString(),items,folders,prefs,customTags:[...customTags]};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`prompt-pocket-backup-${new Date().toISOString().slice(0,10)}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast('バックアップを保存しました')};
+$('exportBtn').onclick=async()=>{
+  try{
+    syncTagOrder();toast('バックアップを準備しています');
+    const exportItems=[];
+    for(const item of items){
+      const copy={...item};
+      if(isDbImage(copy.image)){
+        const imageBlob=await getImageBlob(imageDbKey(copy.image));
+        if(!imageBlob)throw new Error('backup image missing');
+        copy.image=await blobToDataUrl(imageBlob);
+      }
+      exportItems.push(copy);
+    }
+    const data={app:'Prompt Pocket',version:APP_VERSION,dataVersion:DATA_SCHEMA_VERSION,exportedAt:new Date().toISOString(),items:exportItems,folders,prefs,customTags:[...customTags]};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`prompt-pocket-backup-${new Date().toISOString().slice(0,10)}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast('バックアップを保存しました')
+  }catch{
+    alert('画像を含むバックアップを作成できませんでした。\n時間をおいて、もう一度お試しください。');
+  }
+};
 $('importBtn').onclick=()=>$('importFile').click();
 $('importFile').onchange=async e=>{
   const f=e.target.files[0];
@@ -1315,6 +1436,8 @@ $('importFile').onchange=async e=>{
     if(needsMigration)alert('読み込むデータのバージョンは2.0より古いため、データを2.0用にアップデートします。');
     folders=upgradeFoldersTo2(Array.isArray(data.folders)?data.folders:[]);
     items=upgradeItemsTo2(restored,folders);
+    const imageMigration=await moveEmbeddedImagesToDb(items);
+    if(imageMigration.complete)localStorage.setItem(IMAGE_DB_MIGRATION_KEY,'done');else localStorage.removeItem(IMAGE_DB_MIGRATION_KEY);
     normalize();
     if(data.prefs&&typeof data.prefs==='object'){
       prefs={...prefs,...data.prefs};
@@ -1601,6 +1724,7 @@ function handleVersionNotice(){
   };
 }
 save();render();
+migrateStoredImages().catch(()=>{});
 if(document.readyState==='loading'){
   document.addEventListener('DOMContentLoaded',handleVersionNotice,{once:true});
 }else{
