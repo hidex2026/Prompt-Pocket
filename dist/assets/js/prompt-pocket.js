@@ -71,6 +71,7 @@ let items=JSON.parse(localStorage.getItem(KEY)||localStorage.getItem(LEGACY_KEY)
 const APP_VERSION='1.16';
 const VERSION_KEY='promptPocket.lastSeenVersion';
 const DATA_VERSION_KEY='promptPocket.dataVersion';
+const DATA_SCHEMA_VERSION='2.0';
 const UPDATE_116_NOTICE_KEY='promptPocket.updateNotice.1.16.final';
 const VERSION_HISTORY={
     '1.73':['初回の外部ブラウザ案内を、わかりやすい歓迎画面に変更','現在のバージョン表示とバージョン記録を追加','アップデート内容を更新時に一度だけ表示'],
@@ -156,25 +157,56 @@ function seedStarterFolders(){
   groups.forEach(([name,samples],groupIndex)=>{const folder={id:'starter-folder-'+groupIndex,name,created:now+groupIndex,isNew:false};folders.push(folder);samples.forEach((source,index)=>items.push({id:'starter-'+source.key,presetKey:source.key,name:source.name,prompt:source.prompt,author:'',xhandle:'',source:'',memo:'サンプルです。自由に編集・削除できます。',tags:source.tags||[],image:source.image||'',folderId:folder.id,fav:false,pinned:false,useCount:0,lastUsed:0,created:now+groupIndex*20+index,updated:now+groupIndex*20+index}));});
   save();saveFolders();return true;
 }
-function migrate1xData(){
-  // テスト版は1.xxとして扱い、正式2.0の公開時まで移行を実行しない。
-  if(!APP_VERSION.startsWith('2.')){
-    if(localStorage.getItem(DATA_VERSION_KEY)==='2')localStorage.setItem(DATA_VERSION_KEY,'1');
-    if((localStorage.getItem(VERSION_KEY)||'').startsWith('2.'))localStorage.setItem(VERSION_KEY,APP_VERSION);
-    sessionStorage.removeItem('promptPocket.migratedFrom1x');
-    return;
-  }
-  if(localStorage.getItem(DATA_VERSION_KEY)==='2')return;
-  const savedVersion=localStorage.getItem(VERSION_KEY)||'';
+function upgradeFoldersTo2(source){
+  const now=Date.now();
+  return (Array.isArray(source)?source:[]).filter(folder=>folder&&typeof folder==='object').map((folder,index)=>({
+    ...folder,
+    id:typeof folder.id==='string'&&folder.id?folder.id:crypto.randomUUID(),
+    name:typeof folder.name==='string'&&folder.name.trim()?folder.name:'名称未設定フォルダー',
+    created:Number(folder.created)||now+index,
+    isNew:!!folder.isNew
+  }));
+}
+function upgradeItemsTo2(source,sourceFolders){
+  const now=Date.now();
+  const folderIds=new Set(sourceFolders.map(folder=>folder.id));
+  return (Array.isArray(source)?source:[]).filter(item=>item&&typeof item==='object').map((item,index)=>{
+    const created=Number(item.created||item.createdAt)||now+index;
+    return {
+      ...item,
+      id:typeof item.id==='string'&&item.id?item.id:crypto.randomUUID(),
+      name:typeof item.name==='string'?item.name:'',
+      prompt:typeof item.prompt==='string'?item.prompt:'',
+      author:typeof item.author==='string'?item.author:'',
+      xhandle:typeof item.xhandle==='string'?item.xhandle:'',
+      source:typeof item.source==='string'?item.source:'',
+      memo:typeof item.memo==='string'?item.memo:'',
+      tags:Array.isArray(item.tags)?[...new Set(item.tags.filter(tag=>typeof tag==='string'&&tag))]:[],
+      image:typeof item.image==='string'?item.image:'',
+      folderId:typeof item.folderId==='string'&&folderIds.has(item.folderId)?item.folderId:null,
+      fav:!!(item.fav??item.favorite),
+      pinned:!!item.pinned,
+      useCount:Number(item.useCount)||0,
+      lastUsed:Number(item.lastUsed)||0,
+      created,
+      updated:Number(item.updated||item.updatedAt)||created
+    };
+  });
+}
+function migratePre2Data(){
+  const storedVersion=localStorage.getItem(DATA_VERSION_KEY)||localStorage.getItem(VERSION_KEY)||'1.0';
+  if(!versionLessThan(storedVersion,DATA_SCHEMA_VERSION))return;
   const hasOldData=items.length>0||folders.length>0||localStorage.getItem(PREF_KEY)!==null;
-  if(hasOldData&&(savedVersion.startsWith('1.')||savedVersion==='')){
-    items=items.map(x=>({...x,folderId:typeof x.folderId==='string'?x.folderId:null}));
+  if(hasOldData){
+    alert('保存されているデータのバージョンは2.0より古いため、データを2.0用にアップデートします。');
+    folders=upgradeFoldersTo2(folders);
+    items=upgradeItemsTo2(items,folders);
     save();saveFolders();savePrefs();
     sessionStorage.setItem('promptPocket.migratedFrom1x','1');
   }
-  localStorage.setItem(DATA_VERSION_KEY,'2');
+  localStorage.setItem(DATA_VERSION_KEY,DATA_SCHEMA_VERSION);
 }
-migrate1xData();
+migratePre2Data();
 
 // Ver.1.0: 見本の初期登録はウェルカム完了時だけ行う。
 // 条件は「通常の初回ウェルカム」かつ「登録0件」。ここでは追加しない。
@@ -1267,9 +1299,45 @@ $('longPressMainActionsEnabled').onchange=e=>{if(optionPrefsDraft)optionPrefsDra
 $('shortcutDelay').onchange=e=>{if(optionPrefsDraft)optionPrefsDraft.shortcutDelay=Number(e.target.value)||800};
 $('optionDialog').addEventListener('cancel',e=>{e.preventDefault();$('optionCancel').click()});
 
-$('exportBtn').onclick=()=>{syncTagOrder();const data={app:'Prompt Pocket',version:APP_VERSION,exportedAt:new Date().toISOString(),items,folders,prefs,customTags:[...customTags]};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`prompt-pocket-backup-${new Date().toISOString().slice(0,10)}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast('バックアップを保存しました')};
+$('exportBtn').onclick=()=>{syncTagOrder();const data={app:'Prompt Pocket',version:APP_VERSION,dataVersion:DATA_SCHEMA_VERSION,exportedAt:new Date().toISOString(),items,folders,prefs,customTags:[...customTags]};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`prompt-pocket-backup-${new Date().toISOString().slice(0,10)}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast('バックアップを保存しました')};
 $('importBtn').onclick=()=>$('importFile').click();
-$('importFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const data=JSON.parse(await f.text());const restored=Array.isArray(data)?data:data.items;if(!Array.isArray(restored))throw new Error();const ok=confirm(`⚠️ データを読み込みますか？\n\n現在保存されている${items.length}件のデータは削除され、読み込んだ${restored.length}件のデータに置き換わります。\nこの操作は元に戻せません。`);if(!ok)return;items=restored;folders=Array.isArray(data.folders)?data.folders:[];normalize();if(data.prefs&&typeof data.prefs==='object'){prefs={...prefs,...data.prefs};prefs.tagOrder=Array.isArray(prefs.tagOrder)?prefs.tagOrder:[];prefs.hiddenTags=Array.isArray(prefs.hiddenTags)?prefs.hiddenTags:[];prefs.longPressMainActionsEnabled=Object.prototype.hasOwnProperty.call(data.prefs,'longPressMainActionsEnabled')?!!data.prefs.longPressMainActionsEnabled:(Object.prototype.hasOwnProperty.call(data.prefs,'longPressAllButtonsEnabled')?!!data.prefs.longPressAllButtonsEnabled:(!!data.prefs.longPressHelpEnabled||!!data.prefs.longPressSearchEnabled));delete prefs.longPressAllButtonsEnabled;delete prefs.longPressHelpEnabled;delete prefs.longPressSearchEnabled;}customTags=new Set(Array.isArray(data.customTags)?data.customTags:[]);prefs.customTags=[...customTags];undoState=null;save();saveFolders();savePrefs();$('optionDialog').close();render();toast('データを復元しました')}catch{alert('このデータファイルは読み込めませんでした。')}finally{e.target.value=''}};
+$('importFile').onchange=async e=>{
+  const f=e.target.files[0];
+  if(!f)return;
+  try{
+    const data=JSON.parse(await f.text());
+    const restored=Array.isArray(data)?data:data.items;
+    if(!Array.isArray(restored))throw new Error();
+    const ok=confirm(`⚠️ データを読み込みますか？\n\n現在保存されている${items.length}件のデータは削除され、読み込んだ${restored.length}件のデータに置き換わります。\nこの操作は元に戻せません。`);
+    if(!ok)return;
+    const incomingVersion=Array.isArray(data)?'1.0':String(data.dataVersion||data.version||'1.0');
+    const needsMigration=versionLessThan(incomingVersion,DATA_SCHEMA_VERSION);
+    if(needsMigration)alert('読み込むデータのバージョンは2.0より古いため、データを2.0用にアップデートします。');
+    folders=upgradeFoldersTo2(Array.isArray(data.folders)?data.folders:[]);
+    items=upgradeItemsTo2(restored,folders);
+    normalize();
+    if(data.prefs&&typeof data.prefs==='object'){
+      prefs={...prefs,...data.prefs};
+      prefs.tagOrder=Array.isArray(prefs.tagOrder)?prefs.tagOrder:[];
+      prefs.hiddenTags=Array.isArray(prefs.hiddenTags)?prefs.hiddenTags:[];
+      prefs.longPressMainActionsEnabled=Object.prototype.hasOwnProperty.call(data.prefs,'longPressMainActionsEnabled')?!!data.prefs.longPressMainActionsEnabled:(Object.prototype.hasOwnProperty.call(data.prefs,'longPressAllButtonsEnabled')?!!data.prefs.longPressAllButtonsEnabled:(!!data.prefs.longPressHelpEnabled||!!data.prefs.longPressSearchEnabled));
+      delete prefs.longPressAllButtonsEnabled;
+      delete prefs.longPressHelpEnabled;
+      delete prefs.longPressSearchEnabled;
+    }
+    customTags=new Set(Array.isArray(data.customTags)?data.customTags:[]);
+    prefs.customTags=[...customTags];
+    undoState=null;
+    save();saveFolders();savePrefs();
+    localStorage.setItem(DATA_VERSION_KEY,DATA_SCHEMA_VERSION);
+    $('optionDialog').close();render();
+    toast(needsMigration?'バージョン1.xxのデータを2.0用に移行しました。':'データを復元しました');
+  }catch{
+    alert('このデータファイルは読み込めませんでした。');
+  }finally{
+    e.target.value='';
+  }
+};
 
 
 /* TEST40: ジャンル別チェック一覧によるサンプル管理 */
@@ -1475,7 +1543,7 @@ syncStickyHeaderHeight();
 setTimeout(()=>{syncStickyHeaderHeight();updateCardJumpNav()},0);
 
 prefs.view='detail';if(prefs.rememberOps&&prefs.sort)$('sort').value=prefs.sort;else $('sort').value='manual';
-if(sessionStorage.getItem('promptPocket.migratedFrom1x')==='1')setTimeout(()=>{sessionStorage.removeItem('promptPocket.migratedFrom1x');toast('保存されていたバージョン1.xxのデータを、バージョン2.xx用に移行しました。')},250);
+if(sessionStorage.getItem('promptPocket.migratedFrom1x')==='1')setTimeout(()=>{sessionStorage.removeItem('promptPocket.migratedFrom1x');toast('保存されていたバージョン1.xxのデータを、バージョン2.0用に移行しました。')},250);
 if(!prefs.welcomed)setTimeout(()=>{
   if(!window.__ppExternalGuideActive && !$('externalBrowserGuide')?.open){
     const debugForced=sessionStorage.getItem('promptPocket.debugWelcome')==='1';
