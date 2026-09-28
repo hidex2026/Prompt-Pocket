@@ -1255,7 +1255,7 @@ button,[role="button"]{
 @media(max-width:560px){
   .stickyViewBar .viewCountRow{gap:5px!important}
   .toolbarClose{padding:7px 7px!important;font-size:13px!important}
-  .favoriteHit{min-width:36px;min-height:58px}
+  .favoriteHit{min-width:36px;min-height:52px}
 }
 .searchPanel.searchRevealed{
   border:3px solid #2f7de1!important;border-radius:14px!important;
