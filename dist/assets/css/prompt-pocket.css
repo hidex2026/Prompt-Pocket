@@ -1239,12 +1239,17 @@ button,[role="button"]{
 .folderRow.folderOpen>td:last-child{border-right:1px solid #e2d7ac!important;border-radius:0 11px 0 0!important}
 .folderRow.folderOpen{filter:drop-shadow(0 2px 2px rgba(95,65,0,.11))}
 .folderChildRow>td{background:#fffdf8!important}
-.folderChildRow>td:first-child,.folderChildDetail>td{border-left:0!important}
-.folderChildRow>td:last-child,.folderChildDetail>td{border-right:0!important}
-.folderChildRow.folderTreeLast>td{border-bottom:8px solid #faf9f6!important}
+.folderChildRow>td:first-child{border-left:1px solid #e2d7ac!important}
+.folderChildRow>td:last-child{border-right:1px solid #e2d7ac!important}
+.folderChildDetail>td{border-left:1px solid #e2d7ac!important;border-right:1px solid #e2d7ac!important}
+.folderChildRow.folderTreeLast>td{border-bottom:4px solid #faf9f6!important;box-shadow:inset 0 -1px 0 #e2d7ac!important}
+.folderChildRow.folderTreeLast>td:first-child{box-shadow:inset 1px 0 0 #e2d7ac,inset 0 -1px 0 #e2d7ac!important}
+.folderChildRow.folderTreeLast>td:last-child{box-shadow:inset -1px 0 0 #e2d7ac,inset 0 -1px 0 #e2d7ac!important}
 .folderChildRow.folderTreeLast>td:first-child,.folderChildRow.folderTreeLast>td:last-child{border-radius:0!important}
-.folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td{border-bottom:0!important}
-.folderFrameLastDetail:not(.hidden)>td{border-bottom:8px solid #faf9f6!important;border-radius:0!important}
+.folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td{border-bottom:0!important;box-shadow:none!important}
+.folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td:first-child{box-shadow:inset 1px 0 0 #e2d7ac!important}
+.folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td:last-child{box-shadow:inset -1px 0 0 #e2d7ac!important}
+.folderFrameLastDetail:not(.hidden)>td{border-bottom:4px solid #faf9f6!important;border-radius:0!important;box-shadow:inset 1px 0 0 #e2d7ac,inset -1px 0 0 #e2d7ac,inset 0 -1px 0 #e2d7ac!important}
 #ppInsertLine{z-index:120!important}
 
 @media(max-width:560px){
