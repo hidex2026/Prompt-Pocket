@@ -376,6 +376,9 @@ function render(){
 
   const folderHtml=f=>{
     const kids=items.filter(x=>x.folderId===f.id&&matches(x));
+    if(sortMode==='fav')kids.sort((a,b)=>Number(b.fav)-Number(a.fav)||b.created-a.created);
+    else if(sortMode==='nameAsc')kids.sort((a,b)=>a.name.localeCompare(b.name,'ja'));
+    else if(sortMode==='createdDesc')kids.sort((a,b)=>b.created-a.created);
     const open=kids.length>0&&openFolders.has(f.id);
     let s=`<tr class="folderRow ${open?'folderOpen':''}" data-folder="${f.id}" data-sort-key="folder:${f.id}"><td><button class="tableIcon favoriteHit" data-folder-fav="${f.id}" title="フォルダのお気に入り">${f.fav?'★':'☆'}</button></td><td class="nameCell folderInteractArea" data-folder-toggle="${f.id}"><span class="folderNameBtn"><span>${open?'📂':'📁'}</span><span>${esc(f.name)}</span>${f.isNew?'<span class="folderNewBadge">NEW</span>':''}</span><span class="folderDragSpace" aria-label="フォルダを移動"></span></td><td><div class="tableActions folderActions"><span class="folderCountInline">${folderCount(f.id)}枚</span><span class="detailMenuWrap"><button class="folderMenuBtn" data-folder-menu-toggle="${f.id}" aria-label="フォルダのメニューを開く">⋯</button><div class="detailPopupMenu hidden"><button data-folder-rename="${f.id}">✏️ 名前を変更</button><button class="dangerMenu" data-folder-delete="${f.id}">🗑️ フォルダを削除</button></div></span></div></td></tr>`;
     if(open)s+=kids.map(x=>cardRows(x,true)).join('');
@@ -420,7 +423,7 @@ function updateCloseAllButton(){$('closeAllBtn')?.classList.toggle('hidden',!has
 function closeAllOpenContent(){openFolders.clear();document.querySelector('.folderPopupPortal')?.remove();render()}
 function getOpenDetailIds(){return [...document.querySelectorAll('.rowDetail:not(.hidden)')].map(r=>r.id.replace('rowDetail-',''))}function restoreOpenDetails(ids){ids.forEach(id=>{const detail=$('rowDetail-'+id);detail?.classList.remove('hidden');updatePromptOverflow(detail)});updateCloseAllButton()}function renderKeepingDetails(){const open=getOpenDetailIds();render();restoreOpenDetails(open)}
 function setSortMode(mode){const allowed=['manual','foldersFirst','createdDesc','nameAsc','fav'];if(!allowed.includes(mode))mode='manual';$('sort').value=mode;if(prefs.rememberOps){prefs.sort=mode;savePrefs()}render()}
-function bindHeaderSort(){document.querySelectorAll('[data-header-sort]').forEach(head=>{let sx=0,sy=0,moved=false;head.onpointerdown=e=>{sx=e.clientX;sy=e.clientY;moved=false};head.onpointermove=e=>{if(Math.hypot(e.clientX-sx,e.clientY-sy)>9)moved=true};head.onpointerup=e=>{if(!moved)setSortMode(head.dataset.headerSort)};head.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();setSortMode(head.dataset.headerSort)}}})}
+function bindHeaderSort(){document.querySelectorAll('[data-header-sort]').forEach(head=>{head.onclick=e=>{e.preventDefault();setSortMode(head.dataset.headerSort)};head.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();setSortMode(head.dataset.headerSort)}}})}
 function saveManualOrderFromRows(){
   prefs.manualOrder=[...document.querySelectorAll('.unifiedRow')].map(r=>r.dataset.row);
   prefs.sort='manual';

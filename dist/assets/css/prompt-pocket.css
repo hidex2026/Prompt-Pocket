@@ -1230,18 +1230,19 @@ button,[role="button"]{
 .sortableHead.active{color:#8a6400;background:#fff5c9!important;box-shadow:inset 0 -3px 0 #d5a30e}
 .sortArrow{font-size:.58em;margin-left:5px;vertical-align:middle}
 
-.folderRow.folderOpen>td{border-top:3px solid #c89612!important;box-shadow:inset 0 2px 0 #fff9d9,inset 0 -1px 0 #eadb9c!important}
-.folderRow.folderOpen>td:first-child{border-left:3px solid #c89612!important;border-radius:13px 0 0 0!important}
-.folderRow.folderOpen>td:last-child{border-right:3px solid #c89612!important;border-radius:0 13px 0 0!important}
-.folderRow.folderOpen{filter:drop-shadow(0 3px 3px rgba(95,65,0,.18))}
-.folderChildRow>td{background:#fffefa!important}
-.folderChildRow>td:first-child,.folderChildDetail>td{border-left:3px solid #c89612!important}
-.folderChildRow>td:last-child,.folderChildDetail>td{border-right:3px solid #c89612!important}
-.folderChildRow.folderTreeLast>td{border-bottom:3px solid #c89612!important}
-.folderChildRow.folderTreeLast>td:first-child{border-radius:0 0 0 13px}
-.folderChildRow.folderTreeLast>td:last-child{border-radius:0 0 13px 0}
+.folderRow.folderOpen>td{background:linear-gradient(180deg,#fff9e9,#f8edc9)!important;box-shadow:inset 0 1px 0 #fff,inset 0 -1px 0 #dfcf94!important}
+.folderRow.folderOpen>td:first-child{border-left:3px solid #d5a51a!important;border-radius:11px 0 0 0!important}
+.folderRow.folderOpen>td:last-child{border-right:1px solid #e2d7ac!important;border-radius:0 11px 0 0!important}
+.folderRow.folderOpen{filter:drop-shadow(0 2px 2px rgba(95,65,0,.11))}
+.folderChildRow>td{background:#fffdf8!important}
+.folderChildRow>td:first-child{border-left:3px solid #d5a51a!important}
+.folderChildDetail>td{border-left:3px solid #d5a51a!important}
+.folderChildRow>td:last-child,.folderChildDetail>td{border-right:0!important}
+.folderChildRow.folderTreeLast>td{border-bottom:1px solid #e5d6a5!important}
+.folderChildRow.folderTreeLast>td:first-child{border-radius:0 0 0 8px}
+.folderChildRow.folderTreeLast>td:last-child{border-radius:0}
 .folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td{border-bottom:0!important;border-radius:0}
-.folderFrameLastDetail:not(.hidden)>td{border-bottom:3px solid #c89612!important;border-radius:0 0 13px 13px!important}
+.folderFrameLastDetail:not(.hidden)>td{border-bottom:1px solid #e5d6a5!important;border-radius:0 0 8px 0!important}
 #ppInsertLine{z-index:120!important}
 
 @media(max-width:560px){
