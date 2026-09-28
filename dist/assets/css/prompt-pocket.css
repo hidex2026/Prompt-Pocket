@@ -1146,7 +1146,8 @@ main{padding-top:6px}
 .folderActions .folderCountInline{
   margin:0!important;padding:4px 5px!important;font-size:15px!important;
   line-height:1.2!important;white-space:nowrap;flex:0 0 60px;min-width:60px;
-  box-sizing:border-box;text-align:center;
+  box-sizing:border-box;text-align:center;pointer-events:none;user-select:none;
+  -webkit-user-select:none;-webkit-touch-callout:none;
 }
 .folderActions .folderMenuBtn{min-width:42px}
 .unifiedTable .col-actions,.unifiedTable .opCol{width:128px}
@@ -1252,6 +1253,12 @@ button,[role="button"]{
 .folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td:first-child{box-shadow:inset 2px 0 0 #ce9a12!important}
 .folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td:last-child{box-shadow:inset -2px 0 0 #ce9a12!important}
 .folderFrameLastDetail:not(.hidden)>td{border-bottom:4px solid #faf9f6!important;border-radius:0!important;box-shadow:inset 2px 0 0 #ce9a12,inset -2px 0 0 #ce9a12,inset 0 -2px 0 #ce9a12!important}
+body[data-card-cell-size="small"] .unifiedRow>td,
+body[data-card-cell-size="small"] .folderRow>td{padding-top:3px!important;padding-bottom:3px!important}
+body[data-card-cell-size="small"] .favoriteHit{min-height:42px!important}
+body[data-card-cell-size="small"] .tinyThumb{width:24px!important;height:24px!important}
+body[data-card-cell-size="large"] .favoriteHit{min-height:66px!important}
+body[data-card-cell-size="large"] .tinyThumb{width:44px!important;height:44px!important}
 #ppInsertLine{z-index:120!important}
 
 @media(max-width:560px){
