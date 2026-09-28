@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#ffffff">
-  <title>Prompt Pocket PP_v1.9_TEST61</title>
+  <title>Prompt Pocket PP_v1.9_TEST62</title>
   <!--
   Prompt Pocket ver.1.9 / FOLDER TEST1
   Folder feature baseline:
@@ -21,7 +21,7 @@
 <header class="topbar">
   <div>
     <div class="eyebrow">AI IMAGE & VIDEO PROMPT LIBRARY</div>
-    <div class="titleLine"><h1>Prompt Pocket</h1><span class="headerVersion">PP_v1.9_TEST61</span></div>
+    <div class="titleLine"><h1>Prompt Pocket</h1><span class="headerVersion">PP_v1.9_TEST62</span></div>
   </div>
   <div class="topActions">
     <button id="newBtn" class="primary">＋ 新規登録</button>
@@ -46,7 +46,7 @@
   </section>
 
   <div class="stickyViewBar">
-    <div class="viewCountRow"><strong id="count" class="cardCountDisplay">カード：0枚</strong><button id="sampleBtn" class="ghost sampleMainBtn" type="button">サンプル</button><button id="undoBtn" class="ghost toolbarUndo" type="button" disabled>↶ 戻す</button><button id="viewOptionBtn" class="viewOptionBtn" type="button" aria-label="オプション"><span class="viewOptionGear">⚙</span><span class="viewOptionLabel">オプション</span></button></div>
+    <div class="viewCountRow"><strong id="count" class="cardCountDisplay">カード：0枚</strong><button id="undoBtn" class="ghost toolbarUndo" type="button" disabled>↶ 戻す</button><button id="viewOptionBtn" class="viewOptionBtn" type="button" aria-label="オプション"><span class="viewOptionGear">⚙</span><span class="viewOptionLabel">オプション</span></button></div>
   </div>
 
   <section class="toolbar sortToolbar">
@@ -232,7 +232,23 @@
       </section>
       </details>
 <details class="optionOther optionDataFold"><summary>📦 データの保存・復元</summary><section><p>書き出したデータはバックアップとして保管できます。別のスマホで読み込めば、データを引き継げます。</p><div class="manageActions"><button id="exportBtn" class="primary">📤 データを書き出す</button><button id="importBtn" class="ghost">📥 データを読み込む</button><input id="importFile" type="file" accept="application/json,.json" hidden></div><button id="migrationHelpBtn" class="textButton" type="button">機種変更の方法を見る</button></section></details>
-      <details class="optionOther"><summary>⚠ その他の設定</summary><section><div class="manageActions"><button id="debugBtn" class="ghost devFeatureBtn">🛠 開発者向け機能</button><button id="deleteAllMobile" class="dangerStrong">🗑 データを全て初期化</button></div></section></details>
+      <details class="optionOther"><summary>⚠ その他の設定</summary><section><div class="manageActions"><button id="sampleBtn" class="ghost wide" type="button">📚 サンプルを追加</button></div></section></details>
+      <details class="optionOther optionDeleteFold"><summary>🗑 データの削除</summary><section class="optionActionList">
+        <div class="optionActionItem"><button id="resetDataBtn" class="ghost wide" type="button">データの初期化</button><small>すべての登録データと設定を削除し、Prompt Pocketを初期状態に戻します。初期カードとサンプルフォルダは再作成されます。</small></div>
+        <div class="optionActionItem"><button id="clearCacheBtn" class="ghost wide" type="button">キャッシュの削除</button><small>表示やデータの読み込みがおかしくなったときに、保存されているキャッシュを削除して新しく読み込み直します。登録したカードやフォルダは削除されません。</small></div>
+        <div class="optionActionItem dangerOptionItem"><button id="eraseEverythingBtn" class="dangerStrong wide" type="button">すべてを削除する</button><small>すべての登録データ、設定、画像、キャッシュを削除し、初期カードも作成しません。Prompt Pocketを使用しなくなるときのアンインストール用です。</small></div>
+      </section></details>
+      <details id="developerOptions" class="optionOther optionDeveloperFold"><summary id="developerSummary">🛠 開発者向け機能 <small>3回タップで開く</small></summary><section>
+        <p class="optionLead">大量のカードを登録した状態で、表示や操作の負荷を確認します。</p>
+        <div class="debugActions">
+          <button id="debugAdd50" class="ghost wide" type="button">フォルダ5個とカード50枚を追加</button>
+          <button id="debugAdd100" class="ghost wide" type="button">フォルダ10個とカード100枚を追加</button>
+          <button id="debugRemoveLoad" class="ghost wide" type="button">負荷テスト用データを削除</button>
+          <button id="debugLowerVersion" class="ghost wide" type="button">バージョンを下げる</button>
+          <button id="debugShowWelcome" class="ghost wide" type="button">ウェルカムを表示</button>
+        </div>
+        <p class="noteText">負荷テスト用データには専用の印を付け、通常のカードやフォルダとは分けて削除できます。</p>
+      </section></details>
     </div>
     <div class="appVersion">Prompt Pocket ver.1.04</div>
     <div class="optionFixedActions"><button type="button" id="optionSave" class="primary">保存する</button><button type="button" id="optionCancel" class="ghost">キャンセル</button></div>
@@ -329,16 +345,12 @@
   </div>
 </dialog>
 
-<dialog id="debugDialog">
+<dialog id="eraseCompleteDialog">
   <div class="welcomePanel helpPanel">
-    <div class="dialogHead"><div><div class="eyebrow">DEVELOPER</div><h2>開発者向け機能</h2></div><button id="debugClose" class="iconBtn" type="button">×</button></div>
-    <p class="helpIntro">表示やアップデート動作を確認するためのテスト機能です。</p>
-    <div class="welcomeSteps debugActions">
-      <button id="debugAdd10" class="ghost wide" type="button">カードを10枚増やす</button>
-      <button id="debugLowerVersion" class="ghost wide" type="button">バージョンを下げる</button>
-      <button id="debugShowWelcome" class="ghost wide" type="button">ウェルカムを表示</button>
-    </div>
-    <p class="noteText">「バージョンを下げる」は押すたび保存バージョンを0.1下げます。サイトを更新するとバージョンアップ情報の表示を確認できます。「ウェルカムを表示」は次の更新時にウェルカム画面を表示します。</p>
+    <div class="welcomeIcon">🧹</div>
+    <h2>すべて削除しました</h2>
+    <p>Prompt Pocketのデータとキャッシュを削除しました。このページを閉じて、必要に応じてホーム画面のアイコンやアプリを削除してください。</p>
+    <button id="eraseCompleteClose" class="primary wide" type="button">閉じる</button>
   </div>
 </dialog>
 
@@ -375,6 +387,11 @@
   <script defer src="assets/js/prompt-pocket.js"></script>
   <script>
     if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){
+      const hadServiceWorker=navigator.serviceWorker.controller!==null;
+      let reloadingForUpdate=false;
+      if(hadServiceWorker)navigator.serviceWorker.addEventListener('controllerchange',()=>{
+        if(reloadingForUpdate)return;reloadingForUpdate=true;location.reload();
+      });
       window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js',{scope:'./'}).catch(()=>{}));
     }
   </script>

@@ -187,6 +187,12 @@ async function clearImageDb(){
   try{const db=await openImageDb();await new Promise((resolve,reject)=>{const tx=db.transaction(IMAGE_STORE_NAME,'readwrite');tx.objectStore(IMAGE_STORE_NAME).clear();tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)})}catch{}
   imageUrlCache.forEach(url=>URL.revokeObjectURL(url));imageUrlCache.clear();
 }
+async function deleteImageDb(){
+  try{const db=await openImageDb();db.close()}catch{}
+  imageDbPromise=null;
+  await new Promise(resolve=>{if(!window.indexedDB){resolve();return}const request=indexedDB.deleteDatabase(IMAGE_DB_NAME);request.onsuccess=request.onerror=request.onblocked=()=>resolve()});
+  imageUrlCache.forEach(url=>URL.revokeObjectURL(url));imageUrlCache.clear();
+}
 const isDbImage=value=>typeof value==='string'&&value.startsWith('idb:');
 const imageDbKey=value=>value.slice(4);
 function blobToDataUrl(blob){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(reader.error);reader.readAsDataURL(blob)})}
@@ -1273,7 +1279,27 @@ bottomNew.addEventListener('contextmenu',e=>{if(prefs.shortcutEnabled)e.preventD
 function closeEditor(){editorTagDraft=null;imageBlob=null;if(editorImageObjectUrl){URL.revokeObjectURL(editorImageObjectUrl);editorImageObjectUrl=''}$('editor').close();document.body.classList.remove('editor-open')}
 $('editor').addEventListener('cancel',e=>{e.preventDefault();closeEditor()});
 $('cancelBtn').onclick=closeEditor;$('editorCloseBtn').onclick=closeEditor;$('search').oninput=render;$('sort').onchange=()=>{randomOrder=[];if(prefs.rememberOps){prefs.sort=$('sort').value;savePrefs()}render()};$('clearFilters').onclick=()=>{$('search').value='';filterTags.clear();render()};$('undoBtn').onclick=()=>{if(!undoState)return;if(!confirm('前の状態に戻しますか？\n\n直前の操作を取り消して、前の状態に戻します。'))return;const current=structuredClone(items);items=structuredClone(undoState.items);undoState={label:'元に戻す前の状態',items:current};save();render();toast('前の状態に戻しました')};
-$('deleteAllBtn').onclick=()=>{const n=items.length;if(!confirm(`⚠️ Prompt Pocketのデータをすべてリセットします。\n\n登録プロンプト ${n}件、フォルダ、表示設定・カスタムタグも初期化されます。\nこの操作は元に戻せません。\n続けますか？`))return;if(!confirm(`最終確認\n本当にすべてのデータをリセットしますか？\nリセット後はサンプルフォルダが復帰します。`))return;localStorage.removeItem(KEY);localStorage.removeItem(LEGACY_KEY);localStorage.removeItem(FOLDER_KEY);localStorage.removeItem(PREF_KEY);localStorage.removeItem('promptPocket.columnWidths.v1');localStorage.removeItem(IMAGE_DB_MIGRATION_KEY);clearImageDb();items=[];folders=[];undoState=null;customTags.clear();prefs={view:'card',welcomed:false,tagOrder:[],hiddenTags:[],rememberOps:false,shortcutEnabled:true,longPressMainActionsEnabled:false,shortcutDelay:800,customTags:[]};seedStarterFolders();savePrefs();render();toast('全データをリセットし、サンプルフォルダを復帰しました')};
+function defaultPrefs(){return {view:'card',welcomed:false,tagOrder:[],hiddenTags:[],rememberOps:false,shortcutEnabled:true,buttonGlowEnabled:false,longPressMainActionsEnabled:false,shortcutDelay:800,customTags:[]}}
+async function resetDataToInitial(){
+  if(!confirm('登録したカード、フォルダ、タグ、設定、画像を削除して初期状態に戻しますか？\n\nサイト本体のキャッシュは残ります。'))return;
+  localStorage.clear();await deleteImageDb();items=[];folders=[];undoState=null;customTags.clear();prefs=defaultPrefs();
+  seedStarterFolders();savePrefs();localStorage.setItem(DATA_VERSION_KEY,DATA_SCHEMA_VERSION);localStorage.setItem(IMAGE_DB_MIGRATION_KEY,'done');localStorage.setItem(VERSION_KEY,APP_VERSION);
+  location.reload();
+}
+async function clearPhysicalCache(){
+  if(!confirm('サイト本体のキャッシュを削除して、新しく読み込み直しますか？\n\n登録したカード、フォルダ、設定、画像は削除されません。'))return;
+  if('caches'in window){const keys=await caches.keys();await Promise.all(keys.filter(key=>key.startsWith('prompt-pocket-static-')).map(key=>caches.delete(key)))}
+  toast('キャッシュを削除しました。次回は新しく読み込みます');
+}
+async function eraseEverything(){
+  if(!confirm('⚠️ Prompt Pocketのすべてを削除します。\n\nカード、フォルダ、設定、画像、キャッシュが削除されます。初期カードも作成しません。\n続けますか？'))return;
+  if(!confirm('最終確認\n本当にすべてを削除しますか？\nこの操作は元に戻せません。'))return;
+  localStorage.clear();sessionStorage.clear();await deleteImageDb();
+  if('caches'in window){const keys=await caches.keys();await Promise.all(keys.filter(key=>key.startsWith('prompt-pocket-static-')).map(key=>caches.delete(key)))}
+  if('serviceWorker'in navigator){const registrations=await navigator.serviceWorker.getRegistrations();await Promise.all(registrations.filter(reg=>reg.scope.startsWith(location.origin)).map(reg=>reg.unregister()))}
+  items=[];folders=[];undoState=null;customTags.clear();prefs=defaultPrefs();openFolders.clear();filterTags.clear();$('search').value='';$('optionDialog').close();render();$('eraseCompleteDialog').showModal();
+}
+$('deleteAllBtn').onclick=resetDataToInitial;
 $('deleteAllBtn').addEventListener('click',()=>document.body.classList.toggle('buttonGlowEnabled',!!prefs.buttonGlowEnabled));
 $('addTagBtn').onclick=()=>{const t=$('customTag').value.trim();if(!t||!editorTagDraft)return;editorTagDraft.customTags.add(t);editorTagDraft.hiddenTags=editorTagDraft.hiddenTags.filter(x=>x!==t);if(!editorTagDraft.tagOrder.includes(t))editorTagDraft.tagOrder.push(t);editorTagDraft.deletedTags.delete(t);selectedTags.add(t);activeTagForManage=t;$('customTag').value='';renderTagChoices()};
 $('deleteTagBtn').onclick=()=>{const tag=activeTagForManage;if(!tag)return;const count=items.filter(x=>(x.tags||[]).includes(tag)).length;if(!confirm(`タグ「${tag}」は${count}件で使用されています。
@@ -1395,7 +1421,10 @@ $('helpMobile').onclick=()=>openMainHelp();
 $('optionSave').onclick=()=>{if(optionPrefsDraft){prefs=structuredClone(optionPrefsDraft);if(prefs.rememberOps){prefs.view=prefs.view||'card';prefs.sort=$('sort').value;prefs.detailFavSort=detailFavSort}else{delete prefs.sort;delete prefs.detailFavSort;detailFavSort=false}savePrefs();document.body.classList.toggle('buttonGlowEnabled',!!prefs.buttonGlowEnabled)}optionPrefsDraft=null;$('optionDialog').close();toast('オプションを保存しました')};
 $('optionCancel').onclick=()=>{optionPrefsDraft=null;$('optionDialog').close()};
 $('optionClose').onclick=()=>$('optionCancel').click();
-$('deleteAllMobile').onclick=()=>{$('optionDialog').close();$('deleteAllBtn').click()};
+$('resetDataBtn').onclick=resetDataToInitial;
+$('clearCacheBtn').onclick=clearPhysicalCache;
+$('eraseEverythingBtn').onclick=eraseEverything;
+$('eraseCompleteClose').onclick=()=>$('eraseCompleteDialog').close();
 $('rememberOps').onchange=e=>{if(optionPrefsDraft)optionPrefsDraft.rememberOps=e.target.checked};
 $('buttonGlowEnabled').onchange=e=>{if(optionPrefsDraft)optionPrefsDraft.buttonGlowEnabled=e.target.checked};
 $('shortcutEnabled').onchange=e=>{if(optionPrefsDraft)optionPrefsDraft.shortcutEnabled=e.target.checked;$('shortcutDelay').disabled=!(e.target.checked||$('longPressMainActionsEnabled').checked)};
@@ -1572,7 +1601,13 @@ $('welcomeStart').onclick=()=>{
   // ダイアログを閉じた後のDOM状態で再描画し、初回からカードを確実に表示する。
   requestAnimationFrame(()=>{render();$('sampleGuideDialog').showModal();});
 };$('sampleGuideClose').onclick=()=>$('sampleGuideDialog').close();
-$('debugBtn').onclick=()=>{if(!confirm('⚠ 開発者向け機能\n\nここには動作確認用の機能が含まれています。\n通常の利用では使用しないでください。\n\n開発者モードを開きますか？'))return;$('optionDialog').close();$('debugDialog').showModal()};$('debugClose').onclick=()=>$('debugDialog').close();
+let developerTapCount=0,developerTapTimer=null;
+$('developerSummary').addEventListener('click',e=>{
+  if($('developerOptions').open)return;
+  e.preventDefault();developerTapCount++;
+  clearTimeout(developerTapTimer);developerTapTimer=setTimeout(()=>{developerTapCount=0},1200);
+  if(developerTapCount>=3){developerTapCount=0;clearTimeout(developerTapTimer);$('developerOptions').open=true;toast('開発者向け機能を開きました')}
+});
 const debugSamples=[
 ['ねこのかいもの','かわいい猫が魚屋で買い物をしている。手書き風イラスト、パステルカラー。'],
 ['雨上がりの猫耳少女','雨上がりの街を歩く猫耳少女。水たまりに光が反射している。アニメイラスト、柔らかな色彩。'],
@@ -1585,8 +1620,30 @@ const debugSamples=[
 ['カフェの白猫','窓辺のカフェでくつろぐ白猫。朝の光、パステルカラー、手書き風。'],
 ['宇宙を泳ぐクジラ','星空の宇宙をゆっくり泳ぐ巨大なクジラ。幻想的、壮大、青い光。']
 ];
-function addDebugCards(n){snapshot('テストカード追加');const now=Date.now(),base=items.length;for(let i=0;i<n;i++){const d=debugSamples[(base+i)%debugSamples.length];items.push({id:crypto.randomUUID(),name:d[0],prompt:d[1],author:'',xhandle:'',source:'',memo:'テスト用カード',tags:[],image:'',fav:false,pinned:false,useCount:0,lastUsed:0,created:now+i,updated:now+i})}save();render();$('debugDialog').close();toast(`テストカードを${n}件追加しました`)}
-$('debugAdd10').onclick=()=>addDebugCards(10);
+function addDebugLoadData(folderTotal,cardTotal){
+  if(!confirm(`負荷テスト用のフォルダ${folderTotal}個とカード${cardTotal}枚を追加しますか？\n通常のデータには影響しません。`))return;
+  const now=Date.now(),batch=crypto.randomUUID(),testFolders=[];
+  for(let i=0;i<folderTotal;i++){
+    const folder={id:`dev-folder-${batch}-${i}`,name:`負荷テスト ${i+1}`,created:now+i,isNew:false,devTest:true,devBatch:batch};
+    folders.push(folder);testFolders.push(folder);
+  }
+  for(let i=0;i<cardTotal;i++){
+    const d=debugSamples[i%debugSamples.length],folder=testFolders[i%testFolders.length];
+    items.push({id:`dev-card-${batch}-${i}`,name:`${d[0]} ${i+1}`,prompt:d[1],author:'負荷テスト',xhandle:'',source:'',memo:'開発者向け負荷テスト用カード',tags:[],image:i%4===0?presetSampleImage:'',folderId:folder.id,fav:false,pinned:false,useCount:0,lastUsed:0,created:now+folderTotal+i,updated:now+folderTotal+i,devTest:true,devBatch:batch});
+  }
+  saveFolders();save();render();toast(`負荷テスト用カードを${cardTotal}枚追加しました`);
+}
+function removeDebugLoadData(){
+  const testFolderIds=new Set(folders.filter(folder=>folder.devTest).map(folder=>folder.id));
+  const cardCount=items.filter(item=>item.devTest).length,folderCount=testFolderIds.size;
+  if(!cardCount&&!folderCount){toast('負荷テスト用データはありません');return}
+  if(!confirm(`負荷テスト用のカード${cardCount}枚とフォルダ${folderCount}個を削除しますか？\n通常のデータは削除されません。`))return;
+  items=items.filter(item=>!item.devTest).map(item=>testFolderIds.has(item.folderId)?{...item,folderId:null}:item);
+  folders=folders.filter(folder=>!folder.devTest);testFolderIds.forEach(id=>openFolders.delete(id));saveFolders();save();render();toast('負荷テスト用データを削除しました');
+}
+$('debugAdd50').onclick=()=>addDebugLoadData(5,50);
+$('debugAdd100').onclick=()=>addDebugLoadData(10,100);
+$('debugRemoveLoad').onclick=removeDebugLoadData;
 $('debugLowerVersion').onclick=()=>{
   const raw=localStorage.getItem(VERSION_KEY)||APP_VERSION;
   const n=Number.parseFloat(raw);
@@ -1597,7 +1654,6 @@ $('debugLowerVersion').onclick=()=>{
 $('debugShowWelcome').onclick=()=>{
   prefs.welcomed=false;savePrefs();
   sessionStorage.setItem('promptPocket.debugWelcome','1');
-  $('debugDialog').close();
   toast('更新するとウェルカムを表示します');
 };
 
