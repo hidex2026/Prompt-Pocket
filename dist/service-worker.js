@@ -1,5 +1,5 @@
 const CACHE_PREFIX='prompt-pocket-static-';
-const CACHE_NAME=CACHE_PREFIX+'test63-v1';
+const CACHE_NAME=CACHE_PREFIX+'test64-v1';
 const APP_SHELL=[
   './',
   './index.html',
@@ -28,13 +28,13 @@ self.addEventListener('fetch',event=>{
   event.respondWith((async()=>{
     const cache=await caches.open(CACHE_NAME);
     if(request.mode==='navigate'){
-      const cachedPage=await cache.match('./index.html');
-      if(cachedPage)return cachedPage;
       try{
         const response=await fetch(request);
         if(response.ok)await cache.put('./index.html',response.clone());
         return response;
       }catch{
+        const cachedPage=await cache.match('./index.html');
+        if(cachedPage)return cachedPage;
         return new Response('Prompt Pocketをオフラインで開けませんでした。オンライン時に一度開いてください。',{status:503,headers:{'Content-Type':'text/plain; charset=utf-8'}});
       }
     }

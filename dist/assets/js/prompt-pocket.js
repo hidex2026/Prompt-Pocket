@@ -368,7 +368,7 @@ function render(){
   // 新しく作成したフォルダは、初めて触られるまで一覧の先頭に置く。
   mixed.sort((a,b)=>Number(b.type==='folder'&&b.folder.isNew)-Number(a.type==='folder'&&a.folder.isNew));
 
-  $('count').textContent=`カード：${items.length}枚`;
+  $('count').textContent=`カード総数：${items.length}枚`;
   $('empty').classList.toggle('hidden',items.length>0||folders.length>0);
   $('cards').className='detailExplorer unifiedExplorer';
 
