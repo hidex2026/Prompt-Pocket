@@ -421,11 +421,13 @@ function initColumnResize(){
 
 function updatePromptOverflow(detail){requestAnimationFrame(()=>{const p=detail?.querySelector('.unifiedPrompt');if(p)p.classList.toggle('hasOverflow',p.scrollHeight>p.clientHeight+1)})}
 function hasOpenContent(){return openFolders.size>0||!!document.querySelector('.rowDetail:not(.hidden)')}
-function updateCloseAllButton(){$('closeAllBtn')?.classList.toggle('hidden',!hasOpenContent())}
+function updateCloseAllButton(){const button=$('closeAllBtn');if(!button)return;const canClose=hasOpenContent();button.disabled=!canClose;button.setAttribute('aria-disabled',String(!canClose))}
 function closeAllOpenContent(){openFolders.clear();document.querySelector('.folderPopupPortal')?.remove();render()}
 function getOpenDetailIds(){return [...document.querySelectorAll('.rowDetail:not(.hidden)')].map(r=>r.id.replace('rowDetail-',''))}function restoreOpenDetails(ids){ids.forEach(id=>{const detail=$('rowDetail-'+id);detail?.classList.remove('hidden');updatePromptOverflow(detail)});updateCloseAllButton()}function renderKeepingDetails(){const open=getOpenDetailIds();render();restoreOpenDetails(open)}
-function setSortMode(mode){const allowed=['manual','foldersFirst','createdDesc','nameAsc','fav'];if(!allowed.includes(mode))mode='manual';$('sort').value=mode;if(prefs.rememberOps){prefs.sort=mode;savePrefs()}render()}
-function bindHeaderSort(){document.querySelectorAll('[data-header-sort]').forEach(head=>{head.onclick=e=>{e.preventDefault();setSortMode(head.dataset.headerSort)};head.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();setSortMode(head.dataset.headerSort)}}})}
+let headerSortActive=null,headerSortReturnMode=null;
+function setSortMode(mode,keepHeaderState=false){const allowed=['manual','foldersFirst','createdDesc','nameAsc','fav'];if(!allowed.includes(mode))mode='manual';if(!keepHeaderState){headerSortActive=null;headerSortReturnMode=null}$('sort').value=mode;if(prefs.rememberOps){prefs.sort=mode;savePrefs()}render()}
+function toggleHeaderSort(mode){if(headerSortActive===mode){const restore=headerSortReturnMode||'manual';headerSortActive=null;headerSortReturnMode=null;setSortMode(restore,true);return}if(!headerSortActive)headerSortReturnMode=$('sort').value||'manual';headerSortActive=mode;setSortMode(mode,true)}
+function bindHeaderSort(){document.querySelectorAll('[data-header-sort]').forEach(head=>{head.onclick=e=>{e.preventDefault();toggleHeaderSort(head.dataset.headerSort)};head.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggleHeaderSort(head.dataset.headerSort)}}})}
 function saveManualOrderFromRows(){
   prefs.manualOrder=[...document.querySelectorAll('.unifiedRow')].map(r=>r.dataset.row);
   prefs.sort='manual';
@@ -702,25 +704,22 @@ function ppBegin(row,x,y,source=row,pcMode=false){
 
 function ppCollapseForDrag(st){
   document.querySelector('.folderPopupPortal')?.remove();
-  const sourceFolderId=st.row.classList.contains('folderChildRow')?st.row.dataset.folderChild:null;
 
   // Details and popup menus must not keep occupying space while a card or
   // folder is being moved.  Close them in place so the live drag row is not
   // destroyed by a full render.
   document.querySelectorAll('.rowDetail:not(.hidden),.detailPopupMenu:not(.hidden)').forEach(el=>el.classList.add('hidden'));
 
-  // Keep only the source folder open.  Closing that folder as well would make
-  // it impossible to reorder its children during the same drag operation.
-  [...openFolders].forEach(folderId=>{
-    if(folderId===sourceFolderId)return;
-    openFolders.delete(folderId);
-    const folderRow=document.querySelector(`tr.folderRow[data-folder="${CSS.escape(folderId)}"]`);
-    const icon=folderRow?.querySelector('.folderNameBtn > span:first-child');
-    if(icon)icon.textContent='📁';
-    document.querySelectorAll(`tr.folderChildRow[data-folder-child="${CSS.escape(folderId)}"]`).forEach(row=>{
-      row.nextElementSibling?.classList.contains('rowDetail')&&row.nextElementSibling.classList.add('hidden');
-      row.classList.add('hidden');
-    });
+  // Card D&D keeps every folder open so the card can be inserted at any
+  // visible position. Only a folder being moved collapses its own contents.
+  if(!st.row.classList.contains('folderRow'))return;
+  const sourceFolderId=st.row.dataset.folder;
+  openFolders.delete(sourceFolderId);
+  const icon=st.row.querySelector('.folderNameBtn > span:first-child');
+  if(icon)icon.textContent='📁';
+  document.querySelectorAll(`tr.folderChildRow[data-folder-child="${CSS.escape(sourceFolderId)}"]`).forEach(child=>{
+    child.nextElementSibling?.classList.contains('rowDetail')&&child.nextElementSibling.classList.add('hidden');
+    child.classList.add('hidden');
   });
 }
 
@@ -872,19 +871,19 @@ function ppInsertLine(show){
   line.style.left=left+'px';line.style.top=(show.y-2)+'px';line.style.width=width+'px';
 }
 function ppFolderChildInsertion(st,y){
-  if(!st.row.classList.contains('folderChildRow'))return null;
-  const folderId=st.row.dataset.folderChild;
-  const all=[...document.querySelectorAll(`.folderChildRow[data-folder-child="${CSS.escape(folderId)}"]`)];
-  if(!all.length)return null;
-  const first=all[0].getBoundingClientRect(),last=all[all.length-1].getBoundingClientRect();
   const ghostTop=y-st.offsetY;
-  if(ghostTop<first.top-8||ghostTop>last.bottom+8)return null;
+  const groups=[...document.querySelectorAll('.folderRow.folderOpen[data-folder]')].map(folder=>{
+    const folderId=folder.dataset.folder;
+    const all=[...document.querySelectorAll(`.folderChildRow[data-folder-child="${CSS.escape(folderId)}"]`)].filter(row=>!row.classList.contains('hidden'));
+    if(!all.length)return null;
+    const first=all[0].getBoundingClientRect(),last=all[all.length-1].getBoundingClientRect();
+    return {folderId,all,first,last,distance:ghostTop<first.top?first.top-ghostTop:ghostTop>last.bottom?ghostTop-last.bottom:0};
+  }).filter(Boolean).filter(group=>ghostTop>=group.first.top-8&&ghostTop<=group.last.bottom+8).sort((a,b)=>a.distance-b.distance);
+  const group=groups[0];if(!group)return null;
+  const {folderId,all}=group;
   const rows=all.filter(row=>row!==st.row);
-  const sourceRect=st.row.getBoundingClientRect();
-  const lines=[
-    {kind:'folder-line',folderId,y:sourceRect.top,cancel:true},
-    {kind:'folder-line',folderId,y:sourceRect.bottom,cancel:true}
-  ];
+  const lines=[];
+  if(st.row.dataset.folderChild===folderId){const sourceRect=st.row.getBoundingClientRect();lines.push({kind:'folder-line',folderId,y:sourceRect.top,cancel:true},{kind:'folder-line',folderId,y:sourceRect.bottom,cancel:true})}
   rows.forEach(row=>lines.push({kind:'folder-line',folderId,y:row.getBoundingClientRect().top,beforeId:row.dataset.row}));
   if(rows.length)lines.push({kind:'folder-line',folderId,y:rows[rows.length-1].getBoundingClientRect().bottom,beforeId:null});
   lines.sort((a,b)=>Math.abs(a.y-ghostTop)-Math.abs(b.y-ghostTop));
@@ -939,15 +938,16 @@ function ppCardInsertion(st,x,y){
 function ppCommitInFolder(st,insert){
   if(insert.cancel)return;
   const dragId=st.row.dataset.row,card=items.find(x=>x.id===dragId);
-  if(!card||card.folderId!==insert.folderId)return;
+  if(!card)return;
   const before=items,remaining=items.filter(x=>x.id!==dragId);
   let at;
   if(insert.beforeId)at=remaining.findIndex(x=>x.id===insert.beforeId);
   else{const indices=remaining.map((x,i)=>x.folderId===insert.folderId?i:-1).filter(i=>i>=0);at=indices.length?indices.at(-1)+1:remaining.length}
   if(at<0)at=remaining.length;
   const next=[...remaining];next.splice(at,0,card);
-  if(next.length===before.length&&next.every((x,i)=>x===before[i]))return;
-  snapshot('フォルダ内の並べ替え');card.updated=Date.now();items=next;ppSaveOrder(items.map(x=>x.id));save();render();toast('フォルダ内で移動しました');
+  const sameFolder=card.folderId===insert.folderId;
+  if(sameFolder&&next.length===before.length&&next.every((x,i)=>x===before[i]))return;
+  snapshot(sameFolder?'フォルダ内の並べ替え':'フォルダへ移動');card.folderId=insert.folderId;card.updated=Date.now();items=next;ppSaveOrder(items.map(x=>x.id));save();openFolders.add(insert.folderId);render();toast('フォルダ内で移動しました');
 }
 function ppCommitAtLine(st,beforeKey){
   const dragId=st.row.dataset.row;
@@ -1255,9 +1255,9 @@ document.addEventListener('pointerup',e=>{
   }else ppFinishCancel();
 });
 document.addEventListener('pointercancel',e=>{if(e.pointerType!=='touch')ppFinishCancel()});
-document.addEventListener('selectstart',e=>{if(e.target.closest?.('.unifiedDragArea, .folderInteractArea, .folderCountInline, [data-menu-toggle], .folderMenuBtn'))e.preventDefault()},true);
-document.addEventListener('contextmenu',e=>{if(e.target.closest?.('.unifiedDragArea, .folderInteractArea, .folderCountInline, [data-menu-toggle], .folderMenuBtn'))e.preventDefault()},true);
-document.addEventListener('dragstart',e=>{if(e.target.closest?.('.unifiedDragArea, .folderInteractArea, .folderCountInline, [data-menu-toggle], .folderMenuBtn'))e.preventDefault()},true);
+document.addEventListener('selectstart',e=>{if(e.target.closest?.('.unifiedDragArea, .folderInteractArea, .folderCountInline, .cardThumbDeadZone, .opCol, [data-menu-toggle], .folderMenuBtn'))e.preventDefault()},true);
+document.addEventListener('contextmenu',e=>{if(e.target.closest?.('.unifiedDragArea, .folderInteractArea, .folderCountInline, .cardThumbDeadZone, .opCol, [data-menu-toggle], .folderMenuBtn'))e.preventDefault()},true);
+document.addEventListener('dragstart',e=>{if(e.target.closest?.('.unifiedDragArea, .folderInteractArea, .folderCountInline, .cardThumbDeadZone, .opCol, [data-menu-toggle], .folderMenuBtn'))e.preventDefault()},true);
 
 document.addEventListener('click',e=>{
   if(!e.target.closest('.detailMenuWrap'))document.querySelectorAll('.detailPopupMenu').forEach(m=>m.classList.add('hidden'));

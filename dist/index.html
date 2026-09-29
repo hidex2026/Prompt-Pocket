@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#ffffff">
-  <title>Prompt Pocket PP_v1.9_TEST71</title>
+  <title>Prompt Pocket PP_v1.9_TEST72</title>
   <!--
   Prompt Pocket ver.1.9 / FOLDER TEST1
   Folder feature baseline:
@@ -21,7 +21,7 @@
 <header class="topbar">
   <div>
     <div class="eyebrow">AI IMAGE & VIDEO PROMPT LIBRARY</div>
-    <div class="titleLine"><h1>Prompt Pocket</h1><span class="headerVersion">PP_v1.9_TEST71</span></div>
+    <div class="titleLine"><h1>Prompt Pocket</h1><span class="headerVersion">PP_v1.9_TEST72</span></div>
   </div>
   <div class="topActions">
     <button id="newBtn" class="primary">＋ 新規登録</button>
@@ -46,7 +46,7 @@
   </section>
 
   <div class="stickyViewBar">
-    <div class="viewCountRow"><strong id="count" class="cardCountDisplay">カード総数：0枚</strong><button id="closeAllBtn" class="ghost toolbarClose hidden" type="button">📁 閉じる</button><button id="undoBtn" class="ghost toolbarUndo" type="button" disabled>↶ 戻す</button><button id="viewOptionBtn" class="viewOptionBtn" type="button" aria-label="オプション"><span class="viewOptionGear">⚙</span><span class="viewOptionLabel">オプション</span></button></div>
+    <div class="viewCountRow"><strong id="count" class="cardCountDisplay">カード総数：0枚</strong><button id="closeAllBtn" class="ghost toolbarClose" type="button" disabled>📁 閉じる</button><button id="undoBtn" class="ghost toolbarUndo" type="button" disabled>↶ 戻す</button><button id="viewOptionBtn" class="viewOptionBtn" type="button" aria-label="オプション"><span class="viewOptionGear">⚙</span><span class="viewOptionLabel">オプション</span></button></div>
   </div>
 
   <section class="toolbar sortToolbar">
@@ -221,12 +221,15 @@
         <label class="rememberOption"><input id="rememberOps" type="checkbox"> <span><b>操作状態を記憶する</b><small>並び順・カード／一覧・★お気に入り優先の状態を、次回起動時も引き継ぎます。</small></span></label>
         <label class="rememberOption"><input id="buttonGlowEnabled" type="checkbox"> <span><b>ボタンをタップ時に光らせる</b><small>ボタンをタップまたは長押ししている間、控えめに光らせて操作中であることを分かりやすくします。</small></span></label>
         <label class="rememberOption"><input id="doubleTapOpenEnabled" type="checkbox"> <span><b>フォルダ、カードはダブルタップで開く</b><small>誤って開くのを防ぐため、一覧のフォルダとプロンプトカードをダブルタップで開きます。長押しの移動操作は変わりません。</small></span></label>
-        <div class="shortcutRow"><span>カードセルの大きさ</span><select id="cardCellSize"><option value="small">小</option><option value="medium">中</option><option value="large">大</option></select></div>
         <label class="rememberOption"><input id="shortcutEnabled" type="checkbox"> <span><b>長押しでプロンプトを貼り付け</b><small>「＋追加」の長押しでコピー中のプロンプトを読み込み、「画像を選択」の長押しでコピー中の画像を貼り付けます。</small></span></label>
         <label class="rememberOption"><input id="longPressMainActionsEnabled" type="checkbox"> <span><b>長押しで検索、ヘルプを開く</b><small>メイン画面にある、「検索」「ヘルプ」を長押しで開くことによって誤タッチを防ぎます。</small></span></label>
         <div class="shortcutRow"><span>長押し時間</span><select id="shortcutDelay"><option value="500">0.5秒</option><option value="800">0.8秒</option><option value="1000">1.0秒</option></select></div>
       </section>
       </details>
+      <details class="optionOther optionMainScreenFold"><summary>🖥 メイン画面の設定</summary><section>
+        <label class="optionSelectLabel" for="cardCellSize"><b>カードセルの大きさ</b><small>一覧に表示するプロンプトカードとフォルダの高さを変更します。</small></label>
+        <select id="cardCellSize" class="wideOptionSelect"><option value="small">小</option><option value="medium">中</option><option value="large">大</option></select>
+      </section></details>
 <details class="optionOther optionDataFold"><summary>📦 データの保存・復元</summary><section><p>書き出したデータはバックアップとして保管できます。別のスマホで読み込めば、データを引き継げます。</p><div class="manageActions"><button id="exportBtn" class="primary">📤 データを書き出す</button><button id="importBtn" class="ghost">📥 データを読み込む</button><input id="importFile" type="file" accept="application/json,.json" hidden></div><button id="migrationHelpBtn" class="textButton" type="button">機種変更の方法を見る</button></section></details>
       <details class="optionOther"><summary>⚠ その他の設定</summary><section><div class="manageActions"><button id="sampleBtn" class="ghost wide" type="button">📚 サンプルを追加</button></div></section></details>
       <details class="optionOther optionDeleteFold"><summary>🗑 データの削除</summary><section class="optionActionList">
@@ -234,7 +237,8 @@
         <div class="optionActionItem"><button id="clearCacheBtn" class="ghost wide" type="button">キャッシュの削除</button><small>表示やデータの読み込みがおかしくなったときに、保存されているキャッシュを削除して新しく読み込み直します。登録したカードやフォルダは削除されません。</small></div>
         <div class="optionActionItem dangerOptionItem"><button id="eraseEverythingBtn" class="dangerStrong wide" type="button">すべてを削除する</button><small>すべての登録データ、設定、画像、キャッシュを削除し、初期カードも作成しません。Prompt Pocketを使用しなくなるときのアンインストール用です。</small></div>
       </section></details>
-      <details id="developerOptions" class="optionOther optionDeveloperFold"><summary id="developerSummary">🛠 開発者向け機能 <small>3回タップで開く</small></summary><section>
+      <details id="developerOptions" class="optionOther optionDeveloperFold"><summary id="developerSummary">🛠 開発者向け機能</summary><section>
+        <p class="developerWarning">⚠ 開発者向けのテスト機能です。使用すると大量のテストデータが作成されるなど、不具合が起きる可能性があります。通常は操作しないでください。</p>
         <p class="optionLead">大量のカードを登録した状態で、表示や操作の負荷を確認します。</p>
         <div class="debugActions">
           <button id="debugAdd50" class="ghost wide" type="button">フォルダ5個とカード50枚を追加</button>

@@ -1259,6 +1259,22 @@ body[data-card-cell-size="small"] .favoriteHit{min-height:42px!important}
 body[data-card-cell-size="small"] .tinyThumb{width:24px!important;height:24px!important}
 body[data-card-cell-size="large"] .favoriteHit{min-height:66px!important}
 body[data-card-cell-size="large"] .tinyThumb{width:44px!important;height:44px!important}
+.folderRow.folderOpen>td:first-child{border-left-width:1px!important}
+.folderRow.folderOpen>td:last-child{border-right-width:1px!important}
+.folderChildRow>td:first-child{border-left-width:1px!important}
+.folderChildRow>td:last-child{border-right-width:1px!important}
+.folderChildDetail>td{border-left-width:1px!important;border-right-width:1px!important}
+.folderChildRow.folderTreeLast>td{box-shadow:inset 0 -1px 0 #ce9a12!important}
+.folderChildRow.folderTreeLast>td:first-child{box-shadow:inset 1px 0 0 #ce9a12,inset 0 -1px 0 #ce9a12!important}
+.folderChildRow.folderTreeLast>td:last-child{box-shadow:inset -1px 0 0 #ce9a12,inset 0 -1px 0 #ce9a12!important}
+.folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td:first-child{box-shadow:inset 1px 0 0 #ce9a12!important}
+.folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td:last-child{box-shadow:inset -1px 0 0 #ce9a12!important}
+.folderFrameLastDetail:not(.hidden)>td{box-shadow:inset 1px 0 0 #ce9a12,inset -1px 0 0 #ce9a12,inset 0 -1px 0 #ce9a12!important}
+.cardThumbDeadZone,.cardThumbDeadZone *,.detailTable .opCol{user-select:none!important;-webkit-user-select:none!important;-webkit-touch-callout:none!important}
+.toolbarClose:disabled{opacity:.42;cursor:default}
+.optionSelectLabel{display:block;margin-bottom:10px}.optionSelectLabel b{display:block;font-size:16px}.optionSelectLabel small{display:block;margin-top:5px;color:#666;line-height:1.5}
+.wideOptionSelect{width:100%;min-height:46px;padding:8px 12px;font-size:16px;font-weight:800}
+.developerWarning{margin:0 0 14px;padding:12px;border:1px solid #e6a19d;border-radius:10px;background:#fff1f0;color:#b42318;font-weight:800;line-height:1.6}
 #ppInsertLine{z-index:120!important}
 
 @media(max-width:560px){
