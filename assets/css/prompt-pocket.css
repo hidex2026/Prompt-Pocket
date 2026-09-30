@@ -1850,3 +1850,30 @@ body.buttonGlowEnabled button:not(:disabled):active{
 .folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td:first-child{box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 rgba(150,115,0,.14)!important}
 .folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td:last-child{box-shadow:inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 rgba(150,115,0,.14)!important}
 .folderFrameLastDetail:not(.hidden)>td{border-radius:0 0 10px 10px!important;box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 var(--folder-accent,#c99a13)!important}
+
+/* TEST83: use color and the tree branch only.  A table is not used as a
+   rounded group container, so there is no folder-wide outer frame. */
+.folderRow.folderOpen{filter:none!important}
+.folderRow.folderOpen>td,
+.folderRow.folderOpen:not(:first-child)>td,
+.folderChildRow+.folderRow.folderOpen>td,
+.folderFrameLastDetail+.folderRow.folderOpen>td{
+  border:0!important;
+  border-bottom:1px solid #dec77c!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+}
+.folderChildRow>td,
+.folderChildDetail>td,
+.folderChildRow.folderTreeLast>td,
+.folderFrameLastDetail:not(.hidden)>td{
+  border:0!important;
+  border-bottom:1px solid rgba(150,115,0,.14)!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+}
+.folderChildRow.folderTreeLast>td,
+.folderFrameLastDetail:not(.hidden)>td{
+  border-bottom:1px solid #dec77c!important;
+}
+.folderRow.folderOpen+.folderChildRow>td{box-shadow:none!important}
