@@ -1437,3 +1437,33 @@ body.buttonGlowEnabled button:not(:disabled):active{
   .detailTable .col-actions,.detailTable .opCol{width:126px!important}
   .tableActions>button[data-copy]{min-width:78px!important;padding-left:8px!important;padding-right:8px!important}
 }
+
+/* TEST77: keep opened folder frames square and closed on every side. */
+.folderRow.folderOpen>td:first-child,
+.folderRow.folderOpen>td:last-child,
+.folderChildRow.folderTreeLast>td:first-child,
+.folderChildRow.folderTreeLast>td:last-child,
+.folderFrameLastDetail:not(.hidden)>td{
+  border-radius:0!important;
+}
+.folderRow.folderOpen>td{
+  border-top:2px solid var(--folder-accent,#c99a13)!important;
+}
+.folderRow.folderOpen:not(:first-child)>td,
+.folderChildRow+.folderRow.folderOpen>td,
+.folderFrameLastDetail+.folderRow.folderOpen>td{
+  border-top:6px solid #faf9f6!important;
+  box-shadow:inset 0 2px 0 var(--folder-accent,#c99a13),0 2px 5px rgba(90,65,0,.08)!important;
+}
+.folderChildRow.folderTreeLast>td{
+  border-bottom:2px solid var(--folder-accent,#c99a13)!important;
+  box-shadow:none!important;
+}
+.folderChildRow.folderTreeLast>td:first-child{
+  border-left:2px solid var(--folder-accent,#c99a13)!important;
+  box-shadow:none!important;
+}
+.folderChildRow.folderTreeLast>td:last-child{
+  border-right:2px solid var(--folder-accent,#c99a13)!important;
+  box-shadow:none!important;
+}
