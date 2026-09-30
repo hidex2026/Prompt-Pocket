@@ -1361,3 +1361,79 @@ body.buttonGlowEnabled button:not(:disabled):active{
   border:2px solid #e8796b;border-radius:12px;background:#fffaf9;
   box-shadow:0 3px 12px rgba(232,121,107,.18);overflow:hidden;
 }
+
+/* TEST76: opened folders are separate visual groups, with even frame lines. */
+.folderRow[data-folder-tone="0"],.folderChildRow[data-folder-tone="0"],.folderChildDetail[data-folder-tone="0"]{--folder-accent:#c99a13;--folder-head-1:#fff3bc;--folder-head-2:#efd681;--folder-child:#fffbed;--folder-child-2:#fff8dc}
+.folderRow[data-folder-tone="1"],.folderChildRow[data-folder-tone="1"],.folderChildDetail[data-folder-tone="1"]{--folder-accent:#b88f23;--folder-head-1:#fff0c7;--folder-head-2:#ead395;--folder-child:#fff9e8;--folder-child-2:#fff5d5}
+.folderRow[data-folder-tone="2"],.folderChildRow[data-folder-tone="2"],.folderChildDetail[data-folder-tone="2"]{--folder-accent:#b59a2a;--folder-head-1:#fff7bd;--folder-head-2:#e8d78c;--folder-child:#fffde9;--folder-child-2:#fbf8d3}
+.folderRow[data-folder-tone="3"],.folderChildRow[data-folder-tone="3"],.folderChildDetail[data-folder-tone="3"]{--folder-accent:#b8860d;--folder-head-1:#fff1b4;--folder-head-2:#e7c96d;--folder-child:#fff9e3;--folder-child-2:#fff2c8}
+.folderRow[data-folder-tone="4"],.folderChildRow[data-folder-tone="4"],.folderChildDetail[data-folder-tone="4"]{--folder-accent:#b48a17;--folder-head-1:#fff4ca;--folder-head-2:#ead18d;--folder-child:#fffaf0;--folder-child-2:#fff4dc}
+.folderRow[data-folder-tone="5"],.folderChildRow[data-folder-tone="5"],.folderChildDetail[data-folder-tone="5"]{--folder-accent:#c39208;--folder-head-1:#fff0ad;--folder-head-2:#e7c76b;--folder-child:#fff8df;--folder-child-2:#fff1c5}
+.folderRow>td{
+  background:linear-gradient(180deg,var(--folder-head-1,#fff3bc),var(--folder-head-2,#efd681))!important;
+  border-top:1px solid #dec77c!important;
+  border-bottom:1px solid #dec77c!important;
+}
+.folderRow>td:first-child{border-left:1px solid #dec77c!important}
+.folderRow>td:last-child{border-right:1px solid #dec77c!important}
+.folderRow.folderOpen>td{
+  background:linear-gradient(180deg,var(--folder-head-1,#fff3bc),var(--folder-head-2,#efd681))!important;
+  border-top:2px solid var(--folder-accent,#c99a13)!important;
+  border-bottom:1px solid #dec77c!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.78),0 2px 5px rgba(90,65,0,.08)!important;
+}
+.folderRow.folderOpen>td:first-child{border-left:2px solid var(--folder-accent,#c99a13)!important;border-radius:10px 0 0 0!important}
+.folderRow.folderOpen>td:last-child{border-right:2px solid var(--folder-accent,#c99a13)!important;border-radius:0 10px 0 0!important}
+.folderRow.folderOpen:not(:first-child)>td{
+  border-top:6px solid #faf9f6!important;
+  box-shadow:inset 0 2px 0 var(--folder-accent,#c99a13),inset 0 3px 0 rgba(255,255,255,.78),0 2px 5px rgba(90,65,0,.08)!important;
+}
+.folderChildRow>td{
+  background:linear-gradient(180deg,var(--folder-child,#fffbed),var(--folder-child-2,#fff8dc))!important;
+  border-left:0!important;border-right:0!important;border-bottom:1px solid rgba(150,115,0,.14)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.7)!important;
+}
+.folderChildRow>td:first-child{border-left:2px solid var(--folder-accent,#c99a13)!important}
+.folderChildRow>td:last-child{border-right:2px solid var(--folder-accent,#c99a13)!important}
+.folderChildDetail>td{
+  background:var(--folder-child,#fffbed)!important;
+  border-left:2px solid var(--folder-accent,#c99a13)!important;
+  border-right:2px solid var(--folder-accent,#c99a13)!important;
+}
+.folderChildRow.folderTreeLast>td,
+.folderFrameLastDetail:not(.hidden)>td{
+  border-bottom:2px solid var(--folder-accent,#c99a13)!important;
+  box-shadow:none!important;
+}
+.folderChildRow.folderTreeLast>td:first-child,
+.folderChildRow.folderTreeLast>td:last-child,
+.folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td:first-child,
+.folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td:last-child{
+  box-shadow:none!important;
+}
+.folderChildRow.folderTreeLast>td:first-child{border-radius:0 0 0 8px!important}
+.folderChildRow.folderTreeLast>td:last-child{border-radius:0 0 8px 0!important}
+.folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td:first-child,
+.folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td:last-child{border-radius:0!important}
+.folderFrameLastDetail:not(.hidden)>td{border-radius:0 0 8px 8px!important}
+.folderChildRow+.folderRow.folderOpen>td,
+.folderFrameLastDetail+.folderRow.folderOpen>td{
+  border-top:6px solid #faf9f6!important;
+  box-shadow:inset 0 2px 0 var(--folder-accent,#c99a13),inset 0 3px 0 rgba(255,255,255,.78),0 2px 5px rgba(90,65,0,.08)!important;
+}
+.folderRow.folderOpen+.folderChildRow>td{box-shadow:inset 0 5px 8px rgba(105,75,0,.06)!important}
+.folderBranch{border-left-color:var(--folder-accent,#ad7d00)!important}
+.folderChildRow .folderBranch::before,
+.folderChildRow.folderTreeLast .folderBranch::after{border-color:var(--folder-accent,#ad7d00)!important}
+
+/* TEST76: give card and folder titles more usable width before the operation column. */
+.cardNameLayout{gap:3px}
+.cardNameLayout>.unifiedDragArea,.folderNameLayout>.folderNameBtn{min-width:0!important}
+.cardNameLayout>.unifiedDragArea .rowName,
+.unifiedTable .folderNameBtn span:nth-child(2){
+  width:100%!important;max-width:none!important;
+}
+@media(max-width:560px){
+  .detailTable .col-actions,.detailTable .opCol{width:126px!important}
+  .tableActions>button[data-copy]{min-width:78px!important;padding-left:8px!important;padding-right:8px!important}
+}
