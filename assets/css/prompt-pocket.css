@@ -1956,3 +1956,29 @@ body.buttonGlowEnabled button:not(:disabled):active{
   border-radius:0!important;
   box-shadow:none!important;
 }
+
+/* TEST86: remove every legacy folder-frame separator.  Folder membership is
+   expressed by the tint and tree branch, not by extra table borders. */
+.detailTable.detailTable .folderRow,
+.detailTable.detailTable .folderRow.folderOpen{
+  filter:none!important;
+}
+.detailTable.detailTable .folderRow>td,
+.detailTable.detailTable .folderRow>td:first-child,
+.detailTable.detailTable .folderRow>td:last-child,
+.detailTable.detailTable .folderRow.folderOpen>td,
+.detailTable.detailTable .folderRow.folderOpen>td:first-child,
+.detailTable.detailTable .folderRow.folderOpen>td:last-child,
+.detailTable.detailTable .folderRow.folderOpen>td:not(:first-child):not(:last-child),
+.detailTable.detailTable .folderChildRow>td,
+.detailTable.detailTable .folderChildRow>td:first-child,
+.detailTable.detailTable .folderChildRow>td:last-child,
+.detailTable.detailTable .folderChildRow.folderTreeLast>td,
+.detailTable.detailTable .folderChildRow.folderTreeLast>td:first-child,
+.detailTable.detailTable .folderChildRow.folderTreeLast>td:last-child,
+.detailTable.detailTable .folderChildDetail>td,
+.detailTable.detailTable .folderFrameLastDetail:not(.hidden)>td{
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+}
