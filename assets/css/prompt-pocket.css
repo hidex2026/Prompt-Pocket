@@ -1412,6 +1412,126 @@ body.buttonGlowEnabled button:not(:disabled):active{
   box-shadow:none!important;
 }
 
+/* TEST82-FINAL: must remain at the end of this file. */
+.folderRow.folderOpen,
+.folderRow.folderOpen>td,
+.folderRow.folderOpen:not(:first-child)>td,
+.folderChildRow+.folderRow.folderOpen>td,
+.folderFrameLastDetail+.folderRow.folderOpen>td,
+.folderRow.folderOpen+.folderChildRow>td,
+.folderChildRow>td,
+.folderChildDetail>td,
+.folderChildRow.folderTreeLast>td,
+.folderFrameLastDetail:not(.hidden)>td{
+  border:0!important;
+  box-shadow:none!important;
+  filter:none!important;
+}
+.folderRow.folderOpen>td{box-shadow:inset 0 1px 0 var(--folder-accent,#c99a13)!important}
+.folderRow.folderOpen>td:first-child{
+  border-radius:10px 0 0 0!important;
+  box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset 0 1px 0 var(--folder-accent,#c99a13)!important;
+}
+.folderRow.folderOpen>td:last-child{
+  border-radius:0 10px 0 0!important;
+  box-shadow:inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 1px 0 var(--folder-accent,#c99a13)!important;
+}
+.folderChildRow>td,.folderChildDetail>td{box-shadow:inset 0 -1px 0 rgba(150,115,0,.14)!important}
+.folderChildRow>td:first-child,.folderChildDetail>td:first-child{
+  box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 rgba(150,115,0,.14)!important;
+}
+.folderChildRow>td:last-child,.folderChildDetail>td:last-child{
+  box-shadow:inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 rgba(150,115,0,.14)!important;
+}
+.folderChildRow.folderTreeLast>td:first-child{
+  border-radius:0 0 0 10px!important;
+  box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 var(--folder-accent,#c99a13)!important;
+}
+.folderChildRow.folderTreeLast>td:not(:first-child):not(:last-child){box-shadow:inset 0 -1px 0 var(--folder-accent,#c99a13)!important}
+.folderChildRow.folderTreeLast>td:last-child{
+  border-radius:0 0 10px 0!important;
+  box-shadow:inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 var(--folder-accent,#c99a13)!important;
+}
+.folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td{
+  border-radius:0!important;
+  box-shadow:inset 0 -1px 0 rgba(150,115,0,.14)!important;
+}
+.folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td:first-child{
+  box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 rgba(150,115,0,.14)!important;
+}
+.folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td:last-child{
+  box-shadow:inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 rgba(150,115,0,.14)!important;
+}
+.folderFrameLastDetail:not(.hidden)>td{
+  border-radius:0 0 10px 10px!important;
+  box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 var(--folder-accent,#c99a13)!important;
+}
+
+/* TEST82: final folder-frame rules.  This block intentionally lives last so
+   legacy TEST74-81 borders cannot make any side or last row thicker. */
+.folderRow.folderOpen,
+.folderRow.folderOpen>td,
+.folderRow.folderOpen:not(:first-child)>td,
+.folderChildRow+.folderRow.folderOpen>td,
+.folderFrameLastDetail+.folderRow.folderOpen>td,
+.folderRow.folderOpen+.folderChildRow>td,
+.folderChildRow>td,
+.folderChildDetail>td,
+.folderChildRow.folderTreeLast>td,
+.folderFrameLastDetail:not(.hidden)>td{
+  border:0!important;
+  box-shadow:none!important;
+  filter:none!important;
+}
+.folderRow.folderOpen>td{
+  box-shadow:inset 0 1px 0 var(--folder-accent,#c99a13)!important;
+}
+.folderRow.folderOpen>td:first-child{
+  border-radius:10px 0 0 0!important;
+  box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset 0 1px 0 var(--folder-accent,#c99a13)!important;
+}
+.folderRow.folderOpen>td:last-child{
+  border-radius:0 10px 0 0!important;
+  box-shadow:inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 1px 0 var(--folder-accent,#c99a13)!important;
+}
+.folderChildRow>td,
+.folderChildDetail>td{
+  box-shadow:inset 0 -1px 0 rgba(150,115,0,.14)!important;
+}
+.folderChildRow>td:first-child,
+.folderChildDetail>td:first-child{
+  box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 rgba(150,115,0,.14)!important;
+}
+.folderChildRow>td:last-child,
+.folderChildDetail>td:last-child{
+  box-shadow:inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 rgba(150,115,0,.14)!important;
+}
+.folderChildRow.folderTreeLast>td:first-child{
+  border-radius:0 0 0 10px!important;
+  box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 var(--folder-accent,#c99a13)!important;
+}
+.folderChildRow.folderTreeLast>td:not(:first-child):not(:last-child){
+  box-shadow:inset 0 -1px 0 var(--folder-accent,#c99a13)!important;
+}
+.folderChildRow.folderTreeLast>td:last-child{
+  border-radius:0 0 10px 0!important;
+  box-shadow:inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 var(--folder-accent,#c99a13)!important;
+}
+.folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td{
+  border-radius:0!important;
+  box-shadow:inset 0 -1px 0 rgba(150,115,0,.14)!important;
+}
+.folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td:first-child{
+  box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 rgba(150,115,0,.14)!important;
+}
+.folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td:last-child{
+  box-shadow:inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 rgba(150,115,0,.14)!important;
+}
+.folderFrameLastDetail:not(.hidden)>td{
+  border-radius:0 0 10px 10px!important;
+  box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 var(--folder-accent,#c99a13)!important;
+}
+
 /* TEST80: one-pixel folder frames.  Draw every edge with inset lines so the
    table's collapsed borders cannot make the final child row thicker. */
 .folderRow.folderOpen>td,
@@ -1714,3 +1834,19 @@ body.buttonGlowEnabled button:not(:disabled):active{
 .folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td:last-child{
   box-shadow:none!important;
 }
+
+/* TEST82-FINAL: this is deliberately the final CSS rule block. */
+.folderRow.folderOpen,.folderRow.folderOpen>td,.folderRow.folderOpen:not(:first-child)>td,.folderChildRow+.folderRow.folderOpen>td,.folderFrameLastDetail+.folderRow.folderOpen>td,.folderRow.folderOpen+.folderChildRow>td,.folderChildRow>td,.folderChildDetail>td,.folderChildRow.folderTreeLast>td,.folderFrameLastDetail:not(.hidden)>td{border:0!important;box-shadow:none!important;filter:none!important}
+.folderRow.folderOpen>td{box-shadow:inset 0 1px 0 var(--folder-accent,#c99a13)!important}
+.folderRow.folderOpen>td:first-child{border-radius:10px 0 0 0!important;box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset 0 1px 0 var(--folder-accent,#c99a13)!important}
+.folderRow.folderOpen>td:last-child{border-radius:0 10px 0 0!important;box-shadow:inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 1px 0 var(--folder-accent,#c99a13)!important}
+.folderChildRow>td,.folderChildDetail>td{box-shadow:inset 0 -1px 0 rgba(150,115,0,.14)!important}
+.folderChildRow>td:first-child,.folderChildDetail>td:first-child{box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 rgba(150,115,0,.14)!important}
+.folderChildRow>td:last-child,.folderChildDetail>td:last-child{box-shadow:inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 rgba(150,115,0,.14)!important}
+.folderChildRow.folderTreeLast>td:first-child{border-radius:0 0 0 10px!important;box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 var(--folder-accent,#c99a13)!important}
+.folderChildRow.folderTreeLast>td:not(:first-child):not(:last-child){box-shadow:inset 0 -1px 0 var(--folder-accent,#c99a13)!important}
+.folderChildRow.folderTreeLast>td:last-child{border-radius:0 0 10px 0!important;box-shadow:inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 var(--folder-accent,#c99a13)!important}
+.folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td{border-radius:0!important;box-shadow:inset 0 -1px 0 rgba(150,115,0,.14)!important}
+.folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td:first-child{box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 rgba(150,115,0,.14)!important}
+.folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td:last-child{box-shadow:inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 rgba(150,115,0,.14)!important}
+.folderFrameLastDetail:not(.hidden)>td{border-radius:0 0 10px 10px!important;box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 var(--folder-accent,#c99a13)!important}
