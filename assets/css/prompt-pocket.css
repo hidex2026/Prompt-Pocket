@@ -2104,3 +2104,10 @@ body.buttonGlowEnabled button:not(:disabled):active{
   box-shadow:inset -1px 0 0 color-mix(in srgb,var(--folder-accent,#c99a13) 58%,transparent)!important;
 }
 .unifiedTable .folderNameBtn{font-size:19px!important}
+
+/* TEST86g: remove the inset edge that looked like a second inner border. */
+.detailTable.detailTable .folderChildRow.folderTreeLast>td:first-child,
+.detailTable.detailTable .folderChildRow.folderTreeLast>td:last-child{
+  box-shadow:none!important;
+}
+.unifiedTable .folderNameBtn{font-size:18px!important}

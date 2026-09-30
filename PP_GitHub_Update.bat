@@ -27,17 +27,16 @@ if errorlevel 1 goto :failed
 
 echo.
 echo GitHubへの更新に成功しました
-pause
 exit /b 0
 
 :git_missing
 echo.
-echo エラー: Gitが見つかりません
+echo GitHubへの更新に失敗しました。上のエラー内容を確認してください。
 pause
 exit /b 1
 
 :failed
 echo.
-echo GitHubへの更新に失敗しました
+echo GitHubへの更新に失敗しました。上のエラー内容を確認してください。
 pause
 exit /b 1
