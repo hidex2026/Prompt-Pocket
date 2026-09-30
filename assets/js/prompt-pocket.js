@@ -388,7 +388,7 @@ function render(){
     else if(sortMode==='createdDesc')kids.sort((a,b)=>b.created-a.created);
     const open=kids.length>0&&openFolders.has(f.id);
     let s=`<tr class="folderRow ${open?'folderOpen':''}" data-folder="${f.id}" data-folder-tone="${folderTone(f.id)}" data-sort-key="folder:${f.id}"><td><button class="tableIcon favoriteHit" data-folder-fav="${f.id}" title="フォルダのお気に入り">${f.fav?'★':'☆'}</button></td><td class="nameCell folderInteractArea" data-folder-toggle="${f.id}"><div class="folderNameLayout"><span class="folderNameBtn"><span>${open?'📂':'📁'}</span><span>${esc(f.name)}</span>${f.isNew?'<span class="folderNewBadge">NEW</span>':''}</span><span class="folderDragSpace" aria-label="フォルダを移動"></span></div></td><td><div class="tableActions folderActions"><span class="folderCountInline">${folderCount(f.id)}枚</span><span class="detailMenuWrap"><button class="folderMenuBtn" data-folder-menu-toggle="${f.id}" aria-label="フォルダのメニューを開く">⋯</button><div class="detailPopupMenu hidden"><button data-folder-rename="${f.id}">✏️ 名前を変更</button><button class="dangerMenu" data-folder-delete="${f.id}">🗑️ フォルダを削除</button></div></span></div></td></tr>`;
-    if(open)s+=kids.map(x=>cardRows(x,true)).join('');
+    if(open)s+=kids.map(x=>cardRows(x,true)).join('')+`<tr class="folderFrameEnd" data-folder-tone="${folderTone(f.id)}"><td colspan="3"></td></tr>`;
     return s;
   };
 

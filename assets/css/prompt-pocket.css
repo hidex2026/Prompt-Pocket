@@ -2020,3 +2020,27 @@ body.buttonGlowEnabled button:not(:disabled):active{
 .detailTable.detailTable .folderFrameLastDetail:not(.hidden)>td{
   border-bottom:1px solid var(--folder-accent,#c99a13)!important;
 }
+
+/* TEST86b: a single colspan row closes the frame across all three columns. */
+.detailTable.detailTable .folderChildRow.folderTreeLast>td,
+.detailTable.detailTable .folderChildRow.folderTreeLast>td:first-child,
+.detailTable.detailTable .folderChildRow.folderTreeLast>td:last-child{
+  border-bottom:0!important;
+}
+.detailTable.detailTable .folderFrameEnd>td{
+  height:0!important;
+  min-height:0!important;
+  padding:0!important;
+  line-height:0!important;
+  font-size:0!important;
+  background:#fffbea!important;
+  border:0!important;
+  border-bottom:1px solid var(--folder-accent,#c99a13)!important;
+  box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset -1px 0 0 var(--folder-accent,#c99a13)!important;
+}
+.folderFrameEnd[data-folder-tone="0"]{--folder-accent:#c99a13}
+.folderFrameEnd[data-folder-tone="1"]{--folder-accent:#b88f23}
+.folderFrameEnd[data-folder-tone="2"]{--folder-accent:#b59a2a}
+.folderFrameEnd[data-folder-tone="3"]{--folder-accent:#b8860d}
+.folderFrameEnd[data-folder-tone="4"]{--folder-accent:#b48a17}
+.folderFrameEnd[data-folder-tone="5"]{--folder-accent:#c39208}
