@@ -1484,6 +1484,69 @@ body.buttonGlowEnabled button:not(:disabled):active{
   box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 var(--folder-accent,#c99a13)!important;
 }
 
+/* TEST81: no artificial white gaps.  All folder-frame edges are drawn at the
+   same visual width, including the final child row. */
+.folderRow.folderOpen{filter:none!important}
+.folderRow.folderOpen>td,
+.folderRow.folderOpen:not(:first-child)>td,
+.folderChildRow+.folderRow.folderOpen>td,
+.folderFrameLastDetail+.folderRow.folderOpen>td,
+.folderChildRow>td,
+.folderChildDetail>td,
+.folderChildRow.folderTreeLast>td,
+.folderFrameLastDetail:not(.hidden)>td{
+  border:0!important;
+  border-radius:0!important;
+}
+.folderRow.folderOpen>td{
+  box-shadow:inset 0 1px 0 var(--folder-accent,#c99a13)!important;
+}
+.folderRow.folderOpen>td:first-child{
+  border-radius:10px 0 0 0!important;
+  box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset 0 1px 0 var(--folder-accent,#c99a13)!important;
+}
+.folderRow.folderOpen>td:last-child{
+  border-radius:0 10px 0 0!important;
+  box-shadow:inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 1px 0 var(--folder-accent,#c99a13)!important;
+}
+.folderChildRow>td,
+.folderChildDetail>td{
+  box-shadow:inset 0 -1px 0 rgba(150,115,0,.14)!important;
+}
+.folderChildRow>td:first-child,
+.folderChildDetail>td:first-child{
+  box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 rgba(150,115,0,.14)!important;
+}
+.folderChildRow>td:last-child,
+.folderChildDetail>td:last-child{
+  box-shadow:inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 rgba(150,115,0,.14)!important;
+}
+.folderChildRow.folderTreeLast>td:first-child{
+  border-radius:0 0 0 10px!important;
+  box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 var(--folder-accent,#c99a13)!important;
+}
+.folderChildRow.folderTreeLast>td:not(:first-child):not(:last-child){
+  box-shadow:inset 0 -1px 0 var(--folder-accent,#c99a13)!important;
+}
+.folderChildRow.folderTreeLast>td:last-child{
+  border-radius:0 0 10px 0!important;
+  box-shadow:inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 var(--folder-accent,#c99a13)!important;
+}
+.folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td{
+  border-radius:0!important;
+  box-shadow:inset 0 -1px 0 rgba(150,115,0,.14)!important;
+}
+.folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td:first-child{
+  box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 rgba(150,115,0,.14)!important;
+}
+.folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td:last-child{
+  box-shadow:inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 rgba(150,115,0,.14)!important;
+}
+.folderFrameLastDetail:not(.hidden)>td{
+  border-radius:0 0 10px 10px!important;
+  box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 var(--folder-accent,#c99a13)!important;
+}
+
 /* TEST79: rounded folder groups without horizontal table lines poking through. */
 .folderRow>td:first-child{border-radius:10px 0 0 10px!important}
 .folderRow>td:last-child{border-radius:0 10px 10px 0!important}
