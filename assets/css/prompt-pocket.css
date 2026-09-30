@@ -1877,3 +1877,41 @@ body.buttonGlowEnabled button:not(:disabled):active{
   border-bottom:1px solid #dec77c!important;
 }
 .folderRow.folderOpen+.folderChildRow>td{box-shadow:none!important}
+
+/* TEST84: reset the higher-specificity edge rules left by older folder frames. */
+.folderRow.folderOpen>td,
+.folderRow.folderOpen>td:first-child,
+.folderRow.folderOpen>td:last-child,
+.folderRow.folderOpen>td:not(:first-child):not(:last-child),
+.folderChildRow>td,
+.folderChildRow>td:first-child,
+.folderChildRow>td:last-child,
+.folderChildRow.folderTreeLast>td,
+.folderChildRow.folderTreeLast>td:first-child,
+.folderChildRow.folderTreeLast>td:last-child,
+.folderChildDetail>td,
+.folderChildDetail>td:first-child,
+.folderChildDetail>td:last-child,
+.folderFrameLastDetail:not(.hidden)>td{
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+}
+.folderRow.folderOpen>td,
+.folderRow.folderOpen>td:first-child,
+.folderRow.folderOpen>td:last-child,
+.folderRow.folderOpen>td:not(:first-child):not(:last-child){
+  border-bottom:1px solid #dec77c!important;
+}
+.folderChildRow>td,
+.folderChildRow>td:first-child,
+.folderChildRow>td:last-child,
+.folderChildRow.folderTreeLast>td,
+.folderChildRow.folderTreeLast>td:first-child,
+.folderChildRow.folderTreeLast>td:last-child,
+.folderChildDetail>td,
+.folderChildDetail>td:first-child,
+.folderChildDetail>td:last-child,
+.folderFrameLastDetail:not(.hidden)>td{
+  border-bottom:1px solid rgba(150,115,0,.14)!important;
+}
