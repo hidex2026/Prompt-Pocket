@@ -2095,3 +2095,12 @@ body.buttonGlowEnabled button:not(:disabled):active{
   font-size:20px!important;
   font-weight:850!important;
 }
+
+/* TEST86f: keep the final-row edges present but visually lighter. */
+.detailTable.detailTable .folderChildRow.folderTreeLast>td:first-child{
+  box-shadow:inset 1px 0 0 color-mix(in srgb,var(--folder-accent,#c99a13) 58%,transparent)!important;
+}
+.detailTable.detailTable .folderChildRow.folderTreeLast>td:last-child{
+  box-shadow:inset -1px 0 0 color-mix(in srgb,var(--folder-accent,#c99a13) 58%,transparent)!important;
+}
+.unifiedTable .folderNameBtn{font-size:19px!important}
