@@ -2066,3 +2066,19 @@ body.buttonGlowEnabled button:not(:disabled):active{
   padding:0!important;
   background:var(--folder-accent,#c99a13)!important;
 }
+
+/* TEST86d: join the final child to the full-width closing edge. */
+.detailTable.detailTable .folderChildRow.folderTreeLast>td:first-child{
+  border-left:1px solid var(--folder-accent,#c99a13)!important;
+}
+.detailTable.detailTable .folderChildRow.folderTreeLast>td:last-child{
+  border-right:1px solid var(--folder-accent,#c99a13)!important;
+}
+.detailTable.detailTable .folderFrameEnd>td{
+  border-left:1px solid var(--folder-accent,#c99a13)!important;
+  border-right:1px solid var(--folder-accent,#c99a13)!important;
+}
+.unifiedTable .folderNameBtn{
+  font-size:18px!important;
+  font-weight:850!important;
+}
