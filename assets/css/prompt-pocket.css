@@ -1467,3 +1467,52 @@ body.buttonGlowEnabled button:not(:disabled):active{
   border-right:2px solid var(--folder-accent,#c99a13)!important;
   box-shadow:none!important;
 }
+
+/* TEST78: use thin square folder frames; keep white separation outside the frame. */
+.folderRow.folderOpen>td,
+.folderChildRow>td,
+.folderChildDetail>td,
+.folderChildRow.folderTreeLast>td,
+.folderFrameLastDetail:not(.hidden)>td{
+  border-radius:0!important;
+}
+.folderRow.folderOpen>td{
+  border-top:1px solid var(--folder-accent,#c99a13)!important;
+  border-bottom:1px solid rgba(150,115,0,.18)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.72),0 1px 3px rgba(90,65,0,.06)!important;
+}
+.folderRow.folderOpen>td:first-child{
+  border-left:1px solid var(--folder-accent,#c99a13)!important;
+}
+.folderRow.folderOpen>td:last-child{
+  border-right:1px solid var(--folder-accent,#c99a13)!important;
+}
+.folderRow.folderOpen:not(:first-child)>td,
+.folderChildRow+.folderRow.folderOpen>td,
+.folderFrameLastDetail+.folderRow.folderOpen>td{
+  border-top:6px solid #faf9f6!important;
+  box-shadow:inset 0 1px 0 var(--folder-accent,#c99a13),0 1px 3px rgba(90,65,0,.06)!important;
+}
+.folderChildRow>td{
+  border-bottom:1px solid rgba(150,115,0,.14)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.62)!important;
+}
+.folderChildRow>td:first-child,
+.folderChildDetail>td:first-child{
+  border-left:1px solid var(--folder-accent,#c99a13)!important;
+}
+.folderChildRow>td:last-child,
+.folderChildDetail>td:last-child{
+  border-right:1px solid var(--folder-accent,#c99a13)!important;
+}
+.folderChildRow.folderTreeLast>td,
+.folderFrameLastDetail:not(.hidden)>td{
+  border-bottom:1px solid var(--folder-accent,#c99a13)!important;
+  box-shadow:none!important;
+}
+.folderChildRow.folderTreeLast>td:first-child,
+.folderChildRow.folderTreeLast>td:last-child,
+.folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td:first-child,
+.folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td:last-child{
+  box-shadow:none!important;
+}

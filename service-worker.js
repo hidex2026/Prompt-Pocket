@@ -1,5 +1,5 @@
 const CACHE_PREFIX='prompt-pocket-static-';
-const CACHE_NAME=CACHE_PREFIX+'test77-v1';
+const CACHE_NAME=CACHE_PREFIX+'test78-v1';
 const APP_SHELL=[
   './',
   './index.html',
