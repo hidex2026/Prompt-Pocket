@@ -1288,6 +1288,8 @@ body[data-card-cell-size="large"] .tinyThumb{width:44px!important;height:44px!im
   -webkit-touch-callout:none!important;user-select:none!important;-webkit-user-select:none!important;
   -webkit-user-drag:none!important;user-drag:none!important;
 }
+.cardThumbDeadZone{pointer-events:auto!important;touch-action:pan-y!important}
+.cardThumbDeadZone img{pointer-events:none!important}
 
 /* TEST74: make developer-only controls visibly cautionary. */
 .optionDeveloperFold{border-color:#dc8b86!important;background:#fff0ef!important}

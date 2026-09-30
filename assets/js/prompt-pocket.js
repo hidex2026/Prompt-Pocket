@@ -1173,6 +1173,13 @@ function bindCardPrimaryInteractions(row,area){
   });
 }
 function bindPocketDnd(){
+  // A thumbnail is a deliberately inactive area in the list. Bind directly
+  // to it so mobile browsers cannot treat a long press as image copy/save,
+  // while leaving the surrounding card area available for scroll and D&D.
+  document.querySelectorAll('.cardThumbDeadZone').forEach(zone=>{
+    ['pointerdown','pointermove','pointerup','pointercancel'].forEach(type=>zone.addEventListener(type,e=>e.stopPropagation()));
+    ['contextmenu','dragstart','selectstart'].forEach(type=>zone.addEventListener(type,e=>{e.preventDefault();e.stopPropagation()}));
+  });
   ppRows().forEach(row=>{
     const area=row.querySelector('.unifiedDragArea');
     if(area)bindCardPrimaryInteractions(row,area);
