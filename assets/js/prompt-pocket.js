@@ -210,8 +210,8 @@ async function resolveImageUrl(value){
 }
 function imageTag(value,className=''){
   if(!value)return '';
-  if(isDbImage(value))return `<img class="${className}" data-image-ref="${esc(value)}" alt="" loading="lazy" decoding="async">`;
-  return `<img class="${className}" src="${esc(value)}" alt="" loading="lazy" decoding="async">`;
+  if(isDbImage(value))return `<img class="${className}" data-image-ref="${esc(value)}" alt="" loading="lazy" decoding="async" draggable="false">`;
+  return `<img class="${className}" src="${esc(value)}" alt="" loading="lazy" decoding="async" draggable="false">`;
 }
 let imageObserver=null;
 function hydrateLazyImages(root=document){
@@ -481,82 +481,90 @@ function bindFolderReorder(){
   document.querySelectorAll('.folderRow').forEach(row=>{
     const handles=[...row.querySelectorAll('.folderInteractArea,.folderMenuBtn')];
     handles.forEach(handle=>{
-      let timer=null,drag=false,moved=false,sx=0,sy=0,suppressClick=false,ghost=null,ghostOffsetY=0,lastTap=0;
+      let timer=null,drag=false,moved=false,sx=0,sy=0,lastY=0,suppressClick=false,ghost=null,ghostOffsetY=0,lastTap=0;
       const clear=()=>{if(timer){clearTimeout(timer);timer=null}};
+      const cancelDrag=()=>{clear();drag=false;row.classList.remove('folderDragging');ghost?.remove();ghost=null;ppInsertLine(null)};
       const toggleFolder=()=>{
         const id=row.dataset.folder;
         if(folderCount(id)===0){openFolders.delete(id);$('emptyFolderTitle').textContent=folderById(id)?.name||'フォルダー';$('emptyFolderDialog').showModal();return}
         openFolders.has(id)?openFolders.delete(id):openFolders.add(id);
         render();
       };
-      handle.addEventListener('pointerdown',e=>{
-      if(e.pointerType==='mouse'&&e.button!==0)return;
-      sx=e.clientX;sy=e.clientY;drag=false;moved=false;suppressClick=false;
-      timer=setTimeout(()=>{
+      const startDrag=(x,y,pointerId=null)=>{
         drag=true;suppressClick=true;row.classList.add('folderDragging');
-        // Folder reordering has its own drag path, so collapse expanded
-        // folders here as well.  The moved folder stays closed after drop.
         ppCollapseForDrag({row});
         const r=row.getBoundingClientRect();
         ghost=row.cloneNode(true);ghost.className='folder-dnd-ghost';
         ghost.style.width=r.width+'px';ghost.style.left='0px';ghost.style.top='0px';
         ghost.querySelectorAll('[id]').forEach(x=>x.removeAttribute('id'));
         document.body.appendChild(ghost);
-        ghostOffsetY=Math.min(Math.max(sy-r.top,8),r.height-8);
-        ghost.style.transform=`translate3d(${r.left}px,${sy-ghostOffsetY}px,0) scale(.985)`;
-        navigator.vibrate?.(20);try{handle.setPointerCapture(e.pointerId)}catch{}
-      },800);
+        ghostOffsetY=Math.min(Math.max(y-r.top,8),r.height-8);lastY=y;
+        ghost.style.transform=`translate3d(${r.left}px,${y-ghostOffsetY}px,0) scale(.985)`;
+        navigator.vibrate?.(20);if(pointerId!==null){try{handle.setPointerCapture(pointerId)}catch{}}
+      };
+      const insertionAt=y=>{
+        const dropTop=y-ghostOffsetY;
+        let insertion=ppRootInsertion(row,dropTop);
+        if((!insertion||insertion.cancel)&&Math.abs(y-sy)>18){
+          const candidates=[];
+          ppRootRows(row).forEach(root=>{
+            candidates.push({y:root.getBoundingClientRect().top,beforeKey:ppRootKey(root)});
+            candidates.push({y:ppGroupBottom(root),beforeKey:ppLineAfterRootRow(root).beforeKey});
+          });
+          const table=document.querySelector('.detailTable');
+          candidates.push({y:table?.getBoundingClientRect().bottom||dropTop,beforeKey:null});
+          candidates.sort((a,b)=>Math.abs(a.y-dropTop)-Math.abs(b.y-dropTop));
+          if(candidates[0])insertion={kind:'line',...candidates[0]};
+        }
+        return insertion;
+      };
+      const moveDrag=y=>{
+        if(!drag||!ghost)return;
+        lastY=y;const r0=row.getBoundingClientRect();
+        ghost.style.transform=`translate3d(${r0.left}px,${y-ghostOffsetY}px,0) scale(.985)`;
+        ppInsertLine(insertionAt(y));
+      };
+      const finishAt=(y,event)=>{
+        clear();if(!drag)return false;event?.preventDefault?.();
+        const insertion=insertionAt(y);
+        row.classList.remove('folderDragging');ghost?.remove();ghost=null;ppInsertLine(null);
+        if(insertion&&!insertion.cancel){
+          const body=row.parentElement;
+          const before=insertion.beforeKey?ppRootRows(row).find(r=>ppRootKey(r)===insertion.beforeKey):null;
+          const group=[row];let next=row.nextElementSibling;
+          while(next&&!next.matches('tr.folderRow,tr.unifiedRow:not(.folderChildRow)')){group.push(next);next=next.nextElementSibling}
+          group.forEach(node=>body.insertBefore(node,before||null));
+          saveUnifiedManualOrder();save();render();toast('フォルダを移動しました');
+        }
+        drag=false;setTimeout(()=>{suppressClick=false},50);return true;
+      };
+      handle.addEventListener('pointerdown',e=>{
+        if(e.pointerType==='touch'||(e.pointerType==='mouse'&&e.button!==0))return;
+        sx=e.clientX;sy=e.clientY;lastY=sy;drag=false;moved=false;suppressClick=false;
+        timer=setTimeout(()=>startDrag(sx,sy,e.pointerId),800);
       });
       handle.addEventListener('pointermove',e=>{
-      if(!drag){if(timer&&Math.hypot(e.clientX-sx,e.clientY-sy)>10){moved=true;clear()}return}
-      e.preventDefault();
-      const r0=row.getBoundingClientRect();
-      ghost.style.transform=`translate3d(${r0.left}px,${e.clientY-ghostOffsetY}px,0) scale(.985)`;
-      const dropTop=e.clientY-ghostOffsetY;
-      let insertion=ppRootInsertion(row,dropTop);
-      // Closing the folder during drag can leave the original boundary as
-      // the nearest candidate even after the pointer moved to another row.
-      // Re-evaluate against the visible root rows before cancelling.
-      if(!insertion||insertion.cancel){
-        const roots=ppRootRows(row),candidates=[];
-        roots.forEach(root=>{
-          candidates.push({y:root.getBoundingClientRect().top,beforeKey:ppRootKey(root)});
-          candidates.push({y:ppGroupBottom(root),beforeKey:ppLineAfterRootRow(root).beforeKey});
-        });
-        const table=document.querySelector('.detailTable');
-        candidates.push({y:table?.getBoundingClientRect().bottom||dropTop,beforeKey:null});
-        candidates.sort((a,b)=>Math.abs(a.y-dropTop)-Math.abs(b.y-dropTop));
-        const nearest=candidates[0];
-        if(nearest&&Math.abs(nearest.y-dropTop)>12)insertion={kind:'line',...nearest};
-      }
-      ppInsertLine(insertion);
+        if(e.pointerType==='touch')return;
+        if(!drag){if(timer&&Math.hypot(e.clientX-sx,e.clientY-sy)>10){moved=true;clear()}return}
+        e.preventDefault();moveDrag(e.clientY);
       });
-      const finish=e=>{
-      clear();
-      if(!drag)return;
-      e.preventDefault();
-      const insertion=ppRootInsertion(row,e.clientY-ghostOffsetY);
-      row.classList.remove('folderDragging');
-      ghost?.remove();ghost=null;
-      ppInsertLine(null);
-      if(insertion&&!insertion.cancel){
-        const body=row.parentElement;
-        const before=insertion.beforeKey?ppRootRows(row).find(r=>ppRootKey(r)===insertion.beforeKey):null;
-        // Move an open folder together with its visible children/detail rows.
-        // Moving only the header would leave its contents behind.
-        const group=[row];
-        let next=row.nextElementSibling;
-        while(next&&!next.matches('tr.folderRow,tr.unifiedRow:not(.folderChildRow)')){
-          group.push(next);next=next.nextElementSibling;
-        }
-        group.forEach(node=>body.insertBefore(node,before||null));
-        saveUnifiedManualOrder();save();render();toast('フォルダを移動しました');
-      }
-      drag=false;
-      setTimeout(()=>{suppressClick=false},50);
-      };
-      handle.addEventListener('pointerup',finish);
-      handle.addEventListener('pointercancel',()=>{clear();drag=false;row.classList.remove('folderDragging');ghost?.remove();ghost=null;ppInsertLine(null)});
+      handle.addEventListener('pointerup',e=>{if(e.pointerType!=='touch')finishAt(e.clientY,e)});
+      handle.addEventListener('pointercancel',e=>{if(e.pointerType!=='touch')cancelDrag()});
+      handle.addEventListener('touchstart',e=>{
+        if(e.touches.length!==1)return;
+        const t=e.touches[0];sx=t.clientX;sy=t.clientY;lastY=sy;drag=false;moved=false;suppressClick=false;
+        clear();timer=setTimeout(()=>startDrag(sx,sy),800);
+      },{passive:true});
+      handle.addEventListener('touchmove',e=>{
+        const t=e.touches[0];if(!t)return;
+        if(!drag){if(timer&&Math.hypot(t.clientX-sx,t.clientY-sy)>10){moved=true;clear()}return}
+        e.preventDefault();moveDrag(t.clientY);
+      },{passive:false});
+      handle.addEventListener('touchend',e=>{
+        const t=e.changedTouches[0];
+        if(drag){e.preventDefault();finishAt(t?.clientY??lastY,e)}else clear();
+      },{passive:false});
+      handle.addEventListener('touchcancel',cancelDrag,{passive:true});
       handle.addEventListener('click',e=>{
         if(suppressClick||moved){moved=false;e.preventDefault();e.stopImmediatePropagation();return}
         if(!handle.classList.contains('folderInteractArea'))return;

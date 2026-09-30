@@ -1277,6 +1277,23 @@ body[data-card-cell-size="large"] .tinyThumb{width:44px!important;height:44px!im
 .developerWarning{margin:0 0 14px;padding:12px;border:1px solid #e6a19d;border-radius:10px;background:#fff1f0;color:#b42318;font-weight:800;line-height:1.6}
 #ppInsertLine{z-index:120!important}
 
+/* TEST74: opened folder frames use one consistent outer border width. */
+.folderRow.folderOpen>td{border-top:2px solid #ce9a12!important}
+.folderRow.folderOpen>td:first-child,.folderChildRow>td:first-child,.folderChildDetail>td:first-child{border-left:2px solid #ce9a12!important}
+.folderRow.folderOpen>td:last-child,.folderChildRow>td:last-child,.folderChildDetail>td:last-child{border-right:2px solid #ce9a12!important}
+.folderChildRow.folderTreeLast>td,.folderFrameLastDetail:not(.hidden)>td{border-bottom:2px solid #ce9a12!important;box-shadow:none!important}
+
+/* TEST74: suppress native image copy/save gestures on card thumbnails. */
+.cardThumbDeadZone,.cardThumbDeadZone img{
+  -webkit-touch-callout:none!important;user-select:none!important;-webkit-user-select:none!important;
+  -webkit-user-drag:none!important;user-drag:none!important;
+}
+
+/* TEST74: make developer-only controls visibly cautionary. */
+.optionDeveloperFold{border-color:#dc8b86!important;background:#fff0ef!important}
+.optionDeveloperFold>summary{color:#9f241d!important;background:#ffe7e5!important}
+.optionDeveloperFold>section{background:#fff3f2!important;border-top-color:#e9aaa5!important}
+
 @media(max-width:560px){
   .stickyViewBar .viewCountRow{gap:5px!important}
   .toolbarClose{padding:7px 7px!important;font-size:13px!important}
