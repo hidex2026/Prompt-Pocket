@@ -512,7 +512,23 @@ function bindFolderReorder(){
       e.preventDefault();
       const r0=row.getBoundingClientRect();
       ghost.style.transform=`translate3d(${r0.left}px,${e.clientY-ghostOffsetY}px,0) scale(.985)`;
-      const insertion=ppRootInsertion(row,e.clientY-ghostOffsetY);
+      const dropTop=e.clientY-ghostOffsetY;
+      let insertion=ppRootInsertion(row,dropTop);
+      // Closing the folder during drag can leave the original boundary as
+      // the nearest candidate even after the pointer moved to another row.
+      // Re-evaluate against the visible root rows before cancelling.
+      if(!insertion||insertion.cancel){
+        const roots=ppRootRows(row),candidates=[];
+        roots.forEach(root=>{
+          candidates.push({y:root.getBoundingClientRect().top,beforeKey:ppRootKey(root)});
+          candidates.push({y:ppGroupBottom(root),beforeKey:ppLineAfterRootRow(root).beforeKey});
+        });
+        const table=document.querySelector('.detailTable');
+        candidates.push({y:table?.getBoundingClientRect().bottom||dropTop,beforeKey:null});
+        candidates.sort((a,b)=>Math.abs(a.y-dropTop)-Math.abs(b.y-dropTop));
+        const nearest=candidates[0];
+        if(nearest&&Math.abs(nearest.y-dropTop)>12)insertion={kind:'line',...nearest};
+      }
       ppInsertLine(insertion);
       });
       const finish=e=>{
