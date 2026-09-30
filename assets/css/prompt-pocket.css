@@ -1915,3 +1915,44 @@ body.buttonGlowEnabled button:not(:disabled):active{
 .folderFrameLastDetail:not(.hidden)>td{
   border-bottom:1px solid rgba(150,115,0,.14)!important;
 }
+
+/* TEST85: no white spacer borders, no partial group-closing line. */
+.detailTable.detailTable .folderRow.folderOpen>td,
+.detailTable.detailTable .folderRow.folderOpen>td:first-child,
+.detailTable.detailTable .folderRow.folderOpen>td:last-child,
+.detailTable.detailTable .folderRow.folderOpen>td:not(:first-child):not(:last-child),
+.detailTable.detailTable .folderChildRow+.folderRow.folderOpen>td,
+.detailTable.detailTable .folderChildRow+.folderRow.folderOpen>td:first-child,
+.detailTable.detailTable .folderChildRow+.folderRow.folderOpen>td:last-child,
+.detailTable.detailTable .folderFrameLastDetail+.folderRow.folderOpen>td,
+.detailTable.detailTable .folderFrameLastDetail+.folderRow.folderOpen>td:first-child,
+.detailTable.detailTable .folderFrameLastDetail+.folderRow.folderOpen>td:last-child{
+  border-top:0!important;
+  border-left:0!important;
+  border-right:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+}
+.detailTable.detailTable .folderRow.folderOpen>td,
+.detailTable.detailTable .folderRow.folderOpen>td:first-child,
+.detailTable.detailTable .folderRow.folderOpen>td:last-child,
+.detailTable.detailTable .folderRow.folderOpen>td:not(:first-child):not(:last-child){
+  border-bottom:1px solid #dec77c!important;
+}
+.detailTable.detailTable .folderChildRow>td,
+.detailTable.detailTable .folderChildRow>td:first-child,
+.detailTable.detailTable .folderChildRow>td:last-child,
+.detailTable.detailTable .folderChildRow.folderTreeLast>td,
+.detailTable.detailTable .folderChildRow.folderTreeLast>td:first-child,
+.detailTable.detailTable .folderChildRow.folderTreeLast>td:last-child,
+.detailTable.detailTable .folderChildDetail>td,
+.detailTable.detailTable .folderChildDetail>td:first-child,
+.detailTable.detailTable .folderChildDetail>td:last-child,
+.detailTable.detailTable .folderFrameLastDetail:not(.hidden)>td{
+  border-top:0!important;
+  border-left:0!important;
+  border-right:0!important;
+  border-bottom:1px solid rgba(150,115,0,.14)!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+}
