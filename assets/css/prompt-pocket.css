@@ -2082,3 +2082,16 @@ body.buttonGlowEnabled button:not(:disabled):active{
   font-size:18px!important;
   font-weight:850!important;
 }
+
+/* TEST86e: use inset edges on the final child row so collapsed table borders
+   cannot hide its left and right frame lines. */
+.detailTable.detailTable .folderChildRow.folderTreeLast>td:first-child{
+  box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13)!important;
+}
+.detailTable.detailTable .folderChildRow.folderTreeLast>td:last-child{
+  box-shadow:inset -1px 0 0 var(--folder-accent,#c99a13)!important;
+}
+.unifiedTable .folderNameBtn{
+  font-size:20px!important;
+  font-weight:850!important;
+}
