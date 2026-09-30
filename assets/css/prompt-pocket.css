@@ -2044,3 +2044,25 @@ body.buttonGlowEnabled button:not(:disabled):active{
 .folderFrameEnd[data-folder-tone="3"]{--folder-accent:#b8860d}
 .folderFrameEnd[data-folder-tone="4"]{--folder-accent:#b48a17}
 .folderFrameEnd[data-folder-tone="5"]{--folder-accent:#c39208}
+
+/* TEST86c: draw the closing edge with a real full-width element, not a
+   collapsed table-cell border. */
+.detailTable.detailTable .folderChildRow.folderTreeLast>td,
+.detailTable.detailTable .folderChildRow.folderTreeLast>td:first-child,
+.detailTable.detailTable .folderChildRow.folderTreeLast>td:last-child{
+  border-bottom:0!important;
+  box-shadow:none!important;
+}
+.detailTable.detailTable .folderFrameEnd>td{
+  height:1px!important;
+  padding:0!important;
+  border:0!important;
+  background:#fffbea!important;
+  box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset -1px 0 0 var(--folder-accent,#c99a13)!important;
+}
+.detailTable.detailTable .folderFrameEnd>td>div{
+  height:1px!important;
+  margin:0!important;
+  padding:0!important;
+  background:var(--folder-accent,#c99a13)!important;
+}
