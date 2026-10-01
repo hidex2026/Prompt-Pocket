@@ -2203,3 +2203,7 @@ body[data-folder-name-size="large"] .unifiedTable .folderNameBtn{font-size:20px!
   color:#684100!important;
   font-weight:900!important;
 }
+
+/* TEST94: match the pointer cue to the complete card drag surface. */
+.unifiedTable td.nameCell{cursor:pointer}
+.unifiedTable td.nameCell .cardThumbDeadZone{cursor:default}
