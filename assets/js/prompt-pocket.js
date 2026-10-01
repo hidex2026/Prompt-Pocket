@@ -489,7 +489,7 @@ function bindFolderReorder(){
   document.querySelectorAll('.folderRow').forEach(row=>{
     const handles=[...row.querySelectorAll('.folderInteractArea,.folderMenuBtn')];
     handles.forEach(handle=>{
-      let timer=null,drag=false,moved=false,sx=0,sy=0,lastY=0,suppressClick=false,ghost=null,ghostOffsetY=0,lastTap=0,activePointerId=null,pointerHeld=false;
+      let timer=null,drag=false,moved=false,sx=0,sy=0,lastY=0,suppressClick=false,ghost=null,ghostOffsetY=0,lastTap=0;
       const clear=()=>{if(timer){clearTimeout(timer);timer=null}};
       const cancelDrag=()=>{clear();drag=false;row.classList.remove('folderDragging');ghost?.remove();ghost=null;ppInsertLine(null)};
       const toggleFolder=()=>{
@@ -560,24 +560,47 @@ function bindFolderReorder(){
         }
         drag=false;setTimeout(()=>{suppressClick=false},50);return true;
       };
+      // PC folders use the ordinary mouse sequence exclusively.  Pointer
+      // events can remain active after a release outside the original cell,
+      // which made a later hover look like a drag.  These listeners exist
+      // only from a real left mousedown until its matching mouseup/blur.
+      handle.addEventListener('mousedown',e=>{
+        if(e.button!==0)return;
+        sx=e.clientX;sy=e.clientY;lastY=sy;drag=false;moved=false;suppressClick=false;
+        const cleanup=()=>{
+          document.removeEventListener('mousemove',onMove,true);
+          document.removeEventListener('mouseup',onUp,true);
+          window.removeEventListener('blur',onBlur,true);
+        };
+        const onMove=move=>{
+          if((move.buttons&1)!==1){onUp(move);return}
+          if(!drag&&Math.hypot(move.clientX-sx,move.clientY-sy)>10){
+            moved=true;startDrag(move.clientX,move.clientY);
+          }
+          if(drag){move.preventDefault();moveDrag(move.clientY)}
+        };
+        const onUp=up=>{
+          cleanup();
+          if(drag)finishAt(up.clientY,up);else clear();
+        };
+        const onBlur=()=>{cleanup();cancelDrag()};
+        document.addEventListener('mousemove',onMove,true);
+        document.addEventListener('mouseup',onUp,true);
+        window.addEventListener('blur',onBlur,true);
+      });
+      // Pen input retains the long-press behavior used by touch devices.
       handle.addEventListener('pointerdown',e=>{
-        if(e.pointerType==='touch'||(e.pointerType==='mouse'&&e.button!==0))return;
-        sx=e.clientX;sy=e.clientY;lastY=sy;drag=false;moved=false;suppressClick=false;activePointerId=e.pointerId;pointerHeld=true;
-        if(e.pointerType!=='mouse')timer=setTimeout(()=>startDrag(sx,sy,e.pointerId),800);
+        if(e.pointerType!=='pen')return;
+        sx=e.clientX;sy=e.clientY;lastY=sy;drag=false;moved=false;suppressClick=false;
+        timer=setTimeout(()=>startDrag(sx,sy,e.pointerId),800);
       });
       handle.addEventListener('pointermove',e=>{
-        if(e.pointerType==='touch')return;
-        if(!pointerHeld||activePointerId!==e.pointerId||(e.pointerType==='mouse'&&(e.buttons&1)!==1))return;
-        if(!drag&&Math.hypot(e.clientX-sx,e.clientY-sy)>10){
-          moved=true;
-          if(e.pointerType==='mouse')startDrag(e.clientX,e.clientY,e.pointerId);else clear();
-          return;
-        }
-        if(!drag)return;
+        if(e.pointerType!=='pen')return;
+        if(!drag){if(timer&&Math.hypot(e.clientX-sx,e.clientY-sy)>10){moved=true;clear()}return}
         e.preventDefault();moveDrag(e.clientY);
       });
-      handle.addEventListener('pointerup',e=>{if(e.pointerType!=='touch'){pointerHeld=false;activePointerId=null;finishAt(e.clientY,e)}});
-      handle.addEventListener('pointercancel',e=>{if(e.pointerType!=='touch'){pointerHeld=false;activePointerId=null;cancelDrag()}});
+      handle.addEventListener('pointerup',e=>{if(e.pointerType==='pen')finishAt(e.clientY,e)});
+      handle.addEventListener('pointercancel',e=>{if(e.pointerType==='pen')cancelDrag()});
       handle.addEventListener('touchstart',e=>{
         if(e.touches.length!==1)return;
         const t=e.touches[0];sx=t.clientX;sy=t.clientY;lastY=sy;drag=false;moved=false;suppressClick=false;
