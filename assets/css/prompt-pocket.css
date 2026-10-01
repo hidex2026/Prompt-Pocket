@@ -658,6 +658,7 @@ body.pp-dnd-active{overscroll-behavior:none}
 .folderDragSpace{display:inline-block;min-width:24px;height:30px;vertical-align:middle;cursor:grab;touch-action:none}
 .folderMenuBtn{touch-action:none;-webkit-user-select:none;user-select:none}
 .folder-dnd-ghost{position:fixed;z-index:9999;pointer-events:none;opacity:.72;transform:scale(.985);filter:drop-shadow(0 10px 22px rgba(92,72,17,.24));will-change:transform}
+.folder-dnd-ghost table{width:100%;border-collapse:collapse;table-layout:fixed}
 .folder-dnd-ghost td{background:linear-gradient(180deg,#fffdf5,#f8f1dc)!important}
 
 .folderMoveDialog{width:min(420px,calc(100vw - 28px));max-height:70vh;border:0;border-radius:18px;padding:0}

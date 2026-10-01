@@ -506,7 +506,15 @@ function bindFolderReorder(){
         document.querySelectorAll('.folder-dnd-ghost').forEach(node=>node.remove());
         ppCollapseForDrag({row});
         const r=row.getBoundingClientRect();
-        ghost=row.cloneNode(true);ghost.className='folder-dnd-ghost';
+        // A <tr> cannot be positioned directly under <body>.  Browsers repair
+        // that invalid structure differently while it moves, which produced
+        // several painted copies on desktop.  Keep the cloned row in its own
+        // real table so there is exactly one valid floating preview.
+        ghost=document.createElement('div');ghost.className='folder-dnd-ghost';
+        const ghostTable=document.createElement('table');ghostTable.className='detailTable unifiedTable';
+        const ghostBody=document.createElement('tbody');
+        const ghostRow=row.cloneNode(true);
+        ghostBody.appendChild(ghostRow);ghostTable.appendChild(ghostBody);ghost.appendChild(ghostTable);
         ghost.style.width=r.width+'px';ghost.style.left='0px';ghost.style.top='0px';
         ghost.querySelectorAll('[id]').forEach(x=>x.removeAttribute('id'));
         document.body.appendChild(ghost);
