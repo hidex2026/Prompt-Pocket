@@ -536,10 +536,15 @@ function bindFolderReorder(){
           beforeKey:ppRootKey(root),
           cancel:root===row
         }));
-        boundaries.push({y:ppGroupBottom(roots[roots.length-1]),beforeKey:null,cancel:roots[roots.length-1]===row});
+        boundaries.push({
+          y:ppGroupBottom(roots[roots.length-1]),
+          beforeKey:null,
+          cancel:roots[roots.length-1]===row,
+          isLast:true
+        });
         const hit=boundaries
           .map(boundary=>({...boundary,distance:Math.abs(boundary.y-y)}))
-          .filter(boundary=>boundary.distance<=14)
+          .filter(boundary=>boundary.distance<=(boundary.isLast?28:14))
           .sort((a,b)=>a.distance-b.distance)[0];
         return hit?{kind:'line',...hit,showLine:true}:{cancel:true,showLine:false};
       };
