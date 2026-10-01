@@ -2116,3 +2116,33 @@ body.buttonGlowEnabled button:not(:disabled):active{
 body[data-folder-name-size="small"] .unifiedTable .folderNameBtn{font-size:15px!important}
 body[data-folder-name-size="medium"] .unifiedTable .folderNameBtn{font-size:18px!important}
 body[data-folder-name-size="large"] .unifiedTable .folderNameBtn{font-size:20px!important}
+
+/* TEST88: use dedicated full-width edge rows.  This avoids collapsed table
+   borders being replaced by the card immediately above or below a folder. */
+.detailTable.detailTable .folderFrameStart>td,
+.detailTable.detailTable .folderFrameEnd>td{
+  height:1px!important;
+  min-height:1px!important;
+  padding:0!important;
+  border:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  line-height:0!important;
+  font-size:0!important;
+}
+.detailTable.detailTable .folderFrameStart>td>div,
+.detailTable.detailTable .folderFrameEnd>td>div{
+  display:block!important;
+  width:100%!important;
+  height:1px!important;
+  margin:0!important;
+  padding:0!important;
+  background:var(--folder-accent,#c99a13)!important;
+}
+.folderFrameStart[data-folder-tone="0"],.folderFrameEnd[data-folder-tone="0"]{--folder-accent:#c99a13}
+.folderFrameStart[data-folder-tone="1"],.folderFrameEnd[data-folder-tone="1"]{--folder-accent:#b88f23}
+.folderFrameStart[data-folder-tone="2"],.folderFrameEnd[data-folder-tone="2"]{--folder-accent:#b59a2a}
+.folderFrameStart[data-folder-tone="3"],.folderFrameEnd[data-folder-tone="3"]{--folder-accent:#b8860d}
+.folderFrameStart[data-folder-tone="4"],.folderFrameEnd[data-folder-tone="4"]{--folder-accent:#b48a17}
+.folderFrameStart[data-folder-tone="5"],.folderFrameEnd[data-folder-tone="5"]{--folder-accent:#c39208}
+.detailTable.detailTable .folderRow.folderOpen>td{border-top:0!important}

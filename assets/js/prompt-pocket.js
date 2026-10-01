@@ -389,7 +389,8 @@ function render(){
     else if(sortMode==='nameAsc')kids.sort((a,b)=>a.name.localeCompare(b.name,'ja'));
     else if(sortMode==='createdDesc')kids.sort((a,b)=>b.created-a.created);
     const open=kids.length>0&&openFolders.has(f.id);
-    let s=`<tr class="folderRow ${open?'folderOpen':''}" data-folder="${f.id}" data-folder-tone="${folderTone(f.id)}" data-sort-key="folder:${f.id}"><td><button class="tableIcon favoriteHit" data-folder-fav="${f.id}" title="フォルダのお気に入り">${f.fav?'★':'☆'}</button></td><td class="nameCell folderInteractArea" data-folder-toggle="${f.id}"><div class="folderNameLayout"><span class="folderNameBtn"><span>${open?'📂':'📁'}</span><span>${esc(f.name)}</span>${f.isNew?'<span class="folderNewBadge">NEW</span>':''}</span><span class="folderDragSpace" aria-label="フォルダを移動"></span></div></td><td><div class="tableActions folderActions"><span class="folderCountInline">${folderCount(f.id)}枚</span><span class="detailMenuWrap"><button class="folderMenuBtn" data-folder-menu-toggle="${f.id}" aria-label="フォルダのメニューを開く">⋯</button><div class="detailPopupMenu hidden"><button data-folder-rename="${f.id}">✏️ 名前を変更</button><button class="dangerMenu" data-folder-delete="${f.id}">🗑️ フォルダを削除</button></div></span></div></td></tr>`;
+    let s=open?`<tr class="folderFrameStart" data-folder-tone="${folderTone(f.id)}"><td colspan="3"><div></div></td></tr>`:'';
+    s+=`<tr class="folderRow ${open?'folderOpen':''}" data-folder="${f.id}" data-folder-tone="${folderTone(f.id)}" data-sort-key="folder:${f.id}"><td><button class="tableIcon favoriteHit" data-folder-fav="${f.id}" title="フォルダのお気に入り">${f.fav?'★':'☆'}</button></td><td class="nameCell folderInteractArea" data-folder-toggle="${f.id}"><div class="folderNameLayout"><span class="folderNameBtn"><span>${open?'📂':'📁'}</span><span>${esc(f.name)}</span>${f.isNew?'<span class="folderNewBadge">NEW</span>':''}</span><span class="folderDragSpace" aria-label="フォルダを移動"></span></div></td><td><div class="tableActions folderActions"><span class="folderCountInline">${folderCount(f.id)}枚</span><span class="detailMenuWrap"><button class="folderMenuBtn" data-folder-menu-toggle="${f.id}" aria-label="フォルダのメニューを開く">⋯</button><div class="detailPopupMenu hidden"><button data-folder-rename="${f.id}">✏️ 名前を変更</button><button class="dangerMenu" data-folder-delete="${f.id}">🗑️ フォルダを削除</button></div></span></div></td></tr>`;
     if(open)s+=kids.map(x=>cardRows(x,true)).join('')+`<tr class="folderFrameEnd" data-folder-tone="${folderTone(f.id)}"><td colspan="3"><div></div></td></tr>`;
     return s;
   };
@@ -548,11 +549,16 @@ function bindFolderReorder(){
       handle.addEventListener('pointerdown',e=>{
         if(e.pointerType==='touch'||(e.pointerType==='mouse'&&e.button!==0))return;
         sx=e.clientX;sy=e.clientY;lastY=sy;drag=false;moved=false;suppressClick=false;
-        timer=setTimeout(()=>startDrag(sx,sy,e.pointerId),800);
+        if(e.pointerType!=='mouse')timer=setTimeout(()=>startDrag(sx,sy,e.pointerId),800);
       });
       handle.addEventListener('pointermove',e=>{
         if(e.pointerType==='touch')return;
-        if(!drag){if(timer&&Math.hypot(e.clientX-sx,e.clientY-sy)>10){moved=true;clear()}return}
+        if(!drag&&Math.hypot(e.clientX-sx,e.clientY-sy)>10){
+          moved=true;
+          if(e.pointerType==='mouse')startDrag(e.clientX,e.clientY,e.pointerId);else clear();
+          return;
+        }
+        if(!drag)return;
         e.preventDefault();moveDrag(e.clientY);
       });
       handle.addEventListener('pointerup',e=>{if(e.pointerType!=='touch')finishAt(e.clientY,e)});
@@ -734,7 +740,7 @@ function ppBegin(row,x,y,source=row,pcMode=false){
     candidate:null,pcMode,pcTarget:null,source,scrollDir:0,scrollFrame:null
   };
   const st=ppDnd;
-  st.timer=setTimeout(()=>ppStart(st),800);
+  if(!pcMode)st.timer=setTimeout(()=>ppStart(st),800);
 }
 
 function ppCollapseForDrag(st){
@@ -1166,7 +1172,10 @@ function bindCardPrimaryInteractions(row,area){
     ppBegin(row,e.clientX,e.clientY,area,e.pointerType==='mouse');
   });
   area.addEventListener('pointermove',e=>{
-    if(ppDnd?.row===row&&!ppDnd.active&&Math.hypot(e.clientX-ppDnd.startX,e.clientY-ppDnd.startY)>10){moved=true;ppFinishCancel()}
+    if(ppDnd?.row!==row||ppDnd.active)return;
+    if(Math.hypot(e.clientX-ppDnd.startX,e.clientY-ppDnd.startY)<=10)return;
+    moved=true;
+    if(ppDnd.pcMode)ppStart(ppDnd);else ppFinishCancel();
   });
   area.addEventListener('pointercancel',()=>{moved=true;if(ppDnd?.row===row&&!ppDnd.active)ppFinishCancel()});
   area.addEventListener('click',e=>{
@@ -1202,7 +1211,8 @@ function bindPocketDnd(){
         ppBegin(row,e.clientX,e.clientY,menu,e.pointerType==='mouse');
       });
       menu.addEventListener('pointermove',e=>{
-        if(ppDnd?.row===row&&!ppDnd.active&&Math.hypot(e.clientX-ppDnd.startX,e.clientY-ppDnd.startY)>10)ppFinishCancel();
+        if(ppDnd?.row!==row||ppDnd.active||Math.hypot(e.clientX-ppDnd.startX,e.clientY-ppDnd.startY)<=10)return;
+        if(ppDnd.pcMode)ppStart(ppDnd);else ppFinishCancel();
       });
       menu.addEventListener('pointercancel',()=>{if(ppDnd?.row===row&&!ppDnd.active)ppFinishCancel()});
       menu.addEventListener('click',e=>{
