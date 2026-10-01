@@ -905,8 +905,12 @@ function ppFindBoundaryCandidate(st,ghostTop){
 
 /* D&D v2: the insertion point follows the TOP edge of the ghost card. */
 function ppRootRows(exclude=null){
-  return [...document.querySelectorAll('.detailTable tbody > tr.folderRow, .detailTable tbody > tr.unifiedRow:not(.folderChildRow)')]
-    .filter(row=>row!==exclude);
+  // Search only the real list. Folder drag previews contain their own cloned
+  // .detailTable and .folderRow, but must never become insertion boundaries.
+  const body=document.querySelector('#cards .detailTable > tbody');
+  if(!body)return [];
+  return [...body.children]
+    .filter(row=>row.matches('tr.folderRow,tr.unifiedRow:not(.folderChildRow)')&&row!==exclude);
 }
 function ppRootKey(row){return row.dataset.folder?'folder:'+row.dataset.folder:row.dataset.row}
 function ppLineAfterRootRow(row){
