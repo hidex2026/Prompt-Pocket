@@ -489,7 +489,7 @@ function bindFolderReorder(){
   document.querySelectorAll('.folderRow').forEach(row=>{
     const handles=[...row.querySelectorAll('.folderInteractArea,.folderMenuBtn')];
     handles.forEach(handle=>{
-      let timer=null,drag=false,moved=false,sx=0,sy=0,lastY=0,suppressClick=false,ghost=null,ghostOffsetY=0,lastTap=0;
+      let timer=null,drag=false,moved=false,sx=0,sy=0,lastX=0,lastY=0,suppressClick=false,ghost=null,ghostOffsetY=0,lastTap=0;
       const clear=()=>{if(timer){clearTimeout(timer);timer=null}};
       const cancelDrag=()=>{clear();drag=false;row.classList.remove('folderDragging');ghost?.remove();ghost=null;ppInsertLine(null)};
       const toggleFolder=()=>{
@@ -518,42 +518,41 @@ function bindFolderReorder(){
         ghost.style.width=r.width+'px';ghost.style.left='0px';ghost.style.top='0px';
         ghost.querySelectorAll('[id]').forEach(x=>x.removeAttribute('id'));
         document.body.appendChild(ghost);
-        ghostOffsetY=Math.min(Math.max(y-r.top,8),r.height-8);lastY=y;
+        ghostOffsetY=Math.min(Math.max(y-r.top,8),r.height-8);lastX=x;lastY=y;
         ghost.style.transform=`translate3d(${r.left}px,${y-ghostOffsetY}px,0) scale(.985)`;
         navigator.vibrate?.(20);if(pointerId!==null){try{handle.setPointerCapture(pointerId)}catch{}}
       };
-      const insertionAt=y=>{
-        const ghostTop=y-ghostOffsetY;
-        const ghostBottom=ghostTop+(ghost?.getBoundingClientRect().height||row.getBoundingClientRect().height);
-        const ghostCenter=(ghostTop+ghostBottom)/2;
-        const edgeInset=Math.min(18,(ghostBottom-ghostTop)*.28);
-        const roots=ppRootRows(row);
-        const boundaries=[];
-        roots.forEach(root=>boundaries.push({y:root.getBoundingClientRect().top,beforeKey:ppRootKey(root)}));
-        if(roots.length)boundaries.push({y:ppGroupBottom(roots[roots.length-1]),beforeKey:null});
+      const insertionAt=(x,y)=>{
+        const table=row.closest('.detailTable');
+        const tableRect=table?.getBoundingClientRect();
+        if(!tableRect||x<tableRect.left||x>tableRect.right)return {cancel:true,showLine:false};
 
-        // The guide belongs only to a real cell gap.  Keep a safe inset from
-        // the virtual folder's edges so the line can never look glued to its
-        // top or bottom border.
-        const visible=boundaries
-          .filter(boundary=>boundary.y>=ghostTop+edgeInset&&boundary.y<=ghostBottom-edgeInset)
-          .sort((a,b)=>Math.abs(a.y-ghostCenter)-Math.abs(b.y-ghostCenter))[0];
-        if(visible)return {kind:'line',...visible,showLine:true};
-
-        // Keep a sensible drop destination even when no gap is currently
-        // highlighted; it is intentionally not drawn as a black guide.
-        return {...(ppRootInsertion(row,ghostCenter)||{}),showLine:false};
+        // Folder guides are selected only from the pointer's proximity to a
+        // real root-row boundary. The floating folder geometry is irrelevant.
+        const roots=ppRootRows(null);
+        if(!roots.length)return {cancel:true,showLine:false};
+        const boundaries=roots.map(root=>({
+          y:root.getBoundingClientRect().top,
+          beforeKey:ppRootKey(root),
+          cancel:root===row
+        }));
+        boundaries.push({y:ppGroupBottom(roots[roots.length-1]),beforeKey:null,cancel:roots[roots.length-1]===row});
+        const hit=boundaries
+          .map(boundary=>({...boundary,distance:Math.abs(boundary.y-y)}))
+          .filter(boundary=>boundary.distance<=14)
+          .sort((a,b)=>a.distance-b.distance)[0];
+        return hit?{kind:'line',...hit,showLine:true}:{cancel:true,showLine:false};
       };
-      const moveDrag=y=>{
+      const moveDrag=(x,y)=>{
         if(!drag||!ghost)return;
-        lastY=y;const r0=row.getBoundingClientRect();
+        lastX=x;lastY=y;const r0=row.getBoundingClientRect();
         ghost.style.transform=`translate3d(${r0.left}px,${y-ghostOffsetY}px,0) scale(.985)`;
-        const insertion=insertionAt(y);
+        const insertion=insertionAt(x,y);
         ppInsertLine(insertion.showLine?insertion:null);
       };
-      const finishAt=(y,event)=>{
+      const finishAt=(x,y,event)=>{
         clear();if(!drag)return false;event?.preventDefault?.();
-        const insertion=insertionAt(y);
+        const insertion=insertionAt(x,y);
         row.classList.remove('folderDragging');ghost?.remove();ghost=null;ppInsertLine(null);
         if(insertion&&!insertion.cancel){
           const body=row.parentElement;
@@ -571,7 +570,7 @@ function bindFolderReorder(){
       // only from a real left mousedown until its matching mouseup/blur.
       handle.addEventListener('mousedown',e=>{
         if(e.button!==0)return;
-        sx=e.clientX;sy=e.clientY;lastY=sy;drag=false;moved=false;suppressClick=false;
+        sx=e.clientX;sy=e.clientY;lastX=sx;lastY=sy;drag=false;moved=false;suppressClick=false;
         const cleanup=()=>{
           document.removeEventListener('mousemove',onMove,true);
           document.removeEventListener('mouseup',onUp,true);
@@ -582,11 +581,11 @@ function bindFolderReorder(){
           if(!drag&&Math.hypot(move.clientX-sx,move.clientY-sy)>2){
             moved=true;startDrag(move.clientX,move.clientY);
           }
-          if(drag){move.preventDefault();moveDrag(move.clientY)}
+          if(drag){move.preventDefault();moveDrag(move.clientX,move.clientY)}
         };
         const onUp=up=>{
           cleanup();
-          if(drag)finishAt(up.clientY,up);else clear();
+          if(drag)finishAt(up.clientX,up.clientY,up);else clear();
         };
         const onBlur=()=>{cleanup();cancelDrag()};
         document.addEventListener('mousemove',onMove,true);
@@ -596,29 +595,29 @@ function bindFolderReorder(){
       // Pen input retains the long-press behavior used by touch devices.
       handle.addEventListener('pointerdown',e=>{
         if(e.pointerType!=='pen')return;
-        sx=e.clientX;sy=e.clientY;lastY=sy;drag=false;moved=false;suppressClick=false;
+        sx=e.clientX;sy=e.clientY;lastX=sx;lastY=sy;drag=false;moved=false;suppressClick=false;
         timer=setTimeout(()=>startDrag(sx,sy,e.pointerId),800);
       });
       handle.addEventListener('pointermove',e=>{
         if(e.pointerType!=='pen')return;
         if(!drag){if(timer&&Math.hypot(e.clientX-sx,e.clientY-sy)>10){moved=true;clear()}return}
-        e.preventDefault();moveDrag(e.clientY);
+        e.preventDefault();moveDrag(e.clientX,e.clientY);
       });
-      handle.addEventListener('pointerup',e=>{if(e.pointerType==='pen')finishAt(e.clientY,e)});
+      handle.addEventListener('pointerup',e=>{if(e.pointerType==='pen')finishAt(e.clientX,e.clientY,e)});
       handle.addEventListener('pointercancel',e=>{if(e.pointerType==='pen')cancelDrag()});
       handle.addEventListener('touchstart',e=>{
         if(e.touches.length!==1)return;
-        const t=e.touches[0];sx=t.clientX;sy=t.clientY;lastY=sy;drag=false;moved=false;suppressClick=false;
+        const t=e.touches[0];sx=t.clientX;sy=t.clientY;lastX=sx;lastY=sy;drag=false;moved=false;suppressClick=false;
         clear();timer=setTimeout(()=>startDrag(sx,sy),800);
       },{passive:true});
       handle.addEventListener('touchmove',e=>{
         const t=e.touches[0];if(!t)return;
         if(!drag){if(timer&&Math.hypot(t.clientX-sx,t.clientY-sy)>10){moved=true;clear()}return}
-        e.preventDefault();moveDrag(t.clientY);
+        e.preventDefault();moveDrag(t.clientX,t.clientY);
       },{passive:false});
       handle.addEventListener('touchend',e=>{
         const t=e.changedTouches[0];
-        if(drag){e.preventDefault();finishAt(t?.clientY??lastY,e)}else clear();
+        if(drag){e.preventDefault();finishAt(t?.clientX??lastX,t?.clientY??lastY,e)}else clear();
       },{passive:false});
       handle.addEventListener('touchcancel',cancelDrag,{passive:true});
       handle.addEventListener('click',e=>{
