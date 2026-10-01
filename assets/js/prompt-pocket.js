@@ -523,29 +523,31 @@ function bindFolderReorder(){
         navigator.vibrate?.(20);if(pointerId!==null){try{handle.setPointerCapture(pointerId)}catch{}}
       };
       const insertionAt=y=>{
-        // Match card D&D: a root boundary is chosen from the floating item's
-        // top edge, so the guide appears in the gap between cells instead of
-        // looking attached to the floating folder.
-        const dropY=y-ghostOffsetY;
-        let insertion=ppRootInsertion(row,dropY);
-        if((!insertion||insertion.cancel)&&Math.abs(y-sy)>18){
-          const candidates=[];
-          ppRootRows(row).forEach(root=>{
-            candidates.push({y:root.getBoundingClientRect().top,beforeKey:ppRootKey(root)});
-            candidates.push({y:ppGroupBottom(root),beforeKey:ppLineAfterRootRow(root).beforeKey});
-          });
-          const table=document.querySelector('.detailTable');
-          candidates.push({y:table?.getBoundingClientRect().bottom||dropY,beforeKey:null});
-          candidates.sort((a,b)=>Math.abs(a.y-dropY)-Math.abs(b.y-dropY));
-          if(candidates[0])insertion={kind:'line',...candidates[0]};
-        }
-        return insertion;
+        const ghostTop=y-ghostOffsetY;
+        const ghostBottom=ghostTop+(ghost?.getBoundingClientRect().height||row.getBoundingClientRect().height);
+        const ghostCenter=(ghostTop+ghostBottom)/2;
+        const roots=ppRootRows(row);
+        const boundaries=[];
+        roots.forEach(root=>boundaries.push({y:root.getBoundingClientRect().top,beforeKey:ppRootKey(root)}));
+        if(roots.length)boundaries.push({y:ppGroupBottom(roots[roots.length-1]),beforeKey:null});
+
+        // Unlike the floating preview, the guide belongs to a real gap.  It
+        // becomes visible only while that gap is inside the virtual folder.
+        const visible=boundaries
+          .filter(boundary=>boundary.y>=ghostTop&&boundary.y<=ghostBottom)
+          .sort((a,b)=>Math.abs(a.y-ghostCenter)-Math.abs(b.y-ghostCenter))[0];
+        if(visible)return {kind:'line',...visible,showLine:true};
+
+        // Keep a sensible drop destination even when no gap is currently
+        // highlighted; it is intentionally not drawn as a black guide.
+        return {...(ppRootInsertion(row,ghostCenter)||{}),showLine:false};
       };
       const moveDrag=y=>{
         if(!drag||!ghost)return;
         lastY=y;const r0=row.getBoundingClientRect();
         ghost.style.transform=`translate3d(${r0.left}px,${y-ghostOffsetY}px,0) scale(.985)`;
-        ppInsertLine(insertionAt(y));
+        const insertion=insertionAt(y);
+        ppInsertLine(insertion.showLine?insertion:null);
       };
       const finishAt=(y,event)=>{
         clear();if(!drag)return false;event?.preventDefault?.();
