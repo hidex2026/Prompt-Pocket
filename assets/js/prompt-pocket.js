@@ -526,15 +526,17 @@ function bindFolderReorder(){
         const ghostTop=y-ghostOffsetY;
         const ghostBottom=ghostTop+(ghost?.getBoundingClientRect().height||row.getBoundingClientRect().height);
         const ghostCenter=(ghostTop+ghostBottom)/2;
+        const edgeInset=Math.min(18,(ghostBottom-ghostTop)*.28);
         const roots=ppRootRows(row);
         const boundaries=[];
         roots.forEach(root=>boundaries.push({y:root.getBoundingClientRect().top,beforeKey:ppRootKey(root)}));
         if(roots.length)boundaries.push({y:ppGroupBottom(roots[roots.length-1]),beforeKey:null});
 
-        // Unlike the floating preview, the guide belongs to a real gap.  It
-        // becomes visible only while that gap is inside the virtual folder.
+        // The guide belongs only to a real cell gap.  Keep a safe inset from
+        // the virtual folder's edges so the line can never look glued to its
+        // top or bottom border.
         const visible=boundaries
-          .filter(boundary=>boundary.y>=ghostTop&&boundary.y<=ghostBottom)
+          .filter(boundary=>boundary.y>=ghostTop+edgeInset&&boundary.y<=ghostBottom-edgeInset)
           .sort((a,b)=>Math.abs(a.y-ghostCenter)-Math.abs(b.y-ghostCenter))[0];
         if(visible)return {kind:'line',...visible,showLine:true};
 
