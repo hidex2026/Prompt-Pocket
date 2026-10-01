@@ -523,9 +523,10 @@ function bindFolderReorder(){
         navigator.vibrate?.(20);if(pointerId!==null){try{handle.setPointerCapture(pointerId)}catch{}}
       };
       const insertionAt=y=>{
-        // The guide follows the actual pointer target, not the top edge of
-        // the floating folder preview.
-        const dropY=y;
+        // Match card D&D: a root boundary is chosen from the floating item's
+        // top edge, so the guide appears in the gap between cells instead of
+        // looking attached to the floating folder.
+        const dropY=y-ghostOffsetY;
         let insertion=ppRootInsertion(row,dropY);
         if((!insertion||insertion.cancel)&&Math.abs(y-sy)>18){
           const candidates=[];
@@ -1243,7 +1244,9 @@ function bindPocketDnd(){
     ['contextmenu','dragstart','selectstart'].forEach(type=>zone.addEventListener(type,e=>{e.preventDefault();e.stopPropagation()}));
   });
   ppRows().forEach(row=>{
-    const area=row.querySelector('.unifiedDragArea');
+    // The name cell is the drag surface.  Its thumbnail stops propagation
+    // below, while the star and operation cells live outside it.
+    const area=row.querySelector('.nameCell');
     if(area)bindCardPrimaryInteractions(row,area);
     const menu=row.querySelector('[data-menu-toggle]');
     // The ellipsis keeps its normal tap menu; holding it for 0.8 seconds starts D&D.
