@@ -2146,3 +2146,36 @@ body[data-folder-name-size="large"] .unifiedTable .folderNameBtn{font-size:20px!
 .folderFrameStart[data-folder-tone="4"],.folderFrameEnd[data-folder-tone="4"]{--folder-accent:#b48a17}
 .folderFrameStart[data-folder-tone="5"],.folderFrameEnd[data-folder-tone="5"]{--folder-accent:#c39208}
 .detailTable.detailTable .folderRow.folderOpen>td{border-top:0!important}
+
+/* TEST89: a closed folder is also a single, visibly enclosed unit. */
+.detailTable.detailTable .folderRow:not(.folderOpen)>td{
+  box-shadow:inset 0 1px 0 #dec77c,inset 0 -1px 0 #dec77c!important;
+}
+.detailTable.detailTable .folderRow:not(.folderOpen)>td:first-child{
+  box-shadow:inset 1px 0 0 #dec77c,inset 0 1px 0 #dec77c,inset 0 -1px 0 #dec77c!important;
+}
+.detailTable.detailTable .folderRow:not(.folderOpen)>td:last-child{
+  box-shadow:inset -1px 0 0 #dec77c,inset 0 1px 0 #dec77c,inset 0 -1px 0 #dec77c!important;
+}
+
+/* The mobile table can cover the parent border at its lowest row.  Draw the
+   lower edge in the parent stacking layer so both rounded corners stay whole. */
+@media(max-width:560px){
+  .detailExplorer.unifiedExplorer{
+    position:relative;
+    border:1px solid #ddd!important;
+    border-radius:10px!important;
+    overflow:hidden!important;
+  }
+  .detailExplorer.unifiedExplorer::after{
+    content:'';
+    position:absolute;
+    z-index:6;
+    left:0;
+    right:0;
+    bottom:0;
+    height:1px;
+    background:#ddd;
+    pointer-events:none;
+  }
+}

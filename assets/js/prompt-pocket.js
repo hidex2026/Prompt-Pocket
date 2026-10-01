@@ -499,7 +499,11 @@ function bindFolderReorder(){
         render();
       };
       const startDrag=(x,y,pointerId=null)=>{
+        // Pointer events can be delivered again while the mouse is captured.
+        // Keep exactly one floating folder copy for a drag operation.
+        if(drag||ghost)return;
         drag=true;suppressClick=true;row.classList.add('folderDragging');
+        document.querySelectorAll('.folder-dnd-ghost').forEach(node=>node.remove());
         ppCollapseForDrag({row});
         const r=row.getBoundingClientRect();
         ghost=row.cloneNode(true);ghost.className='folder-dnd-ghost';
@@ -765,7 +769,11 @@ function ppCollapseForDrag(st){
 }
 
 function ppStart(st){
-  if(ppDnd!==st)return;
+  // A mouse move can bubble through more than one drag target.  Starting a
+  // second time would append another detached ghost, so this operation must
+  // be strictly one-shot for its current drag state.
+  if(ppDnd!==st||st.active||st.ghost)return;
+  document.querySelectorAll('.pp-dnd-ghost').forEach(node=>node.remove());
   ppCollapseForDrag(st);
   ppEnsureFolderExitSlot(st);
   st.active=true;
