@@ -2111,3 +2111,8 @@ body.buttonGlowEnabled button:not(:disabled):active{
   box-shadow:none!important;
 }
 .unifiedTable .folderNameBtn{font-size:18px!important}
+
+/* TEST87: folder name size is a user-selectable main-screen preference. */
+body[data-folder-name-size="small"] .unifiedTable .folderNameBtn{font-size:15px!important}
+body[data-folder-name-size="medium"] .unifiedTable .folderNameBtn{font-size:18px!important}
+body[data-folder-name-size="large"] .unifiedTable .folderNameBtn{font-size:20px!important}
