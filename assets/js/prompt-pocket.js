@@ -489,7 +489,7 @@ function bindFolderReorder(){
   document.querySelectorAll('.folderRow').forEach(row=>{
     const handles=[...row.querySelectorAll('.folderInteractArea,.folderMenuBtn')];
     handles.forEach(handle=>{
-      let timer=null,drag=false,moved=false,sx=0,sy=0,lastY=0,suppressClick=false,ghost=null,ghostOffsetY=0,lastTap=0;
+      let timer=null,drag=false,moved=false,sx=0,sy=0,lastY=0,suppressClick=false,ghost=null,ghostOffsetY=0,lastTap=0,activePointerId=null,pointerHeld=false;
       const clear=()=>{if(timer){clearTimeout(timer);timer=null}};
       const cancelDrag=()=>{clear();drag=false;row.classList.remove('folderDragging');ghost?.remove();ghost=null;ppInsertLine(null)};
       const toggleFolder=()=>{
@@ -523,8 +523,10 @@ function bindFolderReorder(){
         navigator.vibrate?.(20);if(pointerId!==null){try{handle.setPointerCapture(pointerId)}catch{}}
       };
       const insertionAt=y=>{
-        const dropTop=y-ghostOffsetY;
-        let insertion=ppRootInsertion(row,dropTop);
+        // The guide follows the actual pointer target, not the top edge of
+        // the floating folder preview.
+        const dropY=y;
+        let insertion=ppRootInsertion(row,dropY);
         if((!insertion||insertion.cancel)&&Math.abs(y-sy)>18){
           const candidates=[];
           ppRootRows(row).forEach(root=>{
@@ -532,8 +534,8 @@ function bindFolderReorder(){
             candidates.push({y:ppGroupBottom(root),beforeKey:ppLineAfterRootRow(root).beforeKey});
           });
           const table=document.querySelector('.detailTable');
-          candidates.push({y:table?.getBoundingClientRect().bottom||dropTop,beforeKey:null});
-          candidates.sort((a,b)=>Math.abs(a.y-dropTop)-Math.abs(b.y-dropTop));
+          candidates.push({y:table?.getBoundingClientRect().bottom||dropY,beforeKey:null});
+          candidates.sort((a,b)=>Math.abs(a.y-dropY)-Math.abs(b.y-dropY));
           if(candidates[0])insertion={kind:'line',...candidates[0]};
         }
         return insertion;
@@ -560,11 +562,12 @@ function bindFolderReorder(){
       };
       handle.addEventListener('pointerdown',e=>{
         if(e.pointerType==='touch'||(e.pointerType==='mouse'&&e.button!==0))return;
-        sx=e.clientX;sy=e.clientY;lastY=sy;drag=false;moved=false;suppressClick=false;
+        sx=e.clientX;sy=e.clientY;lastY=sy;drag=false;moved=false;suppressClick=false;activePointerId=e.pointerId;pointerHeld=true;
         if(e.pointerType!=='mouse')timer=setTimeout(()=>startDrag(sx,sy,e.pointerId),800);
       });
       handle.addEventListener('pointermove',e=>{
         if(e.pointerType==='touch')return;
+        if(!pointerHeld||activePointerId!==e.pointerId||(e.pointerType==='mouse'&&(e.buttons&1)!==1))return;
         if(!drag&&Math.hypot(e.clientX-sx,e.clientY-sy)>10){
           moved=true;
           if(e.pointerType==='mouse')startDrag(e.clientX,e.clientY,e.pointerId);else clear();
@@ -573,8 +576,8 @@ function bindFolderReorder(){
         if(!drag)return;
         e.preventDefault();moveDrag(e.clientY);
       });
-      handle.addEventListener('pointerup',e=>{if(e.pointerType!=='touch')finishAt(e.clientY,e)});
-      handle.addEventListener('pointercancel',e=>{if(e.pointerType!=='touch')cancelDrag()});
+      handle.addEventListener('pointerup',e=>{if(e.pointerType!=='touch'){pointerHeld=false;activePointerId=null;finishAt(e.clientY,e)}});
+      handle.addEventListener('pointercancel',e=>{if(e.pointerType!=='touch'){pointerHeld=false;activePointerId=null;cancelDrag()}});
       handle.addEventListener('touchstart',e=>{
         if(e.touches.length!==1)return;
         const t=e.touches[0];sx=t.clientX;sy=t.clientY;lastY=sy;drag=false;moved=false;suppressClick=false;
