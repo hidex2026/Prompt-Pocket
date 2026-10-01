@@ -574,7 +574,7 @@ function bindFolderReorder(){
         };
         const onMove=move=>{
           if((move.buttons&1)!==1){onUp(move);return}
-          if(!drag&&Math.hypot(move.clientX-sx,move.clientY-sy)>10){
+          if(!drag&&Math.hypot(move.clientX-sx,move.clientY-sy)>2){
             moved=true;startDrag(move.clientX,move.clientY);
           }
           if(drag){move.preventDefault();moveDrag(move.clientY)}
@@ -1215,7 +1215,7 @@ function bindCardPrimaryInteractions(row,area){
   });
   area.addEventListener('pointermove',e=>{
     if(ppDnd?.row!==row||ppDnd.active)return;
-    if(Math.hypot(e.clientX-ppDnd.startX,e.clientY-ppDnd.startY)<=10)return;
+    if(Math.hypot(e.clientX-ppDnd.startX,e.clientY-ppDnd.startY)<=(ppDnd.pcMode?2:10))return;
     moved=true;
     if(ppDnd.pcMode)ppStart(ppDnd);else ppFinishCancel();
   });
@@ -1253,7 +1253,7 @@ function bindPocketDnd(){
         ppBegin(row,e.clientX,e.clientY,menu,e.pointerType==='mouse');
       });
       menu.addEventListener('pointermove',e=>{
-        if(ppDnd?.row!==row||ppDnd.active||Math.hypot(e.clientX-ppDnd.startX,e.clientY-ppDnd.startY)<=10)return;
+        if(ppDnd?.row!==row||ppDnd.active||Math.hypot(e.clientX-ppDnd.startX,e.clientY-ppDnd.startY)<=(ppDnd.pcMode?2:10))return;
         if(ppDnd.pcMode)ppStart(ppDnd);else ppFinishCancel();
       });
       menu.addEventListener('pointercancel',()=>{if(ppDnd?.row===row&&!ppDnd.active)ppFinishCancel()});
