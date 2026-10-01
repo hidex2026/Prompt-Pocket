@@ -529,22 +529,29 @@ function bindFolderReorder(){
 
         // Folder guides are selected only from the pointer's proximity to a
         // real root-row boundary. The floating folder geometry is irrelevant.
-        const roots=ppRootRows(null);
+        // The source row remains in the live table while its preview moves.
+        // Exclude it or a source folder at the end falsely becomes the list's
+        // bottom boundary and makes the visible bottom impossible to target.
+        const roots=ppRootRows(row);
         if(!roots.length)return {cancel:true,showLine:false};
         const boundaries=roots.map(root=>({
           y:root.getBoundingClientRect().top,
-          beforeKey:ppRootKey(root),
-          cancel:root===row
+          beforeKey:ppRootKey(root)
         }));
         boundaries.push({
           y:ppGroupBottom(roots[roots.length-1]),
           beforeKey:null,
-          cancel:roots[roots.length-1]===row,
           isLast:true
         });
         const hit=boundaries
-          .map(boundary=>({...boundary,distance:Math.abs(boundary.y-y)}))
-          .filter(boundary=>boundary.distance<=(boundary.isLast?28:14))
+          .map(boundary=>({
+            ...boundary,
+            distance:Math.abs(boundary.y-y),
+            inZone:boundary.isLast
+              ?y>=boundary.y-14&&y<=boundary.y+Math.max(56,row.getBoundingClientRect().height*.75)
+              :Math.abs(boundary.y-y)<=14
+          }))
+          .filter(boundary=>boundary.inZone)
           .sort((a,b)=>a.distance-b.distance)[0];
         return hit?{kind:'line',...hit,showLine:true}:{cancel:true,showLine:false};
       };
