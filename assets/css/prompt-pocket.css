@@ -938,6 +938,7 @@ main{padding-top:6px}
   margin:0;
   flex:none;
 }
+.optionAddBadge{display:inline-block;margin:0 2px;padding:1px 5px;border-radius:6px;background:#f5a623;color:#3f2900;font-weight:900}
 #bottomNew{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:manipulation}
 
 /* v1.76: make rarely-used / destructive options visually distinct */
@@ -957,6 +958,8 @@ main{padding-top:6px}
 .optionDeleteFold summary:after{color:#b43a3a!important}
 .optionDeleteFold>section{background:#fff8f8!important;border-top-color:#efb2b2!important}
 .optionDeleteFold .optionActionItem{border-bottom-color:#f0caca}
+.dangerSoft{border:1px solid #e79292;border-radius:14px;padding:11px 14px;background:#f7caca;color:#8d2020;font-weight:800;cursor:pointer}
+.dangerSoft:hover{background:#f3bcbc}
 .optionDeveloperFold summary small{display:inline;margin-left:6px;color:#8c7b5e;font-size:12px;font-weight:700}
 .optionDeveloperFold .debugActions{display:grid;gap:9px}
 
@@ -1321,10 +1324,11 @@ body[data-card-cell-size="large"] .tinyThumb{width:44px!important;height:44px!im
 .cardThumbDeadZone{pointer-events:auto!important;touch-action:pan-y!important}
 .cardThumbDeadZone img{pointer-events:none!important}
 
-/* TEST74: make developer-only controls visibly cautionary. */
-.optionDeveloperFold{border-color:#dc8b86!important;background:#fff0ef!important}
-.optionDeveloperFold>summary{color:#9f241d!important;background:#ffe7e5!important}
-.optionDeveloperFold>section{background:#fff3f2!important;border-top-color:#e9aaa5!important}
+/* Developer-only controls stay visually separate and require five taps to open. */
+.optionDeveloperFold{border-color:#1f5d43!important;background:#e7f3ec!important}
+.optionDeveloperFold>summary{color:#123f2d!important;background:#cfe7d8!important}
+.optionDeveloperFold>summary:after{color:#1f5d43!important}
+.optionDeveloperFold>section{background:#eef8f2!important;border-top-color:#72a98d!important}
 
 @media(max-width:560px){
   .stickyViewBar .viewCountRow{gap:5px!important}

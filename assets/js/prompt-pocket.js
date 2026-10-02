@@ -130,15 +130,9 @@ document.body.dataset.cardCellSize=prefs.cardCellSize;
 prefs.folderNameSize=['small','medium','large'].includes(prefs.folderNameSize)?prefs.folderNameSize:'medium';
 document.body.dataset.folderNameSize=prefs.folderNameSize;
 document.body.classList.toggle('buttonGlowEnabled',prefs.buttonGlowEnabled);
-// Keep the former long-press checkbox as a migration source only.
-const legacyMainActionLongPress=Object.prototype.hasOwnProperty.call(prefs,'longPressMainActionsEnabled')
-  ?!!prefs.longPressMainActionsEnabled
-  :(Object.prototype.hasOwnProperty.call(prefs,'longPressAllButtonsEnabled')
-    ?!!prefs.longPressAllButtonsEnabled
-    :(!!prefs.longPressHelpEnabled||!!prefs.longPressSearchEnabled));
-prefs.mainActionOpenMode=['single','double','long'].includes(prefs.mainActionOpenMode)
+prefs.mainActionOpenMode=['single','double'].includes(prefs.mainActionOpenMode)
   ?prefs.mainActionOpenMode
-  :(legacyMainActionLongPress?'long':'single');
+  :'single';
 delete prefs.longPressMainActionsEnabled;
 delete prefs.longPressAllButtonsEnabled;
 delete prefs.longPressHelpEnabled;
@@ -1472,7 +1466,7 @@ async function eraseEverything(){
   localStorage.clear();sessionStorage.clear();await deleteImageDb();
   if('caches'in window){const keys=await caches.keys();await Promise.all(keys.filter(key=>key.startsWith('prompt-pocket-static-')).map(key=>caches.delete(key)))}
   if('serviceWorker'in navigator){const registrations=await navigator.serviceWorker.getRegistrations();await Promise.all(registrations.filter(reg=>reg.scope.startsWith(location.origin)).map(reg=>reg.unregister()))}
-  items=[];folders=[];undoState=null;customTags.clear();prefs=defaultPrefs();openFolders.clear();filterTags.clear();document.body.dataset.cardCellSize='medium';document.body.dataset.folderNameSize='medium';$('search').value='';$('optionDialog').close();render();$('eraseCompleteDialog').showModal();
+  items=[];folders=[];undoState=null;customTags.clear();prefs=defaultPrefs();openFolders.clear();filterTags.clear();document.body.dataset.cardCellSize='medium';document.body.dataset.folderNameSize='medium';$('search').value='';closeOptionSections();$('optionDialog').close();render();$('eraseCompleteDialog').showModal();
 }
 $('deleteAllBtn').onclick=resetDataToInitial;
 $('deleteAllBtn').addEventListener('click',()=>document.body.classList.toggle('buttonGlowEnabled',!!prefs.buttonGlowEnabled));
@@ -1530,7 +1524,7 @@ $('imageDropZone').ondragover=e=>{e.preventDefault();$('imageDropZone').classLis
 $('pastePromptBtn').onclick=async()=>{const field=$('prompt');let text='';try{if(navigator.clipboard?.readText){text=await navigator.clipboard.readText()}else{throw new Error('clipboard unavailable')}}catch(err){alert('クリップボードを読み取れませんでした。\nブラウザの権限設定を確認するか、入力欄を長押しして貼り付けてください。');return}if(!text)return toast('クリップボードに文字がありません');if(field.value.trim()&&!confirm('現在のプロンプトは上書きされます。\n貼り付けますか？'))return;field.value=text;field.dispatchEvent(new Event('input',{bubbles:true}));field.focus();toast('プロンプトを貼り付けました')};
 $('form').onsubmit=async e=>{e.preventDefault();const id=$('editId').value||crypto.randomUUID();const old=items.find(x=>x.id===id);const now=Date.now();let storedImage=imageData;if(imageBlob){try{await putImageBlob(id,imageBlob);storedImage='idb:'+id}catch{storedImage=await blobToDataUrl(imageBlob);toast('この環境では画像を従来方式で保存します')}}const obj={id,name:$('name').value.trim(),prompt:$('prompt').value.trim(),author:$('author').value.trim(),xhandle:$('xhandle').value.trim(),source:$('source').value.trim(),memo:$('memo').value.trim(),tags:[...selectedTags],image:storedImage,fav:old?.fav||false,pinned:old?.pinned||false,useCount:old?.useCount||0,lastUsed:old?.lastUsed||0,created:old?.created||now,updated:now};if(!obj.name||!obj.prompt)return;snapshot(old?'編集':'新規登録');const before=items,deleted=editorTagDraft?.deletedTags||new Set();let next=items.map(x=>deleted.size?{...x,tags:(x.tags||[]).filter(t=>!deleted.has(t))}:x);items=old?next.map(x=>x.id===id?obj:x):[...next,obj];if(!save()){items=before;return}if(editorTagDraft){customTags=new Set(editorTagDraft.customTags);prefs.hiddenTags=[...editorTagDraft.hiddenTags];prefs.tagOrder=[...editorTagDraft.tagOrder];filterTags=new Set([...filterTags].filter(t=>!deleted.has(t)));savePrefs()}editorTagDraft=null;imageBlob=null;if(editorImageObjectUrl){URL.revokeObjectURL(editorImageObjectUrl);editorImageObjectUrl=''}$('editor').close();document.body.classList.remove('editor-open');render();toast('設定を保存しました')};
 let optionPrefsDraft=null;
-const openOptions=()=>{optionPrefsDraft=structuredClone(prefs);$('rememberOps').checked=!!optionPrefsDraft.rememberOps;$('buttonGlowEnabled').checked=!!optionPrefsDraft.buttonGlowEnabled;$('doubleTapOpenEnabled').checked=!!optionPrefsDraft.doubleTapOpenEnabled;$('dragVibrationEnabled').checked=!!optionPrefsDraft.dragVibrationEnabled;$('cardCellSize').value=['small','medium','large'].includes(optionPrefsDraft.cardCellSize)?optionPrefsDraft.cardCellSize:'medium';$('folderNameSize').value=['small','medium','large'].includes(optionPrefsDraft.folderNameSize)?optionPrefsDraft.folderNameSize:'medium';$('mainActionOpenMode').value=['single','double','long'].includes(optionPrefsDraft.mainActionOpenMode)?optionPrefsDraft.mainActionOpenMode:'single';$('shortcutDelay').value=String(optionPrefsDraft.shortcutDelay||800);$('shortcutDelay').disabled=false;$('optionDialog').showModal()};
+const openOptions=()=>{optionPrefsDraft=structuredClone(prefs);$('rememberOps').checked=!!optionPrefsDraft.rememberOps;$('buttonGlowEnabled').checked=!!optionPrefsDraft.buttonGlowEnabled;$('doubleTapOpenEnabled').checked=!!optionPrefsDraft.doubleTapOpenEnabled;$('dragVibrationEnabled').checked=!!optionPrefsDraft.dragVibrationEnabled;$('cardCellSize').value=['small','medium','large'].includes(optionPrefsDraft.cardCellSize)?optionPrefsDraft.cardCellSize:'medium';$('folderNameSize').value=['small','medium','large'].includes(optionPrefsDraft.folderNameSize)?optionPrefsDraft.folderNameSize:'medium';$('mainActionOpenMode').value=['single','double'].includes(optionPrefsDraft.mainActionOpenMode)?optionPrefsDraft.mainActionOpenMode:'single';$('shortcutDelay').value=String(optionPrefsDraft.shortcutDelay||800);$('shortcutDelay').disabled=false;$('optionDialog').showModal()};
 function openSearchKeepingScroll(){
   const panel=$('searchPanel');
   panel.classList.remove('hidden');
@@ -1544,45 +1538,18 @@ function openSearchKeepingScroll(){
 }
 $('viewOptionBtn').onclick=openOptions;
 
-/* TEST100e: search/help can use single tap, double tap or long press. */
-let ppMainActionHold=null;
+/* TEST100e5: the three main-screen actions use single or double tap. */
 let ppMainActionLastTap=null;
 function ppMainActionTarget(target){
   const btn=target?.closest?.('button');
-  if(!btn||btn.disabled||!['searchMobile','helpMobile'].includes(btn.id))return null;
+  if(!btn||btn.disabled||!['bottomNew','searchMobile','helpMobile'].includes(btn.id))return null;
   return btn;
 }
-function ppCancelMainActionHold(){
-  if(!ppMainActionHold)return;
-  clearTimeout(ppMainActionHold.timer);
-  ppMainActionHold=null;
-}
-document.addEventListener('pointerdown',e=>{
-  if(prefs.mainActionOpenMode!=='long')return;
-  if(e.pointerType==='mouse'&&e.button!==0)return;
-  const btn=ppMainActionTarget(e.target);
-  if(!btn)return;
-  ppCancelMainActionHold();
-  const st={btn,pointerId:e.pointerId,x:e.clientX,y:e.clientY,timer:null};
-  st.timer=setTimeout(()=>{
-    if(ppMainActionHold!==st)return;
-    ppMainActionHold=null;
-    if(btn.isConnected&&!btn.disabled)btn.click();
-  },Number(prefs.shortcutDelay)||800);
-  ppMainActionHold=st;
-},true);
-document.addEventListener('pointermove',e=>{
-  const st=ppMainActionHold;
-  if(!st||e.pointerId!==st.pointerId)return;
-  if(Math.hypot(e.clientX-st.x,e.clientY-st.y)>12)ppCancelMainActionHold();
-},true);
-['pointerup','pointercancel'].forEach(type=>document.addEventListener(type,e=>{
-  if(ppMainActionHold&&e.pointerId===ppMainActionHold.pointerId)ppCancelMainActionHold();
-},true));
 document.addEventListener('click',e=>{
   if(e.detail===0)return;
   const btn=ppMainActionTarget(e.target);
   if(!btn)return;
+  if(btn===bottomNew&&shortcutFired){shortcutFired=false;e.preventDefault();e.stopImmediatePropagation();return}
   const mode=prefs.mainActionOpenMode||'single';
   if(mode==='single')return;
   e.preventDefault();
@@ -1594,15 +1561,12 @@ document.addEventListener('click',e=>{
     btn.click();
   }else ppMainActionLastTap={btn,time:now};
 },true);
-document.addEventListener('contextmenu',e=>{
-  if(prefs.mainActionOpenMode!=='long')return;
-  if(ppMainActionTarget(e.target))e.preventDefault();
-},true);
 $('searchMobile').onclick=()=>toggleSearchPanel();
 $('helpMobile').onclick=()=>openMainHelp();
 
-$('optionSave').onclick=()=>{if(optionPrefsDraft){prefs=structuredClone(optionPrefsDraft);if(prefs.rememberOps){prefs.view=prefs.view||'card';prefs.sort=$('sort').value;prefs.detailFavSort=detailFavSort;prefs.openFolderIds=[...openFolders];prefs.openCardIds=getOpenDetailIds()}else{delete prefs.sort;delete prefs.detailFavSort;delete prefs.openFolderIds;delete prefs.openCardIds;detailFavSort=false}savePrefs();document.body.classList.toggle('buttonGlowEnabled',!!prefs.buttonGlowEnabled);document.body.dataset.cardCellSize=prefs.cardCellSize||'medium';document.body.dataset.folderNameSize=prefs.folderNameSize||'medium'}optionPrefsDraft=null;$('optionDialog').close();toast('オプションを保存しました')};
-$('optionCancel').onclick=()=>{optionPrefsDraft=null;$('optionDialog').close()};
+function closeOptionSections(){document.querySelectorAll('#optionDialog details[open]').forEach(section=>{section.open=false});developerTapCount=0;clearTimeout(developerTapTimer)}
+$('optionSave').onclick=()=>{if(optionPrefsDraft){prefs=structuredClone(optionPrefsDraft);if(prefs.rememberOps){prefs.view=prefs.view||'card';prefs.sort=$('sort').value;prefs.detailFavSort=detailFavSort;prefs.openFolderIds=[...openFolders];prefs.openCardIds=getOpenDetailIds()}else{delete prefs.sort;delete prefs.detailFavSort;delete prefs.openFolderIds;delete prefs.openCardIds;detailFavSort=false}savePrefs();document.body.classList.toggle('buttonGlowEnabled',!!prefs.buttonGlowEnabled);document.body.dataset.cardCellSize=prefs.cardCellSize||'medium';document.body.dataset.folderNameSize=prefs.folderNameSize||'medium'}optionPrefsDraft=null;closeOptionSections();$('optionDialog').close();toast('オプションを保存しました')};
+$('optionCancel').onclick=()=>{optionPrefsDraft=null;closeOptionSections();$('optionDialog').close()};
 $('optionClose').onclick=()=>$('optionCancel').click();
 $('resetDataBtn').onclick=resetDataToInitial;
 $('clearCacheBtn').onclick=clearPhysicalCache;
@@ -1614,7 +1578,7 @@ $('doubleTapOpenEnabled').onchange=e=>{if(optionPrefsDraft)optionPrefsDraft.doub
 $('dragVibrationEnabled').onchange=e=>{if(optionPrefsDraft)optionPrefsDraft.dragVibrationEnabled=e.target.checked};
 $('cardCellSize').onchange=e=>{if(optionPrefsDraft)optionPrefsDraft.cardCellSize=['small','medium','large'].includes(e.target.value)?e.target.value:'medium'};
 $('folderNameSize').onchange=e=>{if(optionPrefsDraft)optionPrefsDraft.folderNameSize=['small','medium','large'].includes(e.target.value)?e.target.value:'medium'};
-$('mainActionOpenMode').onchange=e=>{const mode=['single','double','long'].includes(e.target.value)?e.target.value:'single';if(optionPrefsDraft)optionPrefsDraft.mainActionOpenMode=mode};
+$('mainActionOpenMode').onchange=e=>{const mode=['single','double'].includes(e.target.value)?e.target.value:'single';if(optionPrefsDraft)optionPrefsDraft.mainActionOpenMode=mode};
 $('shortcutDelay').onchange=e=>{if(optionPrefsDraft)optionPrefsDraft.shortcutDelay=Number(e.target.value)||800};
 $('optionDialog').addEventListener('cancel',e=>{e.preventDefault();$('optionCancel').click()});
 
@@ -1658,8 +1622,7 @@ $('importFile').onchange=async e=>{
       prefs={...prefs,...data.prefs};
       prefs.tagOrder=Array.isArray(prefs.tagOrder)?prefs.tagOrder:[];
       prefs.hiddenTags=Array.isArray(prefs.hiddenTags)?prefs.hiddenTags:[];
-      const importedLegacyLong=Object.prototype.hasOwnProperty.call(data.prefs,'longPressMainActionsEnabled')?!!data.prefs.longPressMainActionsEnabled:(Object.prototype.hasOwnProperty.call(data.prefs,'longPressAllButtonsEnabled')?!!data.prefs.longPressAllButtonsEnabled:(!!data.prefs.longPressHelpEnabled||!!data.prefs.longPressSearchEnabled));
-      prefs.mainActionOpenMode=['single','double','long'].includes(data.prefs.mainActionOpenMode)?data.prefs.mainActionOpenMode:(importedLegacyLong?'long':'single');
+      prefs.mainActionOpenMode=['single','double'].includes(data.prefs.mainActionOpenMode)?data.prefs.mainActionOpenMode:'single';
       delete prefs.shortcutEnabled;
       delete prefs.longPressMainActionsEnabled;
       delete prefs.longPressAllButtonsEnabled;
@@ -1675,7 +1638,7 @@ $('importFile').onchange=async e=>{
     undoState=null;
     save();saveFolders();savePrefs();document.body.dataset.cardCellSize=prefs.cardCellSize||'medium';document.body.dataset.folderNameSize=prefs.folderNameSize||'medium';
     localStorage.setItem(DATA_VERSION_KEY,DATA_SCHEMA_VERSION);
-    $('optionDialog').close();render();
+    closeOptionSections();$('optionDialog').close();render();
     toast(needsMigration?'バージョン1.xxのデータを2.0用に移行しました。':'データを復元しました');
   }catch{
     alert('このデータファイルは読み込めませんでした。');
@@ -1802,8 +1765,8 @@ let developerTapCount=0,developerTapTimer=null;
 $('developerSummary').addEventListener('click',e=>{
   if($('developerOptions').open)return;
   e.preventDefault();developerTapCount++;
-  clearTimeout(developerTapTimer);developerTapTimer=setTimeout(()=>{developerTapCount=0},1200);
-  if(developerTapCount>=3){developerTapCount=0;clearTimeout(developerTapTimer);$('developerOptions').open=true;toast('開発者向け機能を開きました')}
+  clearTimeout(developerTapTimer);developerTapTimer=setTimeout(()=>{developerTapCount=0},2000);
+  if(developerTapCount>=5){developerTapCount=0;clearTimeout(developerTapTimer);$('developerOptions').open=true;toast('開発者向け機能を開きました')}
 });
 const debugSamples=[
 ['ねこのかいもの','かわいい猫が魚屋で買い物をしている。手書き風イラスト、パステルカラー。'],
