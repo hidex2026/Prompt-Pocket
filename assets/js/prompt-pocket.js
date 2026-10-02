@@ -1531,7 +1531,7 @@ let ppMainActionHold=null;
 let ppMainActionLastTap=null;
 function ppMainActionTarget(target){
   const btn=target?.closest?.('button');
-  if(!btn||btn.disabled||!['searchMobile','searchToggleBtn','helpMobile','helpBtn'].includes(btn.id))return null;
+  if(!btn||btn.disabled||!['searchMobile','helpMobile'].includes(btn.id))return null;
   return btn;
 }
 function ppCancelMainActionHold(){
