@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#ffffff">
-  <title>Prompt Pocket PP_v1.9_TEST106</title>
+  <title>Prompt Pocket PP_v1.9_TEST107</title>
   <!--
   Prompt Pocket ver.1.9 / FOLDER TEST1
   Folder feature baseline:
@@ -20,7 +20,7 @@
 <body>
 <header class="topbar">
   <div>
-    <div class="titleLine"><h1>Prompt Pocket</h1><span class="headerVersion">PP_v1.9_TEST106</span></div>
+    <div class="titleLine"><h1>Prompt Pocket</h1><span class="headerVersion">PP_v1.9_TEST107</span></div>
   </div>
   <div class="topActions">
     <button id="newBtn" class="primary">＋ 新規登録</button>
@@ -136,7 +136,7 @@
         <p class="fieldHint">削除したいタグを最後にクリックして「－削除」。プロンプト本体は削除されません。</p>
       </fieldset>
       <label>メモ
-        <textarea id="memo" rows="5" placeholder="ライティングが参考になる、など"></textarea>
+        <textarea id="memo" rows="6" placeholder="ライティングが参考になる、など"></textarea>
       </label>
     </details>
 
@@ -323,6 +323,14 @@
       <div><b>③ 新しいスマホ</b><span>Prompt Pocketで「データを読み込む」を選ぶ</span></div>
     </div>
     <p class="noteText">読み込みを実行すると、新しいスマホ側に現在あるPrompt Pocketのデータは、読み込んだ内容に置き換わります。</p>
+  </div>
+</dialog>
+
+<dialog id="dataConfirmDialog" class="sampleConfirmDialog">
+  <div class="sampleConfirmPanel">
+    <h2 id="dataConfirmTitle">確認</h2>
+    <p id="dataConfirmMessage" class="dataConfirmMessage"></p>
+    <div class="sampleActions"><button id="dataConfirmOk" class="dangerStrong" type="button">OK</button><button id="dataConfirmCancel" class="ghost" type="button">キャンセル</button></div>
   </div>
 </dialog>
 

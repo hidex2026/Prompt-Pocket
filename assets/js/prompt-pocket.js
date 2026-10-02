@@ -1449,20 +1449,26 @@ $('editor').addEventListener('cancel',e=>{e.preventDefault();closeEditor()});
 $('cancelBtn').onclick=closeEditor;$('editorCloseBtn').onclick=closeEditor;$('search').oninput=render;$('sort').onchange=()=>{randomOrder=[];setSortMode($('sort').value)};$('clearFilters').onclick=()=>{$('search').value='';filterTags.clear();render()};$('undoBtn').onclick=()=>{if(!undoState)return;if(!confirm('前の状態に戻しますか？\n\n直前の操作を取り消して、前の状態に戻します。'))return;const current=structuredClone(items);items=structuredClone(undoState.items);undoState={label:'元に戻す前の状態',items:current};save();render();toast('前の状態に戻しました')};
 $('closeAllBtn').onclick=closeAllOpenContent;
 function defaultPrefs(){return {view:'card',welcomed:false,tagOrder:[],hiddenTags:[],rememberOps:false,buttonGlowEnabled:true,doubleTapOpenEnabled:false,dragVibrationEnabled:true,cardCellSize:'medium',folderNameSize:'medium',mainActionOpenMode:'single',shortcutDelay:800,customTags:[]}}
+let dataConfirmResolve=null;
+function closeDataConfirm(result){const dialog=$('dataConfirmDialog');if(dialog.open)dialog.close();const resolve=dataConfirmResolve;dataConfirmResolve=null;if(resolve)resolve(result)}
+function showDataConfirm(title,message){$('dataConfirmTitle').textContent=title;$('dataConfirmMessage').textContent=message;return new Promise(resolve=>{dataConfirmResolve=resolve;$('dataConfirmDialog').showModal()})}
+$('dataConfirmOk').onclick=()=>closeDataConfirm(true);
+$('dataConfirmCancel').onclick=()=>closeDataConfirm(false);
+$('dataConfirmDialog').addEventListener('cancel',e=>{e.preventDefault();closeDataConfirm(false)});
 async function resetDataToInitial(){
-  if(!confirm('登録したカード、フォルダ、タグ、設定、画像を削除して初期状態に戻しますか？\n\nサイト本体のキャッシュは残ります。'))return;
+  if(!await showDataConfirm('データの初期化','登録したカード、フォルダ、タグ、設定、画像を削除して初期状態に戻しますか？\n\nサイト本体のキャッシュは残ります。'))return;
   localStorage.clear();await deleteImageDb();items=[];folders=[];undoState=null;customTags.clear();prefs=defaultPrefs();
   seedStarterFolders();savePrefs();localStorage.setItem(DATA_VERSION_KEY,DATA_SCHEMA_VERSION);localStorage.setItem(IMAGE_DB_MIGRATION_KEY,'done');localStorage.setItem(VERSION_KEY,APP_VERSION);
   location.reload();
 }
 async function clearPhysicalCache(){
-  if(!confirm('サイト本体のキャッシュを削除して、新しく読み込み直しますか？\n\n登録したカード、フォルダ、設定、画像は削除されません。'))return;
+  if(!await showDataConfirm('キャッシュの削除','サイト本体のキャッシュを削除して、新しく読み込み直しますか？\n\n登録したカード、フォルダ、設定、画像は削除されません。'))return;
   if('caches'in window){const keys=await caches.keys();await Promise.all(keys.filter(key=>key.startsWith('prompt-pocket-static-')).map(key=>caches.delete(key)))}
   toast('キャッシュを削除しました。次回は新しく読み込みます');
 }
 async function eraseEverything(){
-  if(!confirm('⚠️ Prompt Pocketのすべてを削除します。\n\nカード、フォルダ、設定、画像、キャッシュが削除されます。初期カードも作成しません。\n続けますか？'))return;
-  if(!confirm('最終確認\n本当にすべてを削除しますか？\nこの操作は元に戻せません。'))return;
+  if(!await showDataConfirm('すべてを削除','⚠️ Prompt Pocketのすべてを削除します。\n\nカード、フォルダ、設定、画像、キャッシュが削除されます。初期カードも作成しません。\n続けますか？'))return;
+  if(!await showDataConfirm('最終確認','本当にすべてを削除しますか？\nこの操作は元に戻せません。'))return;
   localStorage.clear();sessionStorage.clear();await deleteImageDb();
   if('caches'in window){const keys=await caches.keys();await Promise.all(keys.filter(key=>key.startsWith('prompt-pocket-static-')).map(key=>caches.delete(key)))}
   if('serviceWorker'in navigator){const registrations=await navigator.serviceWorker.getRegistrations();await Promise.all(registrations.filter(reg=>reg.scope.startsWith(location.origin)).map(reg=>reg.unregister()))}
