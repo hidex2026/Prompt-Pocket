@@ -2207,33 +2207,3 @@ body[data-folder-name-size="large"] .unifiedTable .folderNameBtn{font-size:20px!
 /* TEST94: match the pointer cue to the complete card drag surface. */
 .unifiedTable td.nameCell{cursor:pointer}
 .unifiedTable td.nameCell .cardThumbDeadZone{cursor:default}
-
-/* TEST100a: sorting changes only the arrow, not the header's color. */
-.detailTable .sortableHead.active{
-  color:inherit!important;
-  background:#f2f7fb!important;
-  box-shadow:none!important;
-}
-
-/* Keep the folder enclosure visible while its temporary exit target exists. */
-body.pp-dnd-active .detailTable.detailTable .folderFrameEnd>td>div{
-  display:block!important;
-  opacity:1!important;
-}
-
-/* Use the same green moving cue for folder previews as for card previews. */
-.folder-dnd-ghost{
-  opacity:.72!important;
-  filter:drop-shadow(0 8px 20px rgba(55,145,85,.25))!important;
-}
-.folder-dnd-ghost .folderRow>td{
-  background:#bff3cf!important;
-  border-color:#43a867!important;
-  box-shadow:inset 0 2px 0 #43a867,inset 0 -2px 0 #43a867!important;
-}
-.folder-dnd-ghost .folderRow>td:first-child{
-  box-shadow:inset 2px 0 0 #43a867,inset 0 2px 0 #43a867,inset 0 -2px 0 #43a867!important;
-}
-.folder-dnd-ghost .folderRow>td:last-child{
-  box-shadow:inset -2px 0 0 #43a867,inset 0 2px 0 #43a867,inset 0 -2px 0 #43a867!important;
-}

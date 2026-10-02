@@ -502,7 +502,6 @@ function bindFolderReorder(){
         // Pointer events can be delivered again while the mouse is captured.
         // Keep exactly one floating folder copy for a drag operation.
         if(drag||ghost)return;
-        clear();
         drag=true;suppressClick=true;row.classList.add('folderDragging');
         document.querySelectorAll('.folder-dnd-ghost').forEach(node=>node.remove());
         ppCollapseForDrag({row});
@@ -583,9 +582,7 @@ function bindFolderReorder(){
       // only from a real left mousedown until its matching mouseup/blur.
       handle.addEventListener('mousedown',e=>{
         if(e.button!==0)return;
-        clear();
         sx=e.clientX;sy=e.clientY;lastX=sx;lastY=sy;drag=false;moved=false;suppressClick=false;
-        timer=setTimeout(()=>startDrag(sx,sy),800);
         const cleanup=()=>{
           document.removeEventListener('mousemove',onMove,true);
           document.removeEventListener('mouseup',onUp,true);
@@ -594,7 +591,7 @@ function bindFolderReorder(){
         const onMove=move=>{
           if((move.buttons&1)!==1){onUp(move);return}
           if(!drag&&Math.hypot(move.clientX-sx,move.clientY-sy)>2){
-            moved=true;clear();startDrag(move.clientX,move.clientY);
+            moved=true;startDrag(move.clientX,move.clientY);
           }
           if(drag){move.preventDefault();moveDrag(move.clientX,move.clientY)}
         };
@@ -765,9 +762,6 @@ function ppEnsureFolderExitSlot(st){
   const last=children.at(-1);if(!last)return;
   let anchor=last;
   if(anchor.nextElementSibling?.classList.contains('rowDetail'))anchor=anchor.nextElementSibling;
-  // Keep the folder's closing edge attached to its last card.  The temporary
-  // exit target belongs outside the enclosure, not between the card and edge.
-  if(anchor.nextElementSibling?.classList.contains('folderFrameEnd'))anchor=anchor.nextElementSibling;
   ppRemoveFolderExitSlot();
   const slot=document.createElement('tr');
   slot.id='ppFolderExitSlot';slot.dataset.folderExit=folderId;
@@ -800,7 +794,7 @@ function ppBegin(row,x,y,source=row,pcMode=false){
     candidate:null,pcMode,pcTarget:null,source,scrollDir:0,scrollFrame:null
   };
   const st=ppDnd;
-  st.timer=setTimeout(()=>ppStart(st),800);
+  if(!pcMode)st.timer=setTimeout(()=>ppStart(st),800);
 }
 
 function ppCollapseForDrag(st){
@@ -829,7 +823,6 @@ function ppStart(st){
   // second time would append another detached ghost, so this operation must
   // be strictly one-shot for its current drag state.
   if(ppDnd!==st||st.active||st.ghost)return;
-  clearTimeout(st.timer);st.timer=null;
   document.querySelectorAll('.pp-dnd-ghost').forEach(node=>node.remove());
   ppCollapseForDrag(st);
   ppEnsureFolderExitSlot(st);
@@ -1244,7 +1237,7 @@ function bindCardPrimaryInteractions(row,area){
     if(ppDnd?.row!==row||ppDnd.active)return;
     if(Math.hypot(e.clientX-ppDnd.startX,e.clientY-ppDnd.startY)<=(ppDnd.pcMode?2:10))return;
     moved=true;
-    if(ppDnd.pcMode){clearTimeout(ppDnd.timer);ppDnd.timer=null;ppStart(ppDnd)}else ppFinishCancel();
+    if(ppDnd.pcMode)ppStart(ppDnd);else ppFinishCancel();
   });
   area.addEventListener('pointercancel',()=>{moved=true;if(ppDnd?.row===row&&!ppDnd.active)ppFinishCancel()});
   area.addEventListener('click',e=>{
@@ -1283,7 +1276,7 @@ function bindPocketDnd(){
       });
       menu.addEventListener('pointermove',e=>{
         if(ppDnd?.row!==row||ppDnd.active||Math.hypot(e.clientX-ppDnd.startX,e.clientY-ppDnd.startY)<=(ppDnd.pcMode?2:10))return;
-        if(ppDnd.pcMode){clearTimeout(ppDnd.timer);ppDnd.timer=null;ppStart(ppDnd)}else ppFinishCancel();
+        if(ppDnd.pcMode)ppStart(ppDnd);else ppFinishCancel();
       });
       menu.addEventListener('pointercancel',()=>{if(ppDnd?.row===row&&!ppDnd.active)ppFinishCancel()});
       menu.addEventListener('click',e=>{
