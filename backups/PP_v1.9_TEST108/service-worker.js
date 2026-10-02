@@ -1,10 +1,10 @@
 const CACHE_PREFIX='prompt-pocket-static-';
-const CACHE_NAME=CACHE_PREFIX+'test109a-v1';
+const CACHE_NAME=CACHE_PREFIX+'test108-v1';
 const APP_SHELL=[
   './',
   './index.html',
-  './assets/css/prompt-pocket.css?v=test109a',
-  './assets/js/prompt-pocket.js?v=test109a'
+  './assets/css/prompt-pocket.css',
+  './assets/js/prompt-pocket.js'
 ];
 
 self.addEventListener('install',event=>{
@@ -36,18 +36,6 @@ self.addEventListener('fetch',event=>{
         const cachedPage=await cache.match('./index.html');
         if(cachedPage)return cachedPage;
         return new Response('Prompt Pocketをオフラインで開けませんでした。オンライン時に一度開いてください。',{status:503,headers:{'Content-Type':'text/plain; charset=utf-8'}});
-      }
-    }
-
-    if(request.destination==='script'||request.destination==='style'){
-      try{
-        const response=await fetch(request);
-        if(response.ok)await cache.put(request,response.clone());
-        return response;
-      }catch{
-        const cachedAsset=await cache.match(request);
-        if(cachedAsset)return cachedAsset;
-        throw new Error('Required asset is unavailable.');
       }
     }
 

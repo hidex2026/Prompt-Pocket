@@ -1,0 +1,2367 @@
+*{box-sizing:border-box} :root{font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;color:#171717;background:#f6f5f2}
+body{margin:0;padding-bottom:84px}.topbar{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:rgba(246,245,242,.92);backdrop-filter:blur(12px);border-bottom:1px solid #ddd}
+h1,h2,h3,p{margin-top:0}.topbar h1{font-size:22px;margin:2px 0}.titleLine{display:flex;align-items:center;gap:8px}.headerOptionBtn{margin-left:12px;min-width:70px;padding:4px 7px;border:0;border-radius:12px;background:transparent;color:#222;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1.1}.headerOptionIcon{font-size:25px;line-height:1}.headerOptionLabel{font-size:11px;font-weight:750;white-space:nowrap}.headerOptionBtn:hover{background:#e9e7e1}.eyebrow{font-size:10px;letter-spacing:.18em;color:#777;font-weight:800}
+button,input,textarea,select{font:inherit}.primary,.ghost,.danger,.iconBtn{border:0;border-radius:14px;padding:11px 14px;font-weight:750;cursor:pointer}
+.primary{background:#171717;color:white}.ghost{background:#e9e7e1;color:#222}.danger{background:#fee2e2;color:#991b1b}.iconBtn{background:#eee;width:42px;height:42px;font-size:24px;padding:0}
+main{max-width:1100px;margin:auto;padding:18px}.hero{background:white;border:1px solid #e3e0d9;border-radius:24px;padding:22px;box-shadow:0 8px 30px rgba(0,0,0,.04)}
+.hero h2{font-size:clamp(23px,5vw,38px);margin-bottom:8px}.hero p{color:#666;line-height:1.6}.searchrow{display:flex;gap:8px;margin-top:18px}
+input,textarea,select{width:100%;border:1px solid #d8d5ce;border-radius:13px;background:#fff;padding:12px;outline:none}input:focus,textarea:focus{border-color:#777}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.chip{border:1px solid #ddd8cf;background:#f4f2ed;border-radius:999px;padding:8px 11px;font-size:13px;cursor:pointer}.chip.on{background:#171717;color:white;border-color:#171717}
+.toolbar{display:flex;justify-content:space-between;align-items:center;margin:22px 2px 12px}.toolbar select{width:auto}.viewCountRow{display:flex;align-items:center;gap:14px}.viewCountRow #count{color:#777;font-size:13px;white-space:nowrap}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.card{background:#fff;border:1px solid #e1ded7;border-radius:20px;overflow:hidden;box-shadow:0 6px 22px rgba(0,0,0,.035)}
+.thumb{aspect-ratio:4/3;background:linear-gradient(135deg,#ece9e2,#ddd9d0);display:grid;place-items:center;overflow:hidden;position:relative}.thumb img{width:100%;height:100%;object-fit:cover}.fav{position:absolute;right:10px;top:10px;border:0;border-radius:999px;background:rgba(255,255,255,.9);width:40px;height:40px;font-size:20px}
+.cardbody{padding:15px}.card h3{font-size:18px;margin-bottom:5px}.meta{color:#777;font-size:13px;margin-bottom:10px}.prompt{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;line-height:1.5;color:#555;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.card .chips{margin-top:10px}.card .chip{padding:5px 8px;font-size:11px}.cardactions{display:flex;gap:7px;margin-top:14px}.cardactions button{flex:1;border:0;border-radius:11px;padding:9px;background:#efede8;font-weight:700}
+.empty{text-align:center;padding:70px 20px;color:#777}.emptyIcon{font-size:40px}.hidden{display:none!important}
+.bottomnav{display:none}
+dialog{width:min(680px,calc(100% - 24px));max-height:92vh;border:0;border-radius:24px;padding:0;box-shadow:0 30px 80px rgba(0,0,0,.25)}dialog::backdrop{background:rgba(0,0,0,.45);backdrop-filter:blur(3px)}
+form{padding:20px}.dialogHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}label{display:block;font-weight:700;font-size:13px;margin:14px 0}label input,label textarea{margin-top:7px;font-weight:400}.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+fieldset{border:1px solid #ddd8cf;border-radius:16px;margin:14px 0;padding:12px}legend{font-weight:800;font-size:13px}.addTag{display:flex;gap:8px;margin-top:12px}.addTag button{white-space:nowrap}
+.preview{height:180px;border-radius:16px;overflow:hidden;background:#eee;margin-top:8px}.preview img{width:100%;height:100%;object-fit:cover}.actions{display:grid;grid-template-columns:auto 1fr auto auto;gap:8px;align-items:center;margin-top:20px}
+#toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%) translateY(20px);background:#171717;color:#5b4700;padding:11px 16px;border-radius:999px;opacity:0;pointer-events:none;transition:.2s;z-index:50;font-weight:700}#toast.show{opacity:1;transform:translateX(-50%)}
+@media(max-width:800px){.grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){body{padding-bottom:78px}.topbar{padding:12px 14px}.topbar .primary{display:none}main{padding:12px}.hero{padding:17px;border-radius:20px}.hero h2{font-size:25px}.grid{grid-template-columns:1fr}.bottomnav{display:grid;grid-template-columns:repeat(3,1fr);position:fixed;bottom:0;left:0;right:0;z-index:20;background:rgba(255,255,255,.96);border-top:1px solid #ddd;padding:6px max(8px,env(safe-area-inset-right)) calc(6px + env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left));backdrop-filter:blur(14px)}.bottomnav button{border:0;background:transparent;font-size:20px;padding:4px}.bottomnav span{display:block;font-size:10px;margin-top:2px}.bottomnav .active{font-weight:800}.two{grid-template-columns:1fr}.actions{grid-template-columns:1fr 1fr}.actions span{display:none}.actions button{width:100%}dialog{max-height:96vh;border-radius:20px}form{padding:16px}.searchrow{align-items:stretch}.searchrow .ghost{padding-inline:10px}}
+.topActions{display:flex;gap:8px;align-items:center}.dangerStrong{border:1px solid #ef4444;border-radius:14px;padding:11px 14px;background:#dc2626;color:#fff;font-weight:800;cursor:pointer}.dangerStrong:hover{filter:brightness(.95)}button:disabled{opacity:.42;cursor:not-allowed}.toolbarRight{display:flex;gap:10px;align-items:center}.viewSwitch{display:flex;background:#e9e7e1;border-radius:12px;padding:3px}.viewBtn{border:0;background:transparent;border-radius:9px;padding:8px 10px;font-weight:750;cursor:pointer}.viewBtn.active{background:#fff;box-shadow:0 1px 5px rgba(0,0,0,.1)}.pin{position:absolute;left:10px;top:10px;border:0;border-radius:999px;background:rgba(255,255,255,.9);width:40px;height:40px;font-size:17px;opacity:.55}.pin.on{opacity:1;background:#fff3cd}.memo{margin-top:10px;padding:9px 10px;background:#f6f5f2;border-radius:10px;font-size:12px;line-height:1.5}.dates{margin-top:10px;color:#999;font-size:10px}.cardactions{flex-wrap:wrap}.cardactions button{min-width:78px}.cardactions .dangerMini{background:#fee2e2;color:#991b1b}.detailMode{grid-template-columns:1fr}.detailMode .card{display:grid;grid-template-columns:minmax(180px,280px) 1fr}.detailMode .thumb{aspect-ratio:auto;min-height:230px}.detailMode .prompt{display:block;-webkit-line-clamp:unset;white-space:pre-wrap}.detailMode .cardactions button{flex:0 1 auto}.detailMode .memo{font-size:13px}
+@media(max-width:760px){.topbar{align-items:flex-start}.topActions{flex-wrap:wrap;justify-content:flex-end}.toolbar{align-items:flex-start;gap:10px}.toolbarRight{flex-direction:column;align-items:flex-end}.detailMode .card{grid-template-columns:1fr}.detailMode .thumb{aspect-ratio:4/3;min-height:0}}
+@media(max-width:560px){.topbar .topActions{display:none}.toolbar{flex-direction:column;gap:8px}.viewCountRow{width:100%;justify-content:space-between}.toolbarRight{width:100%;align-items:stretch}.viewSwitch{align-self:flex-start}.toolbar select{width:100%}.cardactions{display:grid;grid-template-columns:repeat(2,1fr)}.cardactions button{min-width:0}.detailMode .card{display:block}}
+/* Windows Explorer風の詳細表示 */
+.detailExplorer{width:100%;background:#fff;border:1px solid #ddd;border-radius:12px;overflow:hidden}.detailScroll{overflow-x:auto}.detailTable{width:100%;min-width:980px;border-collapse:collapse;font-size:13px}.detailTable th{position:relative;z-index:1;text-align:left;font-weight:600;background:#f2f7fb;border-bottom:1px solid #cfd8df;border-right:1px solid #e3e8ec;padding:8px 10px;white-space:nowrap}.detailTable td{padding:7px 10px;border-bottom:1px solid #ececec;vertical-align:middle}.detailTable tbody tr:not(.rowDetail):hover{background:#eaf4ff}.detailTable .starCol{width:44px;text-align:center}.detailTable .opCol{width:220px}.tableIcon{border:0;background:transparent;font-size:18px;cursor:pointer}.nameCell{font-weight:650;white-space:nowrap}.rowName{border:0;background:transparent;padding:0;color:#111;font:inherit;font-weight:650;cursor:pointer;text-align:left}.rowName:hover{text-decoration:underline}.miniPin{margin-left:7px}.tableTags{display:flex;gap:4px;flex-wrap:wrap;max-width:260px}.tableTags span{background:#f0eee9;border-radius:999px;padding:3px 7px;font-size:11px;white-space:nowrap}.dateCell{white-space:nowrap;color:#666}.tableActions{display:flex;gap:5px;white-space:nowrap}.tableActions button,.rowExtra button{border:1px solid #d7d7d7;background:#f7f7f7;border-radius:6px;padding:5px 8px;cursor:pointer}.tableActions .dangerMini{background:#fff0f0;color:#a11;border-color:#efcaca}.rowDetail td{padding:0;background:#fafafa}.rowDetailInner{display:grid;grid-template-columns:140px 1fr;gap:14px;padding:14px 18px;border-bottom:1px solid #ddd}.rowDetailInner img{width:140px;height:105px;object-fit:cover;border-radius:8px}.fullPrompt,.fullMemo{white-space:pre-wrap;line-height:1.55;margin:5px 0 10px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace}.fullMemo{font-family:inherit}.rowExtra{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+@media(max-width:560px){.detailExplorer{border-radius:8px}.detailTable{min-width:900px}.detailTable th{top:0}.rowDetailInner{grid-template-columns:100px 1fr}.rowDetailInner img{width:100px;height:80px}}
+/* v4: compact Explorer detail view + draggable column widths */
+.detailTable{table-layout:fixed;min-width:760px}
+.detailTable .col-star{width:44px}.detailTable .col-name{width:auto}.detailTable .col-actions{width:220px}
+.resizableHead{position:relative!important}.colResizer{position:absolute;right:-4px;top:0;width:9px;height:100%;cursor:col-resize;z-index:4;touch-action:none}.colResizer:hover,.colResizer:active{background:rgba(0,120,215,.18)}
+.nameCell,.authorCell{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rowName{display:inline-block;max-width:calc(100% - 28px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle}.resizingCol{cursor:col-resize!important;user-select:none}
+.rowDetailInner .chips{margin:0 0 10px}.rowDetailInner .chip{display:inline-block;margin:0 5px 5px 0}.rowExtra span{color:#777;font-size:12px}
+@media(max-width:560px){.colResizer{display:none}.detailTable{min-width:760px}}
+
+/* v5: PC/スマホの詳細表示を整理 */
+.detailTable thead{display:table-header-group}
+.detailTable tbody{display:table-row-group}
+.mobileMore{display:none}
+/* PC: 詳細一覧は ★ / 名前 / 操作 のみに簡略化 */
+.detailTable{min-width:760px}
+/* 検索エリアをPCで少しコンパクトに */
+@media(min-width:761px){
+  .hero{padding:18px 22px}
+  .hero h2{font-size:32px;margin-bottom:5px}
+  .hero p{margin-bottom:8px}
+  .searchrow{margin-top:12px}
+  .chips{margin-top:10px}
+}
+/* スマホ: ★ / 名前 / 操作だけ。横スクロールさせない */
+@media(max-width:560px){
+  .detailScroll{overflow-x:hidden}
+  .detailTable{min-width:0;width:100%;table-layout:fixed;font-size:12px}
+  .detailTable .col-star{width:36px}
+  .detailTable .col-name{width:auto!important}
+  .detailTable .col-author,.detailTable .col-updated{display:none}
+  .detailTable .col-actions{width:124px}
+  .detailTable .desktopCol{display:none}
+  .detailTable th,.detailTable td{padding:8px 6px}
+  .detailTable .starCol{width:36px}
+  .detailTable .opCol{width:124px;text-align:center}
+  .tableActions{display:flex;justify-content:center;gap:5px}
+  .tableActions button{padding:5px 7px;font-size:11px;white-space:nowrap}
+  .mobileMore{display:none}
+  .rowName{max-width:calc(100% - 24px)}
+  .rowDetail td{padding:0}
+  .rowDetailInner{grid-template-columns:1fr;padding:12px}
+  .rowDetailInner img{width:100%;height:auto;max-height:220px;object-fit:cover}
+  .rowExtra{font-size:11px}
+}
+
+/* TEST90: the subtitle is intentionally removed; compact the header to use
+   the recovered vertical space without overlapping sticky controls. */
+:root{--pp-topbar-h:60px}
+.topbar{padding-top:8px!important;padding-bottom:8px!important}
+@media(max-width:560px){
+  :root{--pp-topbar-h:46px}
+  .topbar{padding-top:8px!important;padding-bottom:8px!important}
+}
+/* v6: 高機能を隠してシンプルに */
+.optional{font-weight:400;color:#999;font-size:11px}.advanced{margin:16px 0;border:1px solid #ddd8cf;border-radius:16px;background:#faf9f6}.advanced summary{cursor:pointer;padding:13px 14px;font-weight:800;list-style:none}.advanced summary::-webkit-details-marker{display:none}.advanced summary:after{content:'⌄';float:right;color:#777}.advanced[open] summary:after{content:'⌃'}.advanced> :not(summary){margin-left:14px;margin-right:14px}.advanced fieldset{background:#fff}.managePanel,.welcomePanel{padding:22px}.manageGrid{display:grid;gap:14px}.manageGrid section{border:1px solid #e2dfd8;border-radius:16px;padding:16px;background:#faf9f6}.manageGrid h3{margin-bottom:5px}.manageGrid p{color:#666;font-size:13px;line-height:1.5}.manageActions{display:flex;gap:8px;flex-wrap:wrap}.tagManager{display:grid;gap:7px}.tagManageRow{display:grid;grid-template-columns:1fr auto auto;gap:7px;align-items:center}.tagManageRow input{padding:9px}.tagManageRow button{border:0;border-radius:9px;padding:8px 10px;font-weight:700;cursor:pointer}.tagManageRow .tagDelete{background:#fee2e2;color:#991b1b}.welcomePanel{width:min(430px,calc(100vw - 36px));text-align:center}.welcomeIcon{font-size:42px}.welcomeSteps{display:grid;gap:9px;text-align:left;margin:20px 0}.welcomeSteps div{padding:12px;border-radius:14px;background:#f6f5f2}.welcomeSteps b,.welcomeSteps span{display:block}.welcomeSteps span{color:#666;font-size:13px;margin-top:3px}.wide{width:100%}.usage{font-size:10px;color:#999;margin-top:5px}
+@media(max-width:560px){#manageBtn{display:none}.advanced{margin-top:12px}.managePanel{padding:16px}.tagManageRow{grid-template-columns:1fr auto}.tagManageRow .tagDelete{grid-column:2}.welcomePanel{padding:18px}}
+/* Prompt Pocket v1.5.5 */
+.compactHero{padding:14px 18px}.heroLine{margin:0!important;font-size:13px;line-height:1.35!important;color:#777!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.quickMenu{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.quickMenu button{min-height:38px}.searchPanel{margin-top:10px;padding-top:10px;border-top:1px solid #ece9e3}.searchPanel .searchrow{margin-top:0}.textButton{border:0;background:transparent;text-decoration:underline;color:#555;padding:8px 0;cursor:pointer;font-weight:700}.tagAddRow{display:grid;grid-template-columns:minmax(120px,1fr) auto auto;gap:7px;margin:10px 0 12px}.tagAddRow input{min-width:0}.tagDnD{display:flex;flex-wrap:wrap;gap:7px}.manageTagChip{border:1px solid #d8d3ca;background:#fff;border-radius:999px;padding:8px 12px;cursor:grab;font-weight:700;touch-action:none}.manageTagChip.selected{outline:2px solid #222;outline-offset:1px}.manageTagChip.dragging{opacity:.55}.manageTagChip.dragOver{transform:translateX(3px)}.dragHandle{margin-right:5px;color:#999}.detailHelp{text-align:left;margin-top:14px;padding:14px;border-radius:14px;background:#f6f5f2}.detailHelp h3{margin-top:0}.detailHelp p,.noteText{font-size:13px;line-height:1.65;color:#555}.tinyThumb{width:32px;height:32px;object-fit:cover;border-radius:7px;vertical-align:middle;margin-right:7px;border:1px solid #e3e0d9}
+@media(max-width:560px){.compactHero{padding:12px 14px}.heroLine{font-size:12px}.quickMenu{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.quickMenu button{padding:8px 5px;font-size:12px}.tagAddRow{grid-template-columns:1fr auto auto}.searchrow{display:grid;grid-template-columns:1fr auto auto}.searchrow input{min-width:0}.tinyThumb{width:32px;height:32px}.manageTagChip{user-select:none;-webkit-user-select:none}}
+
+/* v1.3 revised */
+.detailTable th{position:relative;top:auto;z-index:1}
+.resizableHead{position:relative!important}
+.imageDropZone{border:2px dashed #d7d2c8;border-radius:16px;padding:20px;text-align:center;background:#faf9f6;cursor:pointer;display:grid;gap:5px;color:#555;transition:.15s}
+.imageDropZone:hover,.imageDropZone.dragOver{border-color:#777;background:#f3f1ec}
+.imageDropZone span,.fieldHint{font-size:12px;color:#777;line-height:1.5}
+#tagChoices .chip{cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
+#tagChoices .chip.activeManage{outline:2px solid #222;outline-offset:2px}
+#tagChoices .chip.dragging{opacity:.5}
+#tagChoices .chip.dragOver{transform:translateX(3px)}
+.helpIntro{text-align:left;color:#555;line-height:1.7;font-size:14px}
+.detailManual{max-height:min(64vh,650px);overflow:auto;padding:16px 18px}
+.detailManual h3{margin:18px 0 5px;font-size:15px}.detailManual h3:first-of-type{margin-top:8px}.detailManual p{margin-bottom:10px}
+.welcomeArrow{font-size:30px;margin:8px 0}.welcomeHelpNote{font-size:13px;color:#666;margin:14px 0 0}.firstWelcome>p{line-height:1.65}
+@media(max-width:560px){.detailManual{max-height:68vh}.imageDropZone{padding:17px 12px}}
+.detailTable .starSortBtn{border:0;background:transparent;font:inherit;font-weight:700;cursor:pointer;padding:2px 6px;border-radius:6px}.detailTable .starSortBtn.active{background:#fff3cd}.detailMenuWrap{position:relative;display:inline-block}.detailPopupMenu{position:absolute;right:0;top:calc(100% + 5px);z-index:30;min-width:150px;padding:5px;background:#fff;border:1px solid #d9d9d9;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.14)}.detailPopupMenu button{display:block;width:100%;border:0;background:transparent;text-align:left;padding:9px 10px;border-radius:7px;cursor:pointer;white-space:nowrap}.detailPopupMenu button:hover{background:#f4f3ef}.detailPopupMenu .dangerMenu{color:#b42318}.detailTable td:last-child{overflow:visible}
+/* hotfix: mobile detail menu + compact page ending */
+.detailMenuWrap.mobileMore{display:none!important}
+@media(max-width:560px){
+  html{height:100%;}
+  body{padding-bottom:0;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column}
+  main{flex:1 1 auto;width:100%;margin:0 auto}
+  .bottomnav{position:static;margin-top:0;flex:0 0 auto;width:100%}
+  .detailPopupMenu{position:absolute;right:0;top:calc(100% + 5px)}
+}
+
+
+/* fix5: tag input layout + viewport-aware detail menu */
+.tagAddRow{display:grid!important;grid-template-columns:1fr auto auto!important;gap:7px!important;align-items:center!important}
+.tagAddRow input{grid-column:1 / -1!important;width:100%!important;min-width:0!important;box-sizing:border-box!important}
+.tagAddRow #addTagBtn{grid-column:2!important}
+.tagAddRow #deleteTagBtn{grid-column:3!important}
+.detailPopupMenu.openUp{top:auto!important;bottom:calc(100% + 5px)!important}
+
+
+/* v1.4: editor actions, expanded-row actions, pin limit UI */
+.editorActions{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important;margin-top:20px}
+.editorActions .saveAction{width:100%}
+.editorSecondary{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.editorSecondary button{width:100%}
+.rowMeta{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:8px;color:#777;font-size:12px}
+.rowMeta button{border:1px solid #d7d7d7;background:#f7f7f7;border-radius:6px;padding:5px 8px;cursor:pointer}
+.rowExtra{margin-top:8px}
+.rowExtra .rowDelete{margin-left:10px}
+@media(max-width:560px){.editorActions{grid-template-columns:1fr 1fr!important}.rowExtra{gap:6px}.rowExtra button{padding:5px 7px;font-size:11px}.rowExtra .rowDelete{margin-left:6px}}
+
+/* v1.5: unified pin wording, full expanded name, six-line prompt windows */
+.appVersion{text-align:center;margin-top:16px;color:#999;font-size:11px}.rememberOption{display:flex;gap:9px;align-items:flex-start;cursor:pointer}.rememberOption input{width:auto;margin-top:3px}.rememberOption span{display:grid;gap:3px}.rememberOption small{color:#777;font-size:12px;line-height:1.45}
+.titleLine{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.titleLine h1{margin:0}.headerVersion{font-size:11px;font-weight:600;color:#999;white-space:nowrap}
+.detailFullName{grid-column:1 / -1;margin-bottom:10px}
+.detailFullName strong{display:block;margin-bottom:5px}
+.detailFullName div{font-weight:750;line-height:1.5;overflow-wrap:anywhere}.detailImageBlock strong{display:block;margin-bottom:5px}.detailImageBlock img{display:block}
+.rowDetailInner .fullPrompt{box-sizing:border-box;height:calc(6 * 1.5em + 24px);max-height:calc(6 * 1.5em + 24px);overflow-y:auto;white-space:pre-wrap;border:1px solid #d8d5ce;border-radius:13px;background:#fff;padding:12px;line-height:1.5}
+#prompt{box-sizing:border-box;height:calc(6 * 1.5em + 26px);min-height:calc(6 * 1.5em + 26px);line-height:1.5;resize:vertical}
+
+/* v1.5.2: 一覧の名前欄を読みやすくする */
+@media(max-width:560px){
+  .detailTable .col-actions{width:118px}
+  .detailTable .opCol{width:118px}
+  .nameCell{white-space:normal;overflow:visible;text-overflow:clip}
+  .rowName{
+    display:-webkit-box;
+    -webkit-box-orient:vertical;
+    -webkit-line-clamp:2;
+    max-width:calc(100% - 24px);
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:normal;
+    line-height:1.35;
+    vertical-align:middle;
+    overflow-wrap:anywhere;
+  }
+}
+
+/* v1.5.3: pin position, fixed mobile nav, prompt paste */
+.promptLabelRow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:7px}
+.promptLabelRow .pastePromptBtn{padding:7px 11px;border-radius:10px;font-size:12px;white-space:nowrap}
+.promptField textarea{margin-top:0!important}
+.nameCell .miniPin{display:inline-block;margin:0 5px 0 4px;vertical-align:middle;line-height:1}
+@media(max-width:560px){
+  body{padding-bottom:calc(62px + env(safe-area-inset-bottom));display:block;min-height:100vh;min-height:100dvh}
+  main{width:100%;margin:0 auto}
+  .bottomnav{display:grid;position:fixed;left:0;right:0;bottom:0;margin:0;width:100%;z-index:40}
+  body.editor-open .bottomnav{display:none}
+  body.editor-open{padding-bottom:0}
+}
+
+/* v1.5.5: expanded detail cleanup + wider operation column */
+@media(max-width:560px){
+  .detailTable .col-actions{width:136px}
+  .detailTable .opCol{width:136px}
+  .tableActions{gap:6px}
+  .tableActions>button[data-copy]{padding:7px 10px;font-size:12px;font-weight:750;min-width:82px}
+  .tableActions .detailMenuWrap>button[data-menu-toggle]{padding:7px 8px;font-size:14px}
+  .nameCell{min-width:0}
+  .rowName{max-width:calc(100% - 28px)}
+}
+
+/* v1.5.5: larger expanded actions + fixed editor controls + highlighted details */
+.rowExtra{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;align-items:stretch}
+.rowExtra button{width:100%;min-height:42px;padding:9px 8px;font-size:13px;font-weight:750;white-space:nowrap}
+.rowExtra .rowDelete{margin-left:4px}
+.advanced>summary{background:#e8f1ff;border:1px solid #b9d4f5;border-radius:14px;padding:13px 16px;font-weight:800;cursor:pointer;list-style-position:inside}
+.advanced[open]>summary{margin-bottom:14px;background:#dcecff}
+#editor form{padding-bottom:154px}
+#editor .editorActions{position:fixed;left:50%;bottom:0;transform:translateX(-50%);z-index:100;width:min(720px,calc(100vw - 24px));box-sizing:border-box;background:rgba(255,255,255,.97);padding:10px 12px calc(10px + env(safe-area-inset-bottom));margin:0;border-top:1px solid #e4e1da;box-shadow:0 -8px 20px rgba(0,0,0,.07);backdrop-filter:blur(12px)}
+@media(max-width:560px){
+  .rowExtra{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+  .rowExtra button{min-height:44px;padding:9px 4px;font-size:12px}
+  .rowExtra .rowDelete{margin-left:3px}
+  #editor form{padding-bottom:164px}
+  #editor .editorActions{width:100%;left:0;transform:none;border-radius:0}
+}
+
+
+/* Prompt Pocket v1.5.8 */
+.editorHead{justify-content:center!important;text-align:center}.editorHead>div{width:100%}.directInputHint{display:block;margin-top:6px;font-size:12px;color:#777;line-height:1.5}.introWelcome{text-align:center}.welcomeCatch{font-weight:800;font-size:16px;color:#333}.welcomeCopy{margin:16px 0;padding:15px;border-radius:16px;background:#f6f5f2;text-align:left;line-height:1.7;color:#555}.welcomeCopy p{margin:0 0 8px}.welcomeCopy strong{display:block;text-align:center;color:#222;margin-top:12px}.welcomeGuide{font-weight:800;margin:18px 0 10px!important}
+
+/* v1.5.8: main undo + developer guard */
+.toolbarUndo{margin-left:auto;white-space:nowrap;padding:8px 11px;font-size:13px}.devFeatureBtn{color:#666;background:#efede8}
+@media(max-width:560px){.toolbar{flex-direction:column}.viewCountRow{display:grid;grid-template-columns:auto auto 1fr;align-items:center;gap:8px}.viewCountRow .toolbarUndo{justify-self:end;margin-left:0}.viewCountRow #count{font-size:12px}}
+
+/* v1.6 experimental navigation */
+.quickMenu{display:none!important}
+@media(max-width:560px){.bottomnav{grid-template-columns:repeat(4,1fr)!important}.bottomnav #bottomNew{background:#ffe59a;border-radius:12px;color:#5b4700;font-weight:800;margin:0 3px}.bottomnav #bottomNew span{font-weight:800}}
+#undoBtn.undoReady{background:#dbeafe;border-color:#93c5fd;color:#1d4ed8;font-weight:800;box-shadow:0 1px 4px rgba(37,99,235,.12)}
+#undoBtn:disabled{opacity:.45;background:#f1f3f5;color:#9aa0a6}
+
+/* v1.61: compact header + sticky view controls */
+.compactHero{margin-bottom:0!important;padding-bottom:0!important}
+.stickyViewBar{position:sticky;top:0;z-index:35;background:rgba(250,249,246,.96);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);padding:8px 2px;margin:4px 0 6px;border-bottom:1px solid rgba(0,0,0,.06)}
+.stickyViewBar .viewCountRow{width:100%;display:flex;align-items:center;gap:14px}
+.sortToolbar{margin-top:8px}
+@media(max-width:560px){.stickyViewBar{margin-left:-2px;margin-right:-2px;padding:7px 2px}.stickyViewBar .viewCountRow{display:grid;grid-template-columns:auto auto 1fr;gap:8px}.stickyViewBar .toolbarUndo{justify-self:end;margin-left:0}.sortToolbar{margin-top:6px}}
+
+
+/* v1.66: show the actual bottom navigation on desktop */
+@media (min-width:561px){
+  .bottomnav{
+    display:grid !important;
+    grid-template-columns:repeat(4,1fr) !important;
+    position:fixed;
+    left:50%;
+    right:auto;
+    bottom:14px;
+    transform:translateX(-50%);
+    width:min(680px, calc(100vw - 32px));
+    z-index:1000;
+    background:rgba(255,255,255,.96);
+    border:1px solid #ddd;
+    border-radius:18px;
+    padding:7px 10px;
+    box-shadow:0 10px 30px rgba(0,0,0,.16);
+  }
+  .bottomnav #bottomNew{
+    background:#ffe59a;
+    border-radius:12px;
+    color:#5b4700;
+    font-weight:800;
+    margin:0 3px;
+  }
+  body{padding-bottom:100px;}
+}
+
+
+/* v1.67 PC enhancement only — smartphone layout remains unchanged */
+@media (min-width:900px){
+  main{
+    max-width:1400px;
+    margin-left:auto;
+    margin-right:auto;
+  }
+
+  #list.cardView,
+  #list.cards,
+  #list{
+    align-items:start;
+  }
+
+  .card{
+    width:min(1050px, calc(100vw - 80px));
+    max-width:1050px;
+  }
+
+  /* Card content becomes horizontal only on wide PC screens */
+  .card:not(.detailRow){
+    display:grid;
+    grid-template-columns:minmax(300px, 440px) minmax(0, 1fr);
+    grid-template-rows:auto;
+    overflow:hidden;
+  }
+
+  .card:not(.detailRow) > .thumb,
+  .card:not(.detailRow) > .imageWrap,
+  .card:not(.detailRow) > .cardImage,
+  .card:not(.detailRow) > img{
+    grid-column:1;
+    grid-row:1;
+    width:100%;
+    height:100%;
+    min-height:360px;
+    max-height:520px;
+    object-fit:cover;
+  }
+
+  .card:not(.detailRow) > .cardBody,
+  .card:not(.detailRow) > .body{
+    grid-column:2;
+    grid-row:1;
+    min-width:0;
+  }
+}
+
+
+
+
+/* v1.04 PC only: single-column card view. Mobile/tablet styles are untouched. */
+@media (min-width:900px){
+  main{max-width:1150px;}
+  #cards.grid{
+    grid-template-columns:1fr;
+    justify-items:center;
+    gap:16px;
+  }
+  #cards.grid > .card{
+    width:min(1050px, 100%);
+    max-width:1050px;
+  }
+}
+
+/* v1.68 PC only: bottom navigation replaces duplicated header actions */
+@media (min-width:900px){
+  .topActions{display:none !important;}
+}
+
+
+/* v1.69 PC only: center welcome content inside the dialog */
+@media (min-width:900px){
+  #welcomeDialog .welcomePanel{
+    margin-left:auto;
+    margin-right:auto;
+  }
+}
+
+
+/* v1.70: visually match the yellow +追加 button */
+.welcomeAddCue{
+  display:inline-block;
+  background:#ffe59a;
+  color:#5b4700;
+  font-weight:800;
+  padding:2px 9px;
+  border-radius:9px;
+  white-space:nowrap;
+}
+
+
+/* v1.71: softer, more polished welcome copy card */
+.welcomeCopyGreen{
+  background:#eef8ef !important;
+  border:1px solid #dceedd;
+  border-radius:18px;
+  padding:18px 20px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.8);
+}
+.welcomeCopyGreen strong{
+  display:block;
+  margin-top:14px;
+  color:#294d32;
+  letter-spacing:.02em;
+}
+
+
+/* v1.72: compact second-step sample guide */
+#sampleGuideDialog .sampleGuidePanel{
+  text-align:center;
+  max-width:460px;
+  margin:auto;
+}
+#sampleGuideDialog .sampleGuidePanel p{
+  line-height:1.65;
+  margin:10px 0;
+}
+#sampleGuideDialog .sampleGuidePanel .primary{
+  margin-top:14px;
+}
+
+
+/* v1.75: option actions + long-press image shortcut */
+#imageDropZone{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.optionOther{border:1px solid #e2dfd8;border-radius:16px;background:#faf9f6;overflow:hidden}
+.optionOther summary{cursor:pointer;padding:16px;font-size:18px;font-weight:800;list-style:none}
+.optionOther summary::-webkit-details-marker{display:none}.optionOther summary:after{content:'⌄';float:right;color:#777}.optionOther[open] summary:after{content:'⌃'}
+.optionOther section{border:0!important;border-top:1px solid #e2dfd8!important;border-radius:0!important;margin:0!important}
+#optionDialog .managePanel{padding-bottom:110px}
+.optionFixedActions{position:sticky;bottom:0;z-index:5;background:rgba(255,255,255,.96);backdrop-filter:blur(8px);padding:12px 0 4px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.optionFixedActions button{min-height:48px;font-weight:800}
+@media(max-width:560px){.optionFixedActions{position:fixed;left:max(16px,calc((100vw - min(100vw - 32px, 720px))/2));right:max(16px,calc((100vw - min(100vw - 32px, 720px))/2));bottom:12px;padding:10px;background:rgba(255,255,255,.96);border-radius:18px;box-shadow:0 8px 30px #0002}}
+
+
+/* Ver.1.10: bottom navigation uses the full width evenly with three controls */
+.bottomnav{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:6px!important}
+.bottomnav button{width:100%!important;min-width:0!important;margin:0!important}
+@media(max-width:560px){
+  .headerOptionBtn{margin-left:auto;min-width:66px;padding:3px 5px}
+  .headerOptionIcon{font-size:25px}
+  .headerOptionLabel{font-size:11px}
+}
+
+
+.viewOptionBtn{margin-left:5px;width:auto;min-width:0;height:40px;border:1px solid #c9c7c1;border-radius:10px;padding:0 9px;background:#f1f0ec;color:#333;font-size:12px;font-weight:800;white-space:nowrap;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:4px;flex:0 0 auto;box-shadow:0 2px 4px rgba(0,0,0,.12),inset 0 1px 0 rgba(255,255,255,.9);transition:background .15s ease,box-shadow .15s ease,transform .08s ease}
+.viewOptionGear{font-size:22px;line-height:1;color:#222}
+.viewOptionBtn:hover{background:#e5e3dd;border-color:#b7b4ac;color:#111;box-shadow:0 3px 6px rgba(0,0,0,.15),inset 0 1px 0 rgba(255,255,255,.9)}
+.viewOptionBtn:active{transform:translateY(1px);background:#dcdad3;box-shadow:0 1px 2px rgba(0,0,0,.14)}
+@media(max-width:560px){
+  .viewOptionBtn{width:48px;min-width:48px;height:48px;margin-left:3px;padding:0;border-radius:12px;gap:0;flex:0 0 48px}
+  .viewOptionGear{font-size:31px;line-height:1}
+  .viewOptionLabel{display:none}
+}
+
+
+/* Ver.1.16 final mobile fix: keep view/count/undo/options on one row */
+@media(max-width:560px){
+  .viewCountRow{
+    display:flex!important;
+    flex-wrap:nowrap!important;
+    align-items:center!important;
+    width:100%!important;
+    gap:4px!important;
+  }
+  .viewSwitch{
+    flex:0 0 auto!important;
+    min-width:0!important;
+  }
+  #count{
+    flex:0 0 auto!important;
+    white-space:nowrap!important;
+    margin:0 2px!important;
+  }
+  .toolbarUndo{
+    flex:0 0 auto!important;
+    width:auto!important;
+    min-width:0!important;
+    height:48px!important;
+    margin-left:auto!important;
+    white-space:nowrap!important;
+    padding-left:10px!important;
+    padding-right:10px!important;
+    border-radius:12px!important;
+  }
+  .viewOptionBtn{
+    flex:0 0 48px!important;
+    width:48px!important;
+    min-width:48px!important;
+    height:48px!important;
+    margin-left:0!important;
+  }
+}
+
+
+/* Ver.1.16 final: emphasize current registration count */
+#count{
+  font-size:16px!important;
+  font-weight:800!important;
+  color:#333!important;
+  line-height:1!important;
+}
+@media(max-width:560px){
+  #count{
+    font-size:17px!important;
+    font-weight:900!important;
+    color:#222!important;
+  }
+}
+
+
+/* FINAL5: registration count position/visibility adjustment */
+#count{
+  margin-left:8px!important;
+  font-size:18px!important;
+  font-weight:850!important;
+}
+@media(max-width:560px){
+  #count{
+    margin-left:7px!important;
+    margin-right:2px!important;
+    font-size:19px!important;
+    font-weight:900!important;
+  }
+}
+
+
+/* v1.16 unified-mode TEST */
+.cardCountDisplay{font-size:13px;font-weight:800;color:#555;white-space:nowrap;background:#eeece7;border-radius:11px;padding:8px 11px}
+.unifiedTable .nameCell{display:flex;align-items:center;min-width:0}
+.unifiedTable .rowName{flex:0 1 auto}
+.dragSpace{flex:1 1 auto;min-width:18px;height:30px;display:block;cursor:grab;touch-action:pan-y}
+.unifiedRow.dragging{opacity:.58;background:#fff8dc!important}
+.unifiedCardDetail{position:relative;display:grid;grid-template-columns:minmax(180px,280px) 1fr;background:#fff;border-bottom:1px solid #ddd}
+.unifiedThumb{background:linear-gradient(135deg,#ece9e2,#ddd9d0);min-height:230px;display:grid;place-items:center;overflow:hidden}
+.unifiedThumb img{width:100%;height:100%;object-fit:cover}
+.unifiedCardBody{padding:15px}
+.unifiedPrompt{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;line-height:1.55;color:#555;white-space:pre-wrap}
+.stickyViewBar .viewCountRow{display:flex!important;grid-template-columns:none!important;align-items:center;gap:8px}
+.stickyViewBar .toolbarUndo{margin-left:auto!important;justify-self:auto!important}
+@media(max-width:560px){
+ .cardCountDisplay{font-size:12px;padding:7px 9px}
+ .unifiedCardDetail{display:block}
+ .unifiedThumb{aspect-ratio:4/3;min-height:0}
+ .unifiedCardBody{padding:12px}
+ .unifiedTable .col-actions{width:124px}
+ .dragSpace{min-width:12px}
+}
+
+
+/* D&D TEST: 0.8s hold -> translucent ghost + insertion line */
+.pp-dnd-ghost{
+  position:fixed;left:0;top:0;z-index:9999;pointer-events:none;
+  opacity:.72;transform:scale(.985);background:#fff;border:1px solid #cfcac1;
+  border-radius:12px;box-shadow:0 14px 38px rgba(0,0,0,.22);
+  overflow:hidden;will-change:transform;
+}
+.pp-dnd-source{opacity:.28!important}
+.pp-dnd-ghost,.folder-dnd-ghost{pointer-events:none!important}
+#ppInsertLine{
+  position:fixed;z-index:10020;height:4px;background:#111;border-radius:999px;
+  pointer-events:none;box-shadow:0 1px 0 rgba(255,255,255,.8);
+}
+#ppFolderExitSlot td{padding:0!important;border:0!important;background:transparent!important}
+#ppFolderExitSlot div{
+  margin:4px 10px 4px 126px;padding:7px 10px;border:2px dashed #8a6d18;
+  border-radius:9px;background:#fff9df;color:#705600;font-size:13px;font-weight:800;text-align:center;
+}
+#ppFolderExitSlot.active div{background:#e6f7ea;border-color:#23824b;color:#155b32}
+@media(max-width:560px){#ppFolderExitSlot div{margin-left:78px;font-size:14px;padding:9px 10px}}
+.pp-dnd-hold{background:#fff7d6!important}
+body.pp-dnd-active{user-select:none;-webkit-user-select:none;overscroll-behavior:none}
+
+
+.detailTable [data-menu-toggle]{
+  touch-action:none;
+  -webkit-user-select:none;
+  user-select:none;
+}
+
+
+.detailTable [data-menu-toggle]{
+  -webkit-touch-callout:none !important;
+  -webkit-user-select:none !important;
+  user-select:none !important;
+  touch-action:none !important;
+  -webkit-tap-highlight-color:transparent;
+}
+
+
+.detailTable [data-menu-toggle]{
+  touch-action:none!important;
+  -webkit-touch-callout:none!important;
+  -webkit-user-select:none!important;user-select:none!important;
+}
+
+
+to{transform:scaleX(1);opacity:1}
+}
+
+
+100%{opacity:1;transform:scaleX(1)}
+}
+
+
+.pp-dnd-ghost{
+  transition:opacity .08s ease, box-shadow .08s ease;
+}
+
+
+.pp-fixed-drop-slot.active to{opacity:1;transform:translateY(-2px) scaleX(1)}
+}
+
+
+to{opacity:1;transform:scaleX(1)}
+}
+
+
+/* D&D boundary-confirm test: ghost is intentionally faint so real row boundaries remain visible. */
+.pp-dnd-ghost{
+  opacity:.35!important;
+  pointer-events:none!important;
+}
+
+
+/* D&D moving-card cue: visual only. */
+.pp-dnd-ghost{
+  opacity:.35!important;
+  background:#bff3cf!important;
+  border:2px solid #43a867!important;
+  box-shadow:0 6px 18px rgba(55,145,85,.22)!important;
+}
+.pp-dnd-ghost > td{
+  background:#bff3cf!important;
+}
+
+
+/* Unified detail: direct pin toggle. */
+.unifiedCardBody{position:relative}
+.unifiedDetailTop{
+  position:absolute;
+  top:0;
+  right:0;
+  z-index:2;
+}
+.unifiedDetailPin{
+  width:38px;
+  height:38px;
+  border-radius:10px;
+  border:1px solid var(--line);
+  background:var(--panel);
+  opacity:.55;
+  font-size:19px;
+  line-height:1;
+  cursor:pointer;
+}
+.unifiedDetailPin.active{
+  opacity:1;
+  background:#fff2b8;
+  border-color:#e2b94f;
+}
+
+
+/* PC-only direct D&D handle: the blank space beside the title. */
+@media (hover:hover) and (pointer:fine){
+  .detailTable .dragSpace{
+    cursor:grab;
+    min-width:28px;
+  }
+  body.pp-dnd-active .detailTable .dragSpace{cursor:grabbing}
+}
+
+
+/* PC D&D: the row currently under the mouse is the insertion target.
+   Releasing inserts the dragged card directly below this highlighted row. */
+@media (hover:hover) and (pointer:fine){
+  .detailTable tbody > tr[data-row].pp-pc-drop-target > td{
+    background:#dff0ff !important;
+  }
+}
+
+
+/* Unified D&D handle: blank space between title and Copy. */
+.detailTable .dragSpace{
+  min-width:28px;
+  cursor:grab;
+  -webkit-user-select:none;
+  user-select:none;
+  -webkit-touch-callout:none;
+}
+body.pp-dnd-active .detailTable .dragSpace{cursor:grabbing}
+body.pp-dnd-active{overscroll-behavior:none}
+
+/* TEST10: narrow phones keep every control in the sticky action row visible. */
+@media(max-width:560px){
+  .viewCountRow{gap:3px!important;padding-right:6px!important;box-sizing:border-box!important}
+  #count{font-size:15px!important;margin:0!important}
+  .sampleMainBtn{min-width:0!important;padding:10px 11px!important;font-size:15px!important}
+  .toolbarUndo{min-width:0!important;padding-left:8px!important;padding-right:8px!important;font-size:15px!important}
+  .viewOptionBtn{flex-basis:44px!important;width:44px!important;min-width:44px!important;height:46px!important}
+  .viewOptionGear{font-size:29px!important}
+}
+
+/* TEST10: folder rows have a predictable blank drag handle beside the name. */
+.folderDragSpace{display:inline-block;min-width:24px;height:30px;vertical-align:middle;cursor:grab;touch-action:none}
+.folderMenuBtn{touch-action:none;-webkit-user-select:none;user-select:none}
+.folder-dnd-ghost{position:fixed;z-index:9999;pointer-events:none;opacity:.72;transform:scale(.985);filter:drop-shadow(0 10px 22px rgba(92,72,17,.24));will-change:transform}
+.folder-dnd-ghost table{width:100%;border-collapse:collapse;table-layout:fixed}
+.folder-dnd-ghost td{background:linear-gradient(180deg,#fffdf5,#f8f1dc)!important}
+
+.folderMoveDialog{width:min(420px,calc(100vw - 28px));max-height:70vh;border:0;border-radius:18px;padding:0}
+.folderMovePanel{padding:20px}.folderMovePanel h2{margin:0 0 8px;font-size:20px}.folderMovePanel p{margin:0 0 14px;color:#666;font-size:13px}
+.folderMoveList{display:grid;gap:8px;max-height:42vh;overflow:auto}.folderMoveList button{text-align:left;border:1px solid #dedbd2;background:#fff;border-radius:12px;padding:12px;cursor:pointer;font-weight:800}
+.folderMoveList button:hover{background:#fff8df;border-color:#d9c26b}.folderMoveCancel{margin-top:14px;width:100%}
+
+
+.helpMainTitle{margin:2px 0 12px}
+.helpTopActions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 14px}
+.helpTopActions button{width:100%}
+
+
+.helpNote{margin:10px 4px 0;font-size:.9em;line-height:1.6;color:var(--muted)}
+
+.helpAddButton{
+  display:inline-block;
+  padding:3px 10px;
+  margin:0 2px;
+  border-radius:8px;
+  background:#ffe59a;
+  border:1px solid #f0cf70;
+  color:#fff;
+  box-shadow:0 1px 2px rgba(0,0,0,.12);
+}
+.helpImageSelect{
+  display:inline-block;
+  padding:2px 7px;
+  margin:0 2px;
+  border-radius:6px;
+  background:#fdeaea;
+  border:1px solid #efc5c5;
+  font-weight:700;
+}
+
+
+/* Help inline examples: never inherit full-width button-like layout. */
+.welcomeSteps .helpAddButton,
+.helpNote .helpAddButton,
+.welcomeSteps .helpImageSelect{
+  display:inline-flex !important;
+  width:auto !important;
+  max-width:max-content !important;
+  min-width:0 !important;
+  align-items:center;
+  vertical-align:baseline;
+  flex:none !important;
+}
+.welcomeSteps .helpAddButton,
+.helpNote .helpAddButton{
+  padding:2px 8px !important;
+  margin:0 3px !important;
+  border-radius:6px !important;
+  line-height:1.25 !important;
+  font-size:.95em !important;
+}
+.welcomeSteps .helpImageSelect{
+  padding:1px 6px !important;
+  margin:0 3px !important;
+  line-height:1.35 !important;
+}
+
+
+/* EXPERIMENT: soft "Gachapin" Help palette
+   blue = the surrounding blank area, green = each numbered step */
+#helpDialog .helpPanel{
+  background:#eef8fc !important;
+}
+#helpDialog #simpleHelp .welcomeSteps > div{
+  background:#e1f4e4 !important;
+  border-color:#acd8b4 !important;
+}
+
+
+/* D&D ghost visual fix: keep the floating row at the same geometry as its source. */
+.pp-dnd-ghost{box-sizing:border-box !important;table-layout:fixed !important;}
+
+
+/* Help emphasis */
+.helpImageSelect{font-weight:800 !important;}
+.helpNote .helpAddButton{font-weight:800 !important;}
+
+
+.helpImageSelect{font-size:1.08em !important;}
+
+
+
+/* Detailed Help: pale-green explanation window; Back link stays outside it. */
+#detailHelp{
+  background:#e1f4e4 !important;
+  border:1px solid #acd8b4 !important;
+}
+#backSimpleHelp{
+  display:inline-block;
+  margin:-8px 0 10px 2px;
+  vertical-align:top;
+}
+
+
+.detailBackBottom{
+  margin-top:14px;
+  padding-top:10px;
+  text-align:right;
+}
+.detailBackBottom #backSimpleHelp{
+  margin:0 !important;
+}
+
+
+#backSimpleHelp{display:none !important;}
+#detailHelp:not(.hidden) #backSimpleHelp{display:inline-block !important;}
+#detailHelp:not(.hidden) + .detailBackBottom #backSimpleHelp{display:inline-block !important;}
+
+
+/* Detailed Help: separate readable cards, text/content unchanged. */
+#detailHelp{
+  padding:10px !important;
+}
+#detailHelp .detailHelpCard{
+  background:#fff8e8 !important;
+  border:1px solid #ead9ad;
+  border-radius:12px;
+  padding:12px 14px;
+  margin:0 0 10px;
+  box-shadow:0 1px 2px rgba(0,0,0,.035);
+}
+#detailHelp .detailHelpCard:last-child{margin-bottom:0;}
+#detailHelp .detailHelpCard h3{margin-top:0;}
+#detailHelp .detailHelpCard p{margin-bottom:0;}
+
+
+#usefulHelp .usefulHelpCard + .usefulHelpCard{
+  margin-top:24px;
+}
+
+/* Prompt name: tap opens details, long-press must not invoke browser text selection/copy UI */
+.detailTable .rowName{
+  -webkit-touch-callout:none !important;
+  -webkit-user-select:none !important;
+  user-select:none !important;
+}
+
+/* Bottom navigation: prevent long-press text selection/copy UI */
+.bottomNav, .bottomNav *, .bottomnav, .bottomnav *, .bottomBar, .bottomBar *, .bottomMenu, .bottomMenu *,
+#searchBtn, #helpBtn, #optionBtn{
+  -webkit-touch-callout:none !important;
+  -webkit-user-select:none !important;
+  user-select:none !important;
+}
+
+.presetAddRow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center}
+.presetAddRow select{width:100%;min-width:0}
+.presetAddRow button{white-space:nowrap;min-width:76px}
+@media(max-width:560px){
+  .presetAddRow{grid-template-columns:minmax(0,1fr) 76px;gap:8px}
+}
+
+/* TEST34: 共通長押し対象のボタンはブラウザの選択/コピーUIを出さない */
+button{
+  -webkit-user-select:none;
+  user-select:none;
+  -webkit-touch-callout:none;
+}
+
+/* TEST28: 操作ボタン長押し時の文字選択・コピーUIを抑止 */
+.card button,
+.detailTable button,
+.rowActions button,
+.cardActions button,
+.menu button{
+  -webkit-user-select:none !important;
+  user-select:none !important;
+  -webkit-touch-callout:none !important;
+}
+
+.presetPreviewFold{margin-top:10px}
+.presetPreviewFold summary{cursor:pointer;font-weight:700}
+.presetPreviewFold img{display:block;width:100%;max-height:260px;object-fit:contain;margin-top:10px;border-radius:10px;background:#f7f7f4}
+.presetCheckList{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;margin:10px 0}
+.presetCheckList label{display:flex;align-items:center;gap:8px;padding:9px 10px;border:1px solid #ddd;border-radius:9px;background:#fff;cursor:pointer}
+.presetCheckList input{width:18px;height:18px;flex:0 0 auto}
+.presetDuplicateWarning{margin:10px 0;padding:10px 12px;border:1px solid #e2b46d;border-radius:9px;background:#fff4df;color:#7a4c00;font-weight:700;line-height:1.55}
+.presetAddButton{width:100%;margin-top:4px}
+@media(max-width:560px){.presetCheckList{grid-template-columns:1fr}}
+
+.presetAddedNotice{
+  min-height:0;text-align:center;font-weight:800;color:#176b36;
+  opacity:0;transform:translateY(-3px);transition:opacity .16s ease,transform .16s ease;
+  pointer-events:none
+}
+.presetAddedNotice.show{
+  margin:8px 0 2px;padding:8px 10px;border-radius:9px;
+  background:#e7f7ec;border:1px solid #b7dfc3;
+  opacity:1;transform:translateY(0)
+}
+
+.presetChooserFold{margin:10px 0}
+.presetChooserFold>summary{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:11px 12px;border:1px solid #d7d7d7;border-radius:10px;
+  background:#fff;cursor:pointer;font-weight:800
+}
+.presetChooserFold[open]>summary{border-radius:10px 10px 0 0}
+.presetSelectedCount{font-size:12px;font-weight:700;color:#64748b;white-space:nowrap}
+.presetChooserFold .presetCheckList{
+  margin:0;padding:10px;border:1px solid #d7d7d7;border-top:0;
+  border-radius:0 0 10px 10px;background:#fafafa
+}
+
+/* v1.62: keep Prompt Pocket title, remove only the white separator/strip below it */
+.app-header, header.app-header, .top-header, .brand-header, .hero {
+  border-bottom: none !important;
+  box-shadow: none !important;
+}
+
+/* v1.63 final spacing: remove the empty hero strip under the title */
+main{padding-top:6px}
+.compactHero{padding:0!important;margin:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important}
+.compactHero .searchPanel:not(.hidden){padding:0 0 8px}
+.stickyViewBar{margin-top:0!important}
+
+/* v1.73: X in-app browser welcome guidance */
+#externalBrowserGuide::backdrop{background:rgba(20,20,20,.42)}
+#externalBrowserGuide{border:0;padding:0;background:transparent;max-width:min(92vw,440px);width:100%}
+.externalGuidePanel{background:#fff;border-radius:22px;padding:24px 20px;box-shadow:0 18px 60px rgba(0,0,0,.22);text-align:center}
+.externalGuideIcon{font-size:38px;margin-bottom:4px}.externalGuidePanel h2{font-size:22px;margin:4px 0 14px}
+.externalGuidePanel p{line-height:1.65;margin:8px 0;color:#444}.externalGuideLead{font-size:16px}.externalGuideLead strong{color:#111}
+.addressGuideImage{display:block;width:100%;max-width:360px;height:auto;margin:18px auto 12px;border-radius:14px}
+.externalGuideNote{font-size:13px!important;color:#777!important;margin-top:14px!important}
+#updateDialog::backdrop{background:rgba(20,20,20,.42)}
+#updateDialog{border:0;padding:0;background:transparent;max-width:min(92vw,430px);width:100%}
+.updatePanel{background:#fff;border-radius:22px;padding:22px;box-shadow:0 18px 60px rgba(0,0,0,.22)}
+.updatePanel h2{margin:4px 0 8px;text-align:center}.updateVersion{text-align:center;font-weight:800;color:#555;margin-bottom:14px}
+.updateList{background:#f6f5f2;border-radius:15px;padding:14px 16px;line-height:1.7;margin:14px 0}.updatePanel .primary{width:100%}
+
+/* v1.74: external-browser cue + shortcut controls */
+.externalTapCue{margin:18px auto 10px;text-align:center;user-select:none;-webkit-user-select:none}
+.externalTapCue .cueArrow{font-size:56px;line-height:1;animation:cueBounce 1s ease-in-out infinite}
+.externalTapCue .cueText{font-size:18px;font-weight:900;margin-top:3px;color:#222}
+@keyframes cueBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(7px)}}
+.shortcutRow{display:flex;gap:10px;align-items:center;margin-top:10px;padding-left:30px}
+.shortcutRow span{font-size:12px;color:#666;white-space:nowrap}.shortcutRow select{width:auto;min-width:100px;padding:8px 10px}
+.optionChoiceRow span{display:grid;gap:3px;white-space:normal}.optionChoiceRow>span b{font-size:16px;color:#333}.optionChoiceRow>span small{font-size:11px;line-height:1.4;color:#777}
+@media(max-width:560px){
+  .shortcutRow{
+    padding-left:0;
+    margin-top:14px;
+    width:100%;
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto;
+    gap:12px;
+    align-items:center;
+  }
+  .shortcutRow span{
+    min-width:0;
+    white-space:normal;
+    line-height:1.35;
+    font-size:12px;
+  }
+  .shortcutRow select{
+    width:112px;
+    min-width:112px;
+    margin:0;
+  }
+}
+.shortcutRow.optionChoiceRow{
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  gap:8px;
+  align-items:stretch;
+  box-sizing:border-box;
+  width:100%;
+  margin-top:16px;
+  padding:12px;
+  border:1px solid #ddd9cf;
+  border-radius:12px;
+  background:#f7f6f2;
+}
+.shortcutRow.optionChoiceRow>span{width:100%}
+.shortcutRow.optionChoiceRow>select{
+  width:100%;
+  min-width:0;
+  max-width:none;
+  margin:0;
+  flex:none;
+}
+.optionAddBadge{display:inline-block;margin:0;padding:0 1px;border-radius:3px;background:#f5a623;color:#3f2900;font-weight:900}
+.detailCloseBtn{position:absolute;top:10px;right:10px;z-index:6;width:40px;height:40px;padding:0;border:1px solid #ccc7bd;border-radius:10px;background:#fff;color:#333;font-size:25px;line-height:1;cursor:pointer;box-shadow:0 2px 7px rgba(0,0,0,.12);opacity:1}
+.detailCloseBtn:hover,.detailCloseBtn:focus-visible{background:#fff;border-color:#aaa49a;opacity:1}
+#bottomNew{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:manipulation}
+
+/* v1.76: make rarely-used / destructive options visually distinct */
+.optionOther{border:1px solid #e3b65b!important;background:#fff8e8!important;border-radius:16px;overflow:hidden}
+.optionOther summary{padding:13px 14px;font-weight:900;color:#7a5310;cursor:pointer;list-style:none;user-select:none;-webkit-user-select:none}
+.optionOther summary::-webkit-details-marker{display:none}
+.optionOther summary:after{content:'⌄';float:right;color:#9a6b18}
+.optionOther[open] summary:after{content:'⌃'}
+.optionOther>section{margin:0!important;padding:12px 14px 14px;background:#fffdf7;border-top:1px solid #efd49a}
+.optionActionList{display:grid;gap:14px}
+.optionActionItem{display:grid;gap:6px;padding-bottom:14px;border-bottom:1px solid #eadfca}
+.optionActionItem:last-child{padding-bottom:0;border-bottom:0}
+.optionActionItem small,.optionLead{display:block;color:#625d54;font-size:13px;line-height:1.55}
+.dangerOptionItem small{color:#8b3434}
+.optionDeleteFold{border-color:#e58b8b!important;background:#fff0f0!important}
+.optionDeleteFold summary{color:#a52323!important;background:#ffe5e5!important}
+.optionDeleteFold summary:after{color:#b43a3a!important}
+.optionDeleteFold>section{background:#fff8f8!important;border-top-color:#efb2b2!important}
+.optionDeleteFold .optionActionItem{border-bottom-color:#f0caca}
+.optionDeveloperFold summary small{display:inline;margin-left:6px;color:#8c7b5e;font-size:12px;font-weight:700}
+.optionDeveloperFold .debugActions{display:grid;gap:9px}
+
+/* v1.05: editor usability, fixed header/view bar, card jump controls */
+:root{--pp-topbar-h:68px}
+.stickyViewBar{top:var(--pp-topbar-h)!important}
+.editorHead{position:relative}
+.editorCloseBtn{position:absolute;right:0;top:0;width:42px;height:42px;border:0;border-radius:12px;background:#f1f0ec;color:#555;font-size:26px;line-height:1;cursor:pointer}
+.editorCloseBtn:hover{background:#e7e5df;color:#222}
+#memo{min-height:7.5em}
+.cardJumpNav{position:fixed;right:10px;top:202px;z-index:28;display:flex;flex-direction:column;gap:7px;opacity:0;visibility:hidden;pointer-events:none;transform:translateY(-5px);transition:opacity .22s ease,transform .22s ease,visibility 0s linear .22s}
+.cardJumpNav.active{opacity:1;visibility:visible;pointer-events:auto;transform:translateY(0);transition:opacity .18s ease,transform .18s ease}
+.cardJumpNav button{min-width:58px;height:38px;padding:0 8px;border:1px solid rgba(0,0,0,.12);border-radius:11px;background:rgba(255,255,255,.35);backdrop-filter:blur(4px);box-shadow:0 2px 9px rgba(0,0,0,.08);color:#555;font-size:12px;font-weight:800;cursor:pointer}
+.cardJumpNav button:hover{background:rgba(255,255,255,.75);color:#222}
+.cardJumpNav button.hidden{display:none}
+@media(max-width:560px){.cardJumpNav{right:5px;top:198px}.cardJumpNav button{min-width:44px;width:44px;padding:0;font-size:15px}.cardJumpNav button span{display:none}.editorCloseBtn{right:2px;top:0}}
+
+/* TEST4: PC detailed-help dialog fills its available width */
+@media (min-width:561px){
+  #helpDialog .helpPanel{
+    width:100% !important;
+    max-width:none !important;
+    margin:0 !important;
+    box-sizing:border-box !important;
+  }
+  #helpDialog{
+    overflow:hidden;
+  }
+}
+
+#usefulHelp{background:#e1f4e4;border:1px solid #acd8b4;border-radius:14px;padding:10px}
+#usefulHelp .usefulHelpCard{background:#fff8e8;border:1px solid #ead9ad;border-radius:12px;padding:14px 16px}
+#usefulHelp .usefulHelpCard h3{margin:0 0 10px}
+#usefulHelp .usefulHelpCard p{line-height:1.7;margin:8px 0;color:#555}
+#usefulHelp .usefulSteps{display:grid;gap:9px;margin-top:12px}
+#usefulHelp .usefulStep{background:#fdeaea;border:1px solid #efc5c5;border-radius:10px;padding:11px 12px;line-height:1.7}
+#usefulHelp .usefulStep:last-child{border-bottom:1px solid #efc5c5}
+#usefulHelp .usefulStep b{display:block;margin-bottom:3px;color:#222}
+#usefulHelp .dndHelpImage{display:block;width:min(100%,620px);height:auto;margin:14px auto 6px;border:1px solid #d8d5ce;border-radius:12px}
+#usefulHelp .dndBlueNote{margin-top:12px;padding:10px 12px;background:#e5f2ff;border:1px solid #b9d8f5;border-radius:10px;color:#345}
+#usefulHelp:not(.hidden) + .detailBackBottom #backSimpleHelp{display:inline-block !important}
+@media(max-width:560px){#usefulHelp{padding:8px}#usefulHelp .usefulHelpCard{padding:12px}}
+
+#usefulHelp:not(.hidden) ~ .detailBackBottom #backSimpleHelp{
+  display:inline-block !important;
+}
+
+/* TEST41: 正式サンプルUI */
+.sampleMainBtn{font-weight:800;white-space:nowrap}
+.sampleDialog{width:min(720px,calc(100vw - 20px));padding:0;border:0;border-radius:18px}
+.sampleDialog::backdrop{background:rgba(0,0,0,.35)}
+.samplePanel{padding:18px;background:#fff}
+.sampleHead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.sampleHead h2{margin:0;font-size:24px}
+.sampleSub{margin:3px 0 0;color:#777;font-size:13px}
+.samplePicker{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end;margin-top:14px}
+.samplePicker label{font-size:12px;font-weight:800;color:#555}
+.samplePicker select{display:block;width:100%;margin-top:5px}
+.sampleGuide{margin:12px 0;padding:11px 13px;border-radius:12px;background:#fff2b8;font-weight:800;font-size:13px}
+.samplePreviewWrap{background:#f7f5f1;border-radius:14px;padding:10px}
+.samplePreview{display:grid;grid-template-columns:160px 1fr;gap:12px;align-items:center;min-height:120px}
+.samplePreview img{width:160px;height:110px;object-fit:cover;border-radius:10px;background:#eee}
+.samplePreview h3{margin:0 0 6px;font-size:17px}
+.samplePreview p{margin:0;color:#666;font-size:12px;line-height:1.5}
+.sampleQueueTitle{font-weight:900;margin:14px 0 7px}
+.sampleQueue{background:#fff8e8;border:1px solid #f0dfba;border-radius:12px;max-height:188px;overflow:auto;padding:6px}
+.sampleQueueEmpty{padding:14px;color:#999;text-align:center;font-size:13px}
+.sampleQueueRow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 9px;border-bottom:1px solid #eee2c9;border-radius:8px}
+.sampleQueueRow:last-child{border-bottom:0}
+.sampleQueueRow.sampleJustAdded{animation:sampleFlash 1.5s ease}
+@keyframes sampleFlash{0%,65%{background:#ffe56d}100%{background:transparent}}
+.sampleQueueRow button{padding:6px 11px}
+.sampleActions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.sampleActions button{height:44px;border-radius:12px;font-weight:900}
+#sampleExecute{background:#111;color:#fff;border-color:#111}
+@media(max-width:600px){
+ .samplePanel{padding:14px}
+ .samplePicker{grid-template-columns:1fr 1fr}
+ #sampleAdd{grid-column:1/-1;width:100%}
+ .samplePreview{grid-template-columns:105px 1fr}
+ .samplePreview img{width:105px;height:90px}
+ .sampleHead h2{font-size:21px;white-space:nowrap}
+}
+
+/* ver.1.9 FOLDER TEST4 - UI FIX */
+.sortToolbar .folderToolbarRight{
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+  gap:8px !important;
+  width:100% !important;
+}
+.sortToolbar .folderToolbarRight #sort,
+.sortToolbar .folderToolbarRight #createFolderBtn{
+  width:100% !important; min-width:0 !important; box-sizing:border-box;
+}
+#createFolderBtn{white-space:nowrap;font-weight:800}
+
+.folderCreateDialog{width:min(390px,calc(100vw - 28px));padding:0;border:0;border-radius:16px}
+.folderCreateDialog::backdrop{background:rgba(0,0,0,.34)}
+.folderCreatePanel{padding:20px;background:#fff}
+.folderCreatePanel h2{margin:0 0 14px;font-size:21px}
+#folderNameInput{box-sizing:border-box;width:100%;height:44px;border:1px solid #bbb;border-radius:10px;padding:0 12px;font-size:16px}
+#folderNameInput.folderInputError{border-color:#d33;background:#fff6f6}
+.folderNameError{min-height:20px;margin:5px 0 0;color:#c62828;font-size:12px;font-weight:800}
+.folderCreateActions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:8px}
+.folderCreateActions button{height:42px;border-radius:11px;font-weight:900}
+#folderCreateOk{background:#111;color:#fff;border-color:#111}
+#folderCreateCancel{background:#fff;color:#222;border:1px solid #bbb}
+
+.ppFolderCard{
+  position:relative;box-sizing:border-box;min-height:104px;padding:25px 14px 12px;
+  border:1px solid #d19b21;border-radius:8px 12px 12px 12px;
+  background:linear-gradient(#ffdb62,#f3b72a);
+  box-shadow:0 4px 0 #c78a13,0 7px 12px rgba(90,60,5,.16);
+  color:#5d4308;cursor:pointer;
+}
+.ppFolderCard::before{
+  content:"";position:absolute;left:11px;top:-11px;width:42%;height:16px;
+  border:1px solid #d19b21;border-bottom:0;border-radius:8px 8px 0 0;
+  background:#ffdb62;
+}
+.ppFolderName{display:block;position:relative;z-index:1;font-weight:900;font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ppFolderCount{position:relative;z-index:1;margin-top:6px;font-size:12px;font-weight:800;opacity:.7}
+
+/* ver.1.9 FOLDER TEST5 — folders live in the same list as cards */
+.ppFolderCard{display:none!important}
+.folderRow>td{background:#fffdf5}
+.folderRow:hover>td{background:#fff8dd}
+.folderRow.folderDropTarget>td{background:#fff0a6!important;box-shadow:inset 0 0 0 2px #e4ae1c}
+.folderNameBtn{
+  border:0!important;background:transparent!important;box-shadow:none!important;
+  padding:4px 2px!important;font-weight:900!important;color:inherit!important;
+  display:inline-flex!important;align-items:center;gap:6px;max-width:100%;
+}
+.folderNameBtn:hover{text-decoration:underline}
+.folderCountInline{font-size:12px;color:#777;margin-left:7px;white-space:nowrap}
+.folderChildRow>td{background:#fafafa}
+.folderChildRow .nameCell{padding-left:28px!important}
+.folderBranch{display:inline-block;width:18px;color:#aaa;font-weight:900}
+.folderChildRow .rowName{font-weight:700}
+.folderEmptyRow td{padding:10px 14px 10px 48px!important;color:#999;font-size:12px;background:#fafafa}
+.folderMenuBtn{min-width:42px}
+
+/* ver.1.9 FOLDER TEST6 — clearer folder row */
+.folderRow>td{
+  background:linear-gradient(180deg,#fff3b7 0%,#ffe27a 100%) !important;
+  border-top:1px solid #e8c04d !important;
+  border-bottom:1px solid #d9ae34 !important;
+}
+.folderRow>td:first-child{border-left:1px solid #e0b33b!important;border-radius:11px 0 0 11px}
+.folderRow>td:last-child{border-right:1px solid #e0b33b!important;border-radius:0 11px 11px 0}
+.folderRow{filter:drop-shadow(0 2px 1px rgba(110,75,0,.14))}
+.folderRow:hover>td{background:linear-gradient(180deg,#fff0a0,#ffd95e)!important}
+.folderRow.folderDropTarget>td{
+  background:linear-gradient(180deg,#ffe66d,#ffc928)!important;
+  box-shadow:inset 0 0 0 3px #e59e00!important;
+}
+.folderNameBtn{
+  font-size:17px!important;
+  line-height:1.25!important;
+  font-weight:950!important;
+  padding:8px 7px!important;
+  text-decoration:none!important;
+}
+.folderNameBtn span:first-child{font-size:23px;filter:drop-shadow(0 1px 0 rgba(255,255,255,.7))}
+.folderCountInline{
+  display:inline-block;
+  font-size:13px!important;font-weight:900!important;
+  color:#72520b!important;
+  background:rgba(255,255,255,.58);
+  border-radius:999px;padding:3px 8px;margin-left:8px;
+}
+.folderChildRow>td{background:#fffdf7!important}
+.folderChildRow .nameCell{padding-left:30px!important}
+.folderBranch{color:#d2a72f!important;font-size:17px!important}
+
+/* ver.1.9 FOLDER TEST8 */
+.folderRow>td{
+  /* フォルダと分かる程度に、カードより少しだけ温かい淡色にする。 */
+  background:linear-gradient(180deg,#fffdf5 0%,#f8f1dc 100%)!important;
+  border-top:1px solid #e2d7ac!important;
+  border-bottom:1px solid #e2d7ac!important;
+}
+.folderRow>td:first-child{border-left:1px solid #e2d7ac!important}
+.folderRow>td:last-child{border-right:1px solid #e2d7ac!important}
+.folderRow{filter:drop-shadow(0 1px 1px rgba(90,70,15,.09))}
+.folderRow:hover>td{background:linear-gradient(180deg,#fff9e7,#f5eac4)!important}
+.folderRow.folderDropTarget>td{
+  background:linear-gradient(180deg,#fff4c7,#f7e5a4)!important;
+  box-shadow:inset 0 0 0 2px #d5b14b!important;
+}
+.folderChildRow .nameCell{padding-left:10px!important}
+.folderBranch{width:12px!important;margin-right:1px!important;font-size:14px!important;color:#c8aa54!important}
+.folderRow.folderDragging{opacity:.45}
+.folderRow.folderMoveTarget>td{box-shadow:inset 0 -3px 0 #c99a13!important}
+.folderNameBtn{touch-action:pan-y}
+
+/* TEST13: folders use the same readable name area as cards. */
+.unifiedTable .folderRow .nameCell{display:flex;align-items:center;min-width:0;white-space:normal}
+.unifiedTable .folderNameBtn{
+  display:flex!important;align-items:center;gap:6px;flex:1 1 auto;min-width:0;
+  padding:0!important;font:inherit!important;font-weight:650!important;
+  line-height:1.35!important;text-align:left;overflow:hidden;text-decoration:none!important;
+}
+.unifiedTable .folderNameBtn span:first-child{flex:0 0 auto;font-size:20px!important}
+.unifiedTable .folderNameBtn span:nth-child(2){
+  display:-webkit-box;min-width:0;overflow:hidden;-webkit-box-orient:vertical;
+  -webkit-line-clamp:2;text-overflow:ellipsis;overflow-wrap:anywhere;
+}
+.folderNewBadge{
+  flex:0 0 auto;align-self:center;padding:2px 6px;border-radius:999px;
+  background:#e5484d;color:#fff;font-size:11px;font-weight:900;line-height:1.2;
+  letter-spacing:.04em;box-shadow:0 1px 2px rgba(120,20,20,.18);
+}
+.folderRow .folderDragSpace{flex:0 0 18px;min-width:18px;height:32px;touch-action:none}
+.folderActions{justify-content:center;align-items:center;gap:6px}
+.folderActions .folderCountInline{
+  margin:0!important;padding:4px 5px!important;font-size:15px!important;
+  line-height:1.2!important;white-space:nowrap;flex:0 0 60px;min-width:60px;
+  box-sizing:border-box;text-align:center;pointer-events:none;user-select:none;
+  -webkit-user-select:none;-webkit-touch-callout:none;
+}
+.folderActions .folderMenuBtn{min-width:42px}
+.unifiedTable .col-actions,.unifiedTable .opCol{width:128px}
+.unifiedDragArea{cursor:pointer;touch-action:pan-y}
+.folderInteractArea{cursor:pointer;touch-action:pan-y}
+.unifiedDragArea .rowName{cursor:inherit;text-decoration:none}
+.unifiedDragArea .rowName:hover{text-decoration:none}
+.unifiedDragArea,.unifiedDragArea *{
+  -webkit-tap-highlight-color:transparent!important;
+  -webkit-touch-callout:none!important;
+  user-select:none!important;
+  -webkit-user-select:none!important;
+}
+.folderInteractArea,.folderInteractArea *{
+  -webkit-tap-highlight-color:transparent!important;
+  -webkit-touch-callout:none!important;
+  user-select:none!important;
+  -webkit-user-select:none!important;
+}
+/* UI labels are controls, not selectable text on touch devices. */
+button,[role="button"]{
+  -webkit-touch-callout:none!important;
+  -webkit-user-select:none!important;
+  user-select:none!important;
+  -webkit-tap-highlight-color:transparent!important;
+}
+@media(max-width:560px){
+  .unifiedTable .folderNameBtn{font-size:inherit!important}
+  .unifiedTable .folderNameBtn span:first-child{font-size:19px!important}
+  .folderActions{gap:4px}
+  .folderActions .folderCountInline{font-size:15px!important;padding:4px 5px!important}
+}
+
+/* TEST37: keep menus above following rows and use the title area efficiently. */
+.folderRow:has(.detailPopupMenu:not(.hidden))>td{
+  position:relative;
+  z-index:60;
+}
+.folderRow:has(.detailPopupMenu:not(.hidden)) .detailPopupMenu{z-index:80}
+.folderPopupPortal{
+  position:fixed;z-index:10000;min-width:170px;padding:5px;background:#fff;
+  border:1px solid #d9d9d9;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.2);
+}
+.folderPopupPortal button{
+  display:block;width:100%;border:0;background:transparent;text-align:left;
+  padding:9px 10px;border-radius:7px;cursor:pointer;white-space:nowrap;
+}
+.folderPopupPortal button:hover{background:#f4f3ef}
+.folderPopupPortal .dangerMenu{color:#b42318}
+.unifiedTable .nameCell .rowName{flex:1 1 auto;min-width:0}
+.unifiedTable .dragSpace,
+.unifiedTable .folderDragSpace{flex:0 0 18px!important;min-width:18px!important}
+.folderChildRow .folderBranch{
+  position:relative!important;
+  display:block!important;
+  align-self:stretch!important;
+  flex:0 0 11px!important;
+  width:11px!important;
+  margin-right:2px!important;
+  color:transparent!important;
+  font-size:0!important;
+  border-left:2px solid #ad7d00;
+  box-sizing:border-box;
+}
+.folderChildRow .folderBranch::before{
+  content:'';position:absolute;left:0;top:50%;width:9px;
+  border-top:2px solid #ad7d00;transform:translateY(-1px);
+}
+.folderChildRow.folderTreeLast .folderBranch{border-left:0}
+.folderChildRow.folderTreeLast .folderBranch::after{
+  content:'';position:absolute;left:0;top:0;height:50%;border-left:2px solid #ad7d00;
+}
+
+/* TEST63: folder groups, explicit hit zones, compact controls and sortable headers */
+.toolbarClose{white-space:nowrap;padding:8px 10px;font-weight:800}
+.favoriteHit{display:flex!important;align-items:center;justify-content:center;width:100%;min-width:42px;min-height:54px;padding:0!important;touch-action:manipulation}
+.cardThumbDeadZone{display:flex;align-items:center;flex:0 0 auto;align-self:stretch;pointer-events:none;user-select:none;-webkit-user-select:none}
+.unifiedTable .nameCell>.unifiedDragArea{display:flex;align-items:center;flex:1 1 auto;align-self:stretch;min-width:0;touch-action:pan-y;padding:0 2px}
+.unifiedTable .nameCell>.unifiedDragArea .rowName{flex:1 1 auto;min-width:0}
+.sortableHead{cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:pan-y}
+.sortableHead.active{color:#8a6400;background:#fff5c9!important;box-shadow:inset 0 -3px 0 #d5a30e}
+.sortArrow{font-size:.58em;margin-left:5px;vertical-align:middle}
+
+.unifiedTable td.nameCell{display:table-cell!important;vertical-align:middle!important}
+.cardNameLayout,.folderNameLayout{display:flex;align-items:center;width:100%;min-width:0}
+.cardNameLayout>.unifiedDragArea{display:flex;align-items:center;flex:1 1 auto;align-self:stretch;min-width:0;touch-action:pan-y;padding:0 2px}
+.folderNameLayout>.folderNameBtn{flex:1 1 auto;min-width:0}
+.folderRow>td{background:linear-gradient(180deg,#fff7d9,#f7e7ad)!important;border-top-color:#dec77c!important;border-bottom-color:#dec77c!important}
+.folderRow:hover>td{background:linear-gradient(180deg,#fff3c8,#f2dc91)!important}
+.folderRow.folderOpen>td{background:linear-gradient(180deg,#fff7d9,#f7e7ad)!important;border-top:2px solid #ce9a12!important;border-bottom:1px solid #dec77c!important;box-shadow:inset 0 1px 0 #fff!important}
+.folderRow.folderOpen>td:first-child{border-left:2px solid #ce9a12!important;border-radius:11px 0 0 0!important}
+.folderRow.folderOpen>td:last-child{border-right:2px solid #ce9a12!important;border-radius:0 11px 0 0!important}
+.folderRow.folderOpen{filter:drop-shadow(0 2px 3px rgba(95,65,0,.14))}
+.folderChildRow>td{background:#fffbea!important}
+.folderChildRow>td:first-child{border-left:2px solid #ce9a12!important}
+.folderChildRow>td:last-child{border-right:2px solid #ce9a12!important}
+.folderChildDetail>td{background:#fffbea!important;border-left:2px solid #ce9a12!important;border-right:2px solid #ce9a12!important}
+.folderChildRow.folderTreeLast>td{border-bottom:4px solid #faf9f6!important;box-shadow:inset 0 -2px 0 #ce9a12!important}
+.folderChildRow.folderTreeLast>td:first-child{box-shadow:inset 2px 0 0 #ce9a12,inset 0 -2px 0 #ce9a12!important}
+.folderChildRow.folderTreeLast>td:last-child{box-shadow:inset -2px 0 0 #ce9a12,inset 0 -2px 0 #ce9a12!important}
+.folderChildRow.folderTreeLast>td:first-child,.folderChildRow.folderTreeLast>td:last-child{border-radius:0!important}
+.folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td{border-bottom:0!important;box-shadow:none!important}
+.folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td:first-child{box-shadow:inset 2px 0 0 #ce9a12!important}
+.folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td:last-child{box-shadow:inset -2px 0 0 #ce9a12!important}
+.folderFrameLastDetail:not(.hidden)>td{border-bottom:4px solid #faf9f6!important;border-radius:0!important;box-shadow:inset 2px 0 0 #ce9a12,inset -2px 0 0 #ce9a12,inset 0 -2px 0 #ce9a12!important}
+body[data-card-cell-size="small"] .unifiedRow>td,
+body[data-card-cell-size="small"] .folderRow>td{padding-top:3px!important;padding-bottom:3px!important}
+body[data-card-cell-size="small"] .favoriteHit{min-height:42px!important}
+body[data-card-cell-size="small"] .tinyThumb{width:24px!important;height:24px!important}
+body[data-card-cell-size="large"] .favoriteHit{min-height:66px!important}
+body[data-card-cell-size="large"] .tinyThumb{width:44px!important;height:44px!important}
+.folderRow.folderOpen>td:first-child{border-left-width:1px!important}
+.folderRow.folderOpen>td:last-child{border-right-width:1px!important}
+.folderChildRow>td:first-child{border-left-width:1px!important}
+.folderChildRow>td:last-child{border-right-width:1px!important}
+.folderChildDetail>td{border-left-width:1px!important;border-right-width:1px!important}
+.folderChildRow.folderTreeLast>td{box-shadow:inset 0 -1px 0 #ce9a12!important}
+.folderChildRow.folderTreeLast>td:first-child{box-shadow:inset 1px 0 0 #ce9a12,inset 0 -1px 0 #ce9a12!important}
+.folderChildRow.folderTreeLast>td:last-child{box-shadow:inset -1px 0 0 #ce9a12,inset 0 -1px 0 #ce9a12!important}
+.folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td:first-child{box-shadow:inset 1px 0 0 #ce9a12!important}
+.folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td:last-child{box-shadow:inset -1px 0 0 #ce9a12!important}
+.folderFrameLastDetail:not(.hidden)>td{box-shadow:inset 1px 0 0 #ce9a12,inset -1px 0 0 #ce9a12,inset 0 -1px 0 #ce9a12!important}
+.cardThumbDeadZone,.cardThumbDeadZone *,.detailTable .opCol{user-select:none!important;-webkit-user-select:none!important;-webkit-touch-callout:none!important}
+.toolbarClose:disabled{opacity:.42;cursor:default}
+.optionSelectLabel{display:block;margin-bottom:10px}.optionSelectLabel b{display:block;font-size:16px}.optionSelectLabel small{display:block;margin-top:5px;color:#666;line-height:1.5}
+.wideOptionSelect{width:100%;min-height:46px;padding:8px 12px;font-size:16px;font-weight:800}
+.developerWarning{margin:0 0 14px;padding:12px;border:1px solid #e6a19d;border-radius:10px;background:#fff1f0;color:#b42318;font-weight:800;line-height:1.6}
+#ppInsertLine{z-index:120!important}
+
+/* TEST74: opened folder frames use one consistent outer border width. */
+.folderRow.folderOpen>td{border-top:2px solid #ce9a12!important}
+.folderRow.folderOpen>td:first-child,.folderChildRow>td:first-child,.folderChildDetail>td:first-child{border-left:2px solid #ce9a12!important}
+.folderRow.folderOpen>td:last-child,.folderChildRow>td:last-child,.folderChildDetail>td:last-child{border-right:2px solid #ce9a12!important}
+.folderChildRow.folderTreeLast>td,.folderFrameLastDetail:not(.hidden)>td{border-bottom:2px solid #ce9a12!important;box-shadow:none!important}
+
+/* TEST74: suppress native image copy/save gestures on card thumbnails. */
+.cardThumbDeadZone,.cardThumbDeadZone img{
+  -webkit-touch-callout:none!important;user-select:none!important;-webkit-user-select:none!important;
+  -webkit-user-drag:none!important;user-drag:none!important;
+}
+.cardThumbDeadZone{pointer-events:auto!important;touch-action:pan-y!important}
+.cardThumbDeadZone img{pointer-events:none!important}
+
+/* Developer-only controls stay visually separate and require five taps to open. */
+.optionDeveloperFold{border-color:#1f5d43!important;background:#e7f3ec!important}
+.optionDeveloperFold>summary{color:#123f2d!important;background:#cfe7d8!important}
+.optionDeveloperFold>summary:after{color:#1f5d43!important}
+.optionDeveloperFold>section{background:#eef8f2!important;border-top-color:#72a98d!important}
+
+@media(max-width:560px){
+  .stickyViewBar .viewCountRow{gap:5px!important}
+  .toolbarClose{padding:7px 7px!important;font-size:13px!important}
+  .favoriteHit{min-width:36px;min-height:52px}
+}
+.searchPanel.searchRevealed{
+  border:3px solid #2f7de1!important;border-radius:14px!important;
+  background:#eef6ff!important;padding:10px!important;
+  box-shadow:0 0 0 5px rgba(47,125,225,.16),0 8px 22px rgba(33,90,160,.16)!important;
+  animation:searchRevealPulse .8s ease-out;
+}
+@keyframes searchRevealPulse{
+  0%{transform:scale(.985);box-shadow:0 0 0 0 rgba(47,125,225,.34)}
+  100%{transform:scale(1);box-shadow:0 0 0 5px rgba(47,125,225,.16),0 8px 22px rgba(33,90,160,.16)}
+}
+.unifiedPrompt{
+  position:relative;
+  display:-webkit-box!important;-webkit-box-orient:vertical;-webkit-line-clamp:5;
+  overflow:hidden;text-overflow:ellipsis;white-space:pre-wrap;
+}
+.unifiedPrompt.hasOverflow::after{
+  content:'…';position:absolute;right:0;bottom:0;min-width:38px;text-align:right;
+  padding-left:22px;font-weight:900;color:#555;
+  background:linear-gradient(90deg,rgba(255,255,255,0),#fff 58%);
+}
+@media(prefers-reduced-motion:reduce){.searchPanel.searchRevealed{animation:none}}
+
+/* TEST39: compact branches and keep only a minimal D&D gap beside names. */
+.unifiedTable .dragSpace,
+.unifiedTable .folderDragSpace{flex-basis:0!important;min-width:0!important;width:0!important}
+
+/* TEST40: optional press feedback. The saved preference toggles this body class. */
+body.buttonGlowEnabled button:not(:disabled){transition:filter .12s ease,box-shadow .12s ease,transform .12s ease}
+body.buttonGlowEnabled button:not(:disabled):active{
+  filter:brightness(1.12) saturate(1.08);
+  box-shadow:0 0 0 3px rgba(55,133,230,.25),0 0 16px rgba(55,133,230,.34)!important;
+  transform:translateY(1px);
+}
+/* TEST40: genre-first sample browser */
+.sampleGenrePicker{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:center;margin:14px 0}
+.sampleGenrePicker label{font-weight:900}
+.sampleGenrePicker select{width:100%;min-width:0}
+.sampleList{display:grid;gap:10px;max-height:min(54vh,560px);overflow:auto;padding:2px}
+.sampleListItem{display:grid;grid-template-columns:24px 72px minmax(0,1fr);gap:10px;align-items:center;padding:10px;border:1px solid #dedad2;border-radius:13px;background:#fff;cursor:pointer}
+.sampleListItem:has(input:checked){border-color:#4b88d8;background:#f1f7ff;box-shadow:inset 0 0 0 1px #4b88d8}
+.sampleListItem input{width:20px;height:20px;margin:0}
+.sampleListItem img{width:72px;height:60px;object-fit:cover;border-radius:9px;border:1px solid #e1ddd5;background:#eee}
+.sampleListItem span,.sampleListItem strong,.sampleListItem small{display:block;min-width:0}
+.sampleListItem strong{font-size:16px;line-height:1.35}
+.sampleListItem small{margin-top:4px;color:#666;font-size:13px;line-height:1.45}
+.sampleListEmpty{padding:30px 12px;text-align:center;color:#888;border:1px dashed #ccc;border-radius:13px;background:#fafafa}
+.sampleConfirmDialog{border:0;padding:0;background:transparent}
+.sampleConfirmPanel{width:min(420px,calc(100vw - 32px));box-sizing:border-box;padding:20px;border-radius:18px;background:#fff;box-shadow:0 18px 55px #0003}
+.sampleConfirmPanel h2{margin:0 0 10px}.sampleConfirmPanel p{line-height:1.65;margin:0}
+.dataConfirmMessage{white-space:pre-line}
+#sampleDialog>.samplePanel>.sampleActions{grid-template-columns:1fr}
+#sampleExecute{width:100%;min-height:52px;font-size:16px}
+@media(max-width:560px){.sampleListItem{grid-template-columns:22px 58px minmax(0,1fr);gap:8px;padding:9px}.sampleListItem img{width:58px;height:54px}}
+
+/* TEST52: 開いている詳細を柔らかなコーラル枠で明確にする。 */
+.rowDetail:not(.hidden)>td{background:#fff4f2!important;padding:6px!important}
+.rowDetail:not(.hidden) .unifiedCardDetail{
+  border:2px solid #e8796b;border-radius:12px;background:#fffaf9;
+  box-shadow:0 3px 12px rgba(232,121,107,.18);overflow:hidden;
+}
+
+/* TEST76: opened folders are separate visual groups, with even frame lines. */
+.folderRow[data-folder-tone="0"],.folderChildRow[data-folder-tone="0"],.folderChildDetail[data-folder-tone="0"]{--folder-accent:#c99a13;--folder-head-1:#fff3bc;--folder-head-2:#efd681;--folder-child:#fffbed;--folder-child-2:#fff8dc}
+.folderRow[data-folder-tone="1"],.folderChildRow[data-folder-tone="1"],.folderChildDetail[data-folder-tone="1"]{--folder-accent:#b88f23;--folder-head-1:#fff0c7;--folder-head-2:#ead395;--folder-child:#fff9e8;--folder-child-2:#fff5d5}
+.folderRow[data-folder-tone="2"],.folderChildRow[data-folder-tone="2"],.folderChildDetail[data-folder-tone="2"]{--folder-accent:#b59a2a;--folder-head-1:#fff7bd;--folder-head-2:#e8d78c;--folder-child:#fffde9;--folder-child-2:#fbf8d3}
+.folderRow[data-folder-tone="3"],.folderChildRow[data-folder-tone="3"],.folderChildDetail[data-folder-tone="3"]{--folder-accent:#b8860d;--folder-head-1:#fff1b4;--folder-head-2:#e7c96d;--folder-child:#fff9e3;--folder-child-2:#fff2c8}
+.folderRow[data-folder-tone="4"],.folderChildRow[data-folder-tone="4"],.folderChildDetail[data-folder-tone="4"]{--folder-accent:#b48a17;--folder-head-1:#fff4ca;--folder-head-2:#ead18d;--folder-child:#fffaf0;--folder-child-2:#fff4dc}
+.folderRow[data-folder-tone="5"],.folderChildRow[data-folder-tone="5"],.folderChildDetail[data-folder-tone="5"]{--folder-accent:#c39208;--folder-head-1:#fff0ad;--folder-head-2:#e7c76b;--folder-child:#fff8df;--folder-child-2:#fff1c5}
+.folderRow>td{
+  background:linear-gradient(180deg,var(--folder-head-1,#fff3bc),var(--folder-head-2,#efd681))!important;
+  border-top:1px solid #dec77c!important;
+  border-bottom:1px solid #dec77c!important;
+}
+.folderRow>td:first-child{border-left:1px solid #dec77c!important}
+.folderRow>td:last-child{border-right:1px solid #dec77c!important}
+.folderRow.folderOpen>td{
+  background:linear-gradient(180deg,var(--folder-head-1,#fff3bc),var(--folder-head-2,#efd681))!important;
+  border-top:2px solid var(--folder-accent,#c99a13)!important;
+  border-bottom:1px solid #dec77c!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.78),0 2px 5px rgba(90,65,0,.08)!important;
+}
+.folderRow.folderOpen>td:first-child{border-left:2px solid var(--folder-accent,#c99a13)!important;border-radius:10px 0 0 0!important}
+.folderRow.folderOpen>td:last-child{border-right:2px solid var(--folder-accent,#c99a13)!important;border-radius:0 10px 0 0!important}
+.folderRow.folderOpen:not(:first-child)>td{
+  border-top:6px solid #faf9f6!important;
+  box-shadow:inset 0 2px 0 var(--folder-accent,#c99a13),inset 0 3px 0 rgba(255,255,255,.78),0 2px 5px rgba(90,65,0,.08)!important;
+}
+.folderChildRow>td{
+  background:linear-gradient(180deg,var(--folder-child,#fffbed),var(--folder-child-2,#fff8dc))!important;
+  border-left:0!important;border-right:0!important;border-bottom:1px solid rgba(150,115,0,.14)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.7)!important;
+}
+.folderChildRow>td:first-child{border-left:2px solid var(--folder-accent,#c99a13)!important}
+.folderChildRow>td:last-child{border-right:2px solid var(--folder-accent,#c99a13)!important}
+.folderChildDetail>td{
+  background:var(--folder-child,#fffbed)!important;
+  border-left:2px solid var(--folder-accent,#c99a13)!important;
+  border-right:2px solid var(--folder-accent,#c99a13)!important;
+}
+.folderChildRow.folderTreeLast>td,
+.folderFrameLastDetail:not(.hidden)>td{
+  border-bottom:2px solid var(--folder-accent,#c99a13)!important;
+  box-shadow:none!important;
+}
+.folderChildRow.folderTreeLast>td:first-child,
+.folderChildRow.folderTreeLast>td:last-child,
+.folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td:first-child,
+.folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td:last-child{
+  box-shadow:none!important;
+}
+
+/* TEST82-FINAL: must remain at the end of this file. */
+.folderRow.folderOpen,
+.folderRow.folderOpen>td,
+.folderRow.folderOpen:not(:first-child)>td,
+.folderChildRow+.folderRow.folderOpen>td,
+.folderFrameLastDetail+.folderRow.folderOpen>td,
+.folderRow.folderOpen+.folderChildRow>td,
+.folderChildRow>td,
+.folderChildDetail>td,
+.folderChildRow.folderTreeLast>td,
+.folderFrameLastDetail:not(.hidden)>td{
+  border:0!important;
+  box-shadow:none!important;
+  filter:none!important;
+}
+.folderRow.folderOpen>td{box-shadow:inset 0 1px 0 var(--folder-accent,#c99a13)!important}
+.folderRow.folderOpen>td:first-child{
+  border-radius:10px 0 0 0!important;
+  box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset 0 1px 0 var(--folder-accent,#c99a13)!important;
+}
+.folderRow.folderOpen>td:last-child{
+  border-radius:0 10px 0 0!important;
+  box-shadow:inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 1px 0 var(--folder-accent,#c99a13)!important;
+}
+.folderChildRow>td,.folderChildDetail>td{box-shadow:inset 0 -1px 0 rgba(150,115,0,.14)!important}
+.folderChildRow>td:first-child,.folderChildDetail>td:first-child{
+  box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 rgba(150,115,0,.14)!important;
+}
+.folderChildRow>td:last-child,.folderChildDetail>td:last-child{
+  box-shadow:inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 rgba(150,115,0,.14)!important;
+}
+.folderChildRow.folderTreeLast>td:first-child{
+  border-radius:0 0 0 10px!important;
+  box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 var(--folder-accent,#c99a13)!important;
+}
+.folderChildRow.folderTreeLast>td:not(:first-child):not(:last-child){box-shadow:inset 0 -1px 0 var(--folder-accent,#c99a13)!important}
+.folderChildRow.folderTreeLast>td:last-child{
+  border-radius:0 0 10px 0!important;
+  box-shadow:inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 var(--folder-accent,#c99a13)!important;
+}
+.folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td{
+  border-radius:0!important;
+  box-shadow:inset 0 -1px 0 rgba(150,115,0,.14)!important;
+}
+.folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td:first-child{
+  box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 rgba(150,115,0,.14)!important;
+}
+.folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td:last-child{
+  box-shadow:inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 rgba(150,115,0,.14)!important;
+}
+.folderFrameLastDetail:not(.hidden)>td{
+  border-radius:0 0 10px 10px!important;
+  box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 var(--folder-accent,#c99a13)!important;
+}
+
+/* TEST82: final folder-frame rules.  This block intentionally lives last so
+   legacy TEST74-81 borders cannot make any side or last row thicker. */
+.folderRow.folderOpen,
+.folderRow.folderOpen>td,
+.folderRow.folderOpen:not(:first-child)>td,
+.folderChildRow+.folderRow.folderOpen>td,
+.folderFrameLastDetail+.folderRow.folderOpen>td,
+.folderRow.folderOpen+.folderChildRow>td,
+.folderChildRow>td,
+.folderChildDetail>td,
+.folderChildRow.folderTreeLast>td,
+.folderFrameLastDetail:not(.hidden)>td{
+  border:0!important;
+  box-shadow:none!important;
+  filter:none!important;
+}
+.folderRow.folderOpen>td{
+  box-shadow:inset 0 1px 0 var(--folder-accent,#c99a13)!important;
+}
+.folderRow.folderOpen>td:first-child{
+  border-radius:10px 0 0 0!important;
+  box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset 0 1px 0 var(--folder-accent,#c99a13)!important;
+}
+.folderRow.folderOpen>td:last-child{
+  border-radius:0 10px 0 0!important;
+  box-shadow:inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 1px 0 var(--folder-accent,#c99a13)!important;
+}
+.folderChildRow>td,
+.folderChildDetail>td{
+  box-shadow:inset 0 -1px 0 rgba(150,115,0,.14)!important;
+}
+.folderChildRow>td:first-child,
+.folderChildDetail>td:first-child{
+  box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 rgba(150,115,0,.14)!important;
+}
+.folderChildRow>td:last-child,
+.folderChildDetail>td:last-child{
+  box-shadow:inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 rgba(150,115,0,.14)!important;
+}
+.folderChildRow.folderTreeLast>td:first-child{
+  border-radius:0 0 0 10px!important;
+  box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 var(--folder-accent,#c99a13)!important;
+}
+.folderChildRow.folderTreeLast>td:not(:first-child):not(:last-child){
+  box-shadow:inset 0 -1px 0 var(--folder-accent,#c99a13)!important;
+}
+.folderChildRow.folderTreeLast>td:last-child{
+  border-radius:0 0 10px 0!important;
+  box-shadow:inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 var(--folder-accent,#c99a13)!important;
+}
+.folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td{
+  border-radius:0!important;
+  box-shadow:inset 0 -1px 0 rgba(150,115,0,.14)!important;
+}
+.folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td:first-child{
+  box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 rgba(150,115,0,.14)!important;
+}
+.folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td:last-child{
+  box-shadow:inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 rgba(150,115,0,.14)!important;
+}
+.folderFrameLastDetail:not(.hidden)>td{
+  border-radius:0 0 10px 10px!important;
+  box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 var(--folder-accent,#c99a13)!important;
+}
+
+/* TEST80: one-pixel folder frames.  Draw every edge with inset lines so the
+   table's collapsed borders cannot make the final child row thicker. */
+.folderRow.folderOpen>td,
+.folderChildRow>td,
+.folderChildDetail>td,
+.folderChildRow.folderTreeLast>td,
+.folderFrameLastDetail:not(.hidden)>td{
+  border-color:transparent!important;
+  border-radius:0!important;
+}
+.folderRow.folderOpen>td{
+  border-top:0!important;
+  border-bottom:0!important;
+  box-shadow:inset 0 1px 0 var(--folder-accent,#c99a13),0 1px 3px rgba(90,65,0,.06)!important;
+}
+.folderRow.folderOpen>td:first-child{
+  border-radius:10px 0 0 0!important;
+  box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset 0 1px 0 var(--folder-accent,#c99a13),0 1px 3px rgba(90,65,0,.06)!important;
+}
+.folderRow.folderOpen>td:last-child{
+  border-radius:0 10px 0 0!important;
+  box-shadow:inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 1px 0 var(--folder-accent,#c99a13),0 1px 3px rgba(90,65,0,.06)!important;
+}
+.folderRow.folderOpen:not(:first-child)>td,
+.folderChildRow+.folderRow.folderOpen>td,
+.folderFrameLastDetail+.folderRow.folderOpen>td{
+  border-top:5px solid #faf9f6!important;
+}
+.folderChildRow>td,
+.folderChildDetail>td{
+  border-bottom:0!important;
+  box-shadow:inset 0 -1px 0 rgba(150,115,0,.14)!important;
+}
+.folderChildRow>td:first-child,
+.folderChildDetail>td:first-child{
+  box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 rgba(150,115,0,.14)!important;
+}
+.folderChildRow>td:last-child,
+.folderChildDetail>td:last-child{
+  box-shadow:inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 rgba(150,115,0,.14)!important;
+}
+.folderChildRow.folderTreeLast>td,
+.folderFrameLastDetail:not(.hidden)>td{
+  border-bottom:0!important;
+}
+.folderChildRow.folderTreeLast>td:first-child{
+  border-radius:0 0 0 10px!important;
+  box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 var(--folder-accent,#c99a13)!important;
+}
+.folderChildRow.folderTreeLast>td:not(:first-child):not(:last-child){
+  box-shadow:inset 0 -1px 0 var(--folder-accent,#c99a13)!important;
+}
+.folderChildRow.folderTreeLast>td:last-child{
+  border-radius:0 0 10px 0!important;
+  box-shadow:inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 var(--folder-accent,#c99a13)!important;
+}
+.folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td{
+  box-shadow:inset 0 -1px 0 rgba(150,115,0,.14)!important;
+}
+.folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td:first-child{
+  border-radius:0!important;
+  box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 rgba(150,115,0,.14)!important;
+}
+.folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td:last-child{
+  border-radius:0!important;
+  box-shadow:inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 rgba(150,115,0,.14)!important;
+}
+.folderFrameLastDetail:not(.hidden)>td{
+  border-radius:0 0 10px 10px!important;
+  box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 var(--folder-accent,#c99a13)!important;
+}
+
+/* TEST81: no artificial white gaps.  All folder-frame edges are drawn at the
+   same visual width, including the final child row. */
+.folderRow.folderOpen{filter:none!important}
+.folderRow.folderOpen>td,
+.folderRow.folderOpen:not(:first-child)>td,
+.folderChildRow+.folderRow.folderOpen>td,
+.folderFrameLastDetail+.folderRow.folderOpen>td,
+.folderChildRow>td,
+.folderChildDetail>td,
+.folderChildRow.folderTreeLast>td,
+.folderFrameLastDetail:not(.hidden)>td{
+  border:0!important;
+  border-radius:0!important;
+}
+.folderRow.folderOpen>td{
+  box-shadow:inset 0 1px 0 var(--folder-accent,#c99a13)!important;
+}
+.folderRow.folderOpen>td:first-child{
+  border-radius:10px 0 0 0!important;
+  box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset 0 1px 0 var(--folder-accent,#c99a13)!important;
+}
+.folderRow.folderOpen>td:last-child{
+  border-radius:0 10px 0 0!important;
+  box-shadow:inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 1px 0 var(--folder-accent,#c99a13)!important;
+}
+.folderChildRow>td,
+.folderChildDetail>td{
+  box-shadow:inset 0 -1px 0 rgba(150,115,0,.14)!important;
+}
+.folderChildRow>td:first-child,
+.folderChildDetail>td:first-child{
+  box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 rgba(150,115,0,.14)!important;
+}
+.folderChildRow>td:last-child,
+.folderChildDetail>td:last-child{
+  box-shadow:inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 rgba(150,115,0,.14)!important;
+}
+.folderChildRow.folderTreeLast>td:first-child{
+  border-radius:0 0 0 10px!important;
+  box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 var(--folder-accent,#c99a13)!important;
+}
+.folderChildRow.folderTreeLast>td:not(:first-child):not(:last-child){
+  box-shadow:inset 0 -1px 0 var(--folder-accent,#c99a13)!important;
+}
+.folderChildRow.folderTreeLast>td:last-child{
+  border-radius:0 0 10px 0!important;
+  box-shadow:inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 var(--folder-accent,#c99a13)!important;
+}
+.folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td{
+  border-radius:0!important;
+  box-shadow:inset 0 -1px 0 rgba(150,115,0,.14)!important;
+}
+.folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td:first-child{
+  box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 rgba(150,115,0,.14)!important;
+}
+.folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td:last-child{
+  box-shadow:inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 rgba(150,115,0,.14)!important;
+}
+.folderFrameLastDetail:not(.hidden)>td{
+  border-radius:0 0 10px 10px!important;
+  box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 var(--folder-accent,#c99a13)!important;
+}
+
+/* TEST79: rounded folder groups without horizontal table lines poking through. */
+.folderRow>td:first-child{border-radius:10px 0 0 10px!important}
+.folderRow>td:last-child{border-radius:0 10px 10px 0!important}
+.folderRow.folderOpen>td,
+.folderChildRow>td,
+.folderChildDetail>td,
+.folderChildRow.folderTreeLast>td,
+.folderFrameLastDetail:not(.hidden)>td{
+  border-color:transparent!important;
+}
+.folderRow.folderOpen>td:first-child{
+  border-radius:10px 0 0 0!important;
+  box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset 0 1px 0 var(--folder-accent,#c99a13),0 1px 3px rgba(90,65,0,.06)!important;
+}
+.folderRow.folderOpen>td:not(:first-child):not(:last-child){
+  box-shadow:inset 0 1px 0 var(--folder-accent,#c99a13),0 1px 3px rgba(90,65,0,.06)!important;
+}
+.folderRow.folderOpen>td:last-child{
+  border-radius:0 10px 0 0!important;
+  box-shadow:inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 1px 0 var(--folder-accent,#c99a13),0 1px 3px rgba(90,65,0,.06)!important;
+}
+.folderRow.folderOpen:not(:first-child)>td:first-child,
+.folderChildRow+.folderRow.folderOpen>td:first-child,
+.folderFrameLastDetail+.folderRow.folderOpen>td:first-child{
+  border-top:6px solid #faf9f6!important;
+  box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset 0 1px 0 var(--folder-accent,#c99a13),0 1px 3px rgba(90,65,0,.06)!important;
+}
+.folderRow.folderOpen:not(:first-child)>td:not(:first-child):not(:last-child),
+.folderChildRow+.folderRow.folderOpen>td:not(:first-child):not(:last-child),
+.folderFrameLastDetail+.folderRow.folderOpen>td:not(:first-child):not(:last-child){
+  border-top:6px solid #faf9f6!important;
+  box-shadow:inset 0 1px 0 var(--folder-accent,#c99a13),0 1px 3px rgba(90,65,0,.06)!important;
+}
+.folderRow.folderOpen:not(:first-child)>td:last-child,
+.folderChildRow+.folderRow.folderOpen>td:last-child,
+.folderFrameLastDetail+.folderRow.folderOpen>td:last-child{
+  border-top:6px solid #faf9f6!important;
+  box-shadow:inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 1px 0 var(--folder-accent,#c99a13),0 1px 3px rgba(90,65,0,.06)!important;
+}
+.folderChildRow>td:first-child,
+.folderChildDetail>td:first-child{
+  box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset 0 1px 0 rgba(255,255,255,.62)!important;
+}
+.folderChildRow>td:last-child,
+.folderChildDetail>td:last-child{
+  box-shadow:inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 1px 0 rgba(255,255,255,.62)!important;
+}
+.folderChildRow.folderTreeLast>td:first-child{
+  border-radius:0 0 0 10px!important;
+  box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 var(--folder-accent,#c99a13)!important;
+}
+.folderChildRow.folderTreeLast>td:not(:first-child):not(:last-child){
+  box-shadow:inset 0 -1px 0 var(--folder-accent,#c99a13)!important;
+}
+.folderChildRow.folderTreeLast>td:last-child{
+  border-radius:0 0 10px 0!important;
+  box-shadow:inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 var(--folder-accent,#c99a13)!important;
+}
+.folderFrameLastDetail:not(.hidden)>td{
+  border-radius:0 0 10px 10px!important;
+  box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 var(--folder-accent,#c99a13)!important;
+}
+.folderChildRow.folderTreeLast>td:first-child{border-radius:0 0 0 8px!important}
+.folderChildRow.folderTreeLast>td:last-child{border-radius:0 0 8px 0!important}
+.folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td:first-child,
+.folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td:last-child{border-radius:0!important}
+.folderFrameLastDetail:not(.hidden)>td{border-radius:0 0 8px 8px!important}
+.folderChildRow+.folderRow.folderOpen>td,
+.folderFrameLastDetail+.folderRow.folderOpen>td{
+  border-top:6px solid #faf9f6!important;
+  box-shadow:inset 0 2px 0 var(--folder-accent,#c99a13),inset 0 3px 0 rgba(255,255,255,.78),0 2px 5px rgba(90,65,0,.08)!important;
+}
+.folderRow.folderOpen+.folderChildRow>td{box-shadow:inset 0 5px 8px rgba(105,75,0,.06)!important}
+.folderBranch{border-left-color:var(--folder-accent,#ad7d00)!important}
+.folderChildRow .folderBranch::before,
+.folderChildRow.folderTreeLast .folderBranch::after{border-color:var(--folder-accent,#ad7d00)!important}
+
+/* TEST76: give card and folder titles more usable width before the operation column. */
+.cardNameLayout{gap:3px}
+.cardNameLayout>.unifiedDragArea,.folderNameLayout>.folderNameBtn{min-width:0!important}
+.cardNameLayout>.unifiedDragArea .rowName,
+.unifiedTable .folderNameBtn span:nth-child(2){
+  width:100%!important;max-width:none!important;
+}
+@media(max-width:560px){
+  .detailTable .col-actions,.detailTable .opCol{width:126px!important}
+  .tableActions>button[data-copy]{min-width:78px!important;padding-left:8px!important;padding-right:8px!important}
+}
+
+/* TEST77: keep opened folder frames square and closed on every side. */
+.folderRow.folderOpen>td:first-child,
+.folderRow.folderOpen>td:last-child,
+.folderChildRow.folderTreeLast>td:first-child,
+.folderChildRow.folderTreeLast>td:last-child,
+.folderFrameLastDetail:not(.hidden)>td{
+  border-radius:0!important;
+}
+.folderRow.folderOpen>td{
+  border-top:2px solid var(--folder-accent,#c99a13)!important;
+}
+.folderRow.folderOpen:not(:first-child)>td,
+.folderChildRow+.folderRow.folderOpen>td,
+.folderFrameLastDetail+.folderRow.folderOpen>td{
+  border-top:6px solid #faf9f6!important;
+  box-shadow:inset 0 2px 0 var(--folder-accent,#c99a13),0 2px 5px rgba(90,65,0,.08)!important;
+}
+.folderChildRow.folderTreeLast>td{
+  border-bottom:2px solid var(--folder-accent,#c99a13)!important;
+  box-shadow:none!important;
+}
+.folderChildRow.folderTreeLast>td:first-child{
+  border-left:2px solid var(--folder-accent,#c99a13)!important;
+  box-shadow:none!important;
+}
+.folderChildRow.folderTreeLast>td:last-child{
+  border-right:2px solid var(--folder-accent,#c99a13)!important;
+  box-shadow:none!important;
+}
+
+/* TEST78: use thin square folder frames; keep white separation outside the frame. */
+.folderRow.folderOpen>td,
+.folderChildRow>td,
+.folderChildDetail>td,
+.folderChildRow.folderTreeLast>td,
+.folderFrameLastDetail:not(.hidden)>td{
+  border-radius:0!important;
+}
+.folderRow.folderOpen>td{
+  border-top:1px solid var(--folder-accent,#c99a13)!important;
+  border-bottom:1px solid rgba(150,115,0,.18)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.72),0 1px 3px rgba(90,65,0,.06)!important;
+}
+.folderRow.folderOpen>td:first-child{
+  border-left:1px solid var(--folder-accent,#c99a13)!important;
+}
+.folderRow.folderOpen>td:last-child{
+  border-right:1px solid var(--folder-accent,#c99a13)!important;
+}
+.folderRow.folderOpen:not(:first-child)>td,
+.folderChildRow+.folderRow.folderOpen>td,
+.folderFrameLastDetail+.folderRow.folderOpen>td{
+  border-top:6px solid #faf9f6!important;
+  box-shadow:inset 0 1px 0 var(--folder-accent,#c99a13),0 1px 3px rgba(90,65,0,.06)!important;
+}
+.folderChildRow>td{
+  border-bottom:1px solid rgba(150,115,0,.14)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.62)!important;
+}
+.folderChildRow>td:first-child,
+.folderChildDetail>td:first-child{
+  border-left:1px solid var(--folder-accent,#c99a13)!important;
+}
+.folderChildRow>td:last-child,
+.folderChildDetail>td:last-child{
+  border-right:1px solid var(--folder-accent,#c99a13)!important;
+}
+.folderChildRow.folderTreeLast>td,
+.folderFrameLastDetail:not(.hidden)>td{
+  border-bottom:1px solid var(--folder-accent,#c99a13)!important;
+  box-shadow:none!important;
+}
+.folderChildRow.folderTreeLast>td:first-child,
+.folderChildRow.folderTreeLast>td:last-child,
+.folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td:first-child,
+.folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td:last-child{
+  box-shadow:none!important;
+}
+
+/* TEST82-FINAL: this is deliberately the final CSS rule block. */
+.folderRow.folderOpen,.folderRow.folderOpen>td,.folderRow.folderOpen:not(:first-child)>td,.folderChildRow+.folderRow.folderOpen>td,.folderFrameLastDetail+.folderRow.folderOpen>td,.folderRow.folderOpen+.folderChildRow>td,.folderChildRow>td,.folderChildDetail>td,.folderChildRow.folderTreeLast>td,.folderFrameLastDetail:not(.hidden)>td{border:0!important;box-shadow:none!important;filter:none!important}
+.folderRow.folderOpen>td{box-shadow:inset 0 1px 0 var(--folder-accent,#c99a13)!important}
+.folderRow.folderOpen>td:first-child{border-radius:10px 0 0 0!important;box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset 0 1px 0 var(--folder-accent,#c99a13)!important}
+.folderRow.folderOpen>td:last-child{border-radius:0 10px 0 0!important;box-shadow:inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 1px 0 var(--folder-accent,#c99a13)!important}
+.folderChildRow>td,.folderChildDetail>td{box-shadow:inset 0 -1px 0 rgba(150,115,0,.14)!important}
+.folderChildRow>td:first-child,.folderChildDetail>td:first-child{box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 rgba(150,115,0,.14)!important}
+.folderChildRow>td:last-child,.folderChildDetail>td:last-child{box-shadow:inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 rgba(150,115,0,.14)!important}
+.folderChildRow.folderTreeLast>td:first-child{border-radius:0 0 0 10px!important;box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 var(--folder-accent,#c99a13)!important}
+.folderChildRow.folderTreeLast>td:not(:first-child):not(:last-child){box-shadow:inset 0 -1px 0 var(--folder-accent,#c99a13)!important}
+.folderChildRow.folderTreeLast>td:last-child{border-radius:0 0 10px 0!important;box-shadow:inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 var(--folder-accent,#c99a13)!important}
+.folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td{border-radius:0!important;box-shadow:inset 0 -1px 0 rgba(150,115,0,.14)!important}
+.folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td:first-child{box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 rgba(150,115,0,.14)!important}
+.folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td:last-child{box-shadow:inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 rgba(150,115,0,.14)!important}
+.folderFrameLastDetail:not(.hidden)>td{border-radius:0 0 10px 10px!important;box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset -1px 0 0 var(--folder-accent,#c99a13),inset 0 -1px 0 var(--folder-accent,#c99a13)!important}
+
+/* TEST83: use color and the tree branch only.  A table is not used as a
+   rounded group container, so there is no folder-wide outer frame. */
+.folderRow.folderOpen{filter:none!important}
+.folderRow.folderOpen>td,
+.folderRow.folderOpen:not(:first-child)>td,
+.folderChildRow+.folderRow.folderOpen>td,
+.folderFrameLastDetail+.folderRow.folderOpen>td{
+  border:0!important;
+  border-bottom:1px solid #dec77c!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+}
+.folderChildRow>td,
+.folderChildDetail>td,
+.folderChildRow.folderTreeLast>td,
+.folderFrameLastDetail:not(.hidden)>td{
+  border:0!important;
+  border-bottom:1px solid rgba(150,115,0,.14)!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+}
+.folderChildRow.folderTreeLast>td,
+.folderFrameLastDetail:not(.hidden)>td{
+  border-bottom:1px solid #dec77c!important;
+}
+.folderRow.folderOpen+.folderChildRow>td{box-shadow:none!important}
+
+/* TEST84: reset the higher-specificity edge rules left by older folder frames. */
+.folderRow.folderOpen>td,
+.folderRow.folderOpen>td:first-child,
+.folderRow.folderOpen>td:last-child,
+.folderRow.folderOpen>td:not(:first-child):not(:last-child),
+.folderChildRow>td,
+.folderChildRow>td:first-child,
+.folderChildRow>td:last-child,
+.folderChildRow.folderTreeLast>td,
+.folderChildRow.folderTreeLast>td:first-child,
+.folderChildRow.folderTreeLast>td:last-child,
+.folderChildDetail>td,
+.folderChildDetail>td:first-child,
+.folderChildDetail>td:last-child,
+.folderFrameLastDetail:not(.hidden)>td{
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+}
+.folderRow.folderOpen>td,
+.folderRow.folderOpen>td:first-child,
+.folderRow.folderOpen>td:last-child,
+.folderRow.folderOpen>td:not(:first-child):not(:last-child){
+  border-bottom:1px solid #dec77c!important;
+}
+.folderChildRow>td,
+.folderChildRow>td:first-child,
+.folderChildRow>td:last-child,
+.folderChildRow.folderTreeLast>td,
+.folderChildRow.folderTreeLast>td:first-child,
+.folderChildRow.folderTreeLast>td:last-child,
+.folderChildDetail>td,
+.folderChildDetail>td:first-child,
+.folderChildDetail>td:last-child,
+.folderFrameLastDetail:not(.hidden)>td{
+  border-bottom:1px solid rgba(150,115,0,.14)!important;
+}
+
+/* TEST85: no white spacer borders, no partial group-closing line. */
+.detailTable.detailTable .folderRow.folderOpen>td,
+.detailTable.detailTable .folderRow.folderOpen>td:first-child,
+.detailTable.detailTable .folderRow.folderOpen>td:last-child,
+.detailTable.detailTable .folderRow.folderOpen>td:not(:first-child):not(:last-child),
+.detailTable.detailTable .folderChildRow+.folderRow.folderOpen>td,
+.detailTable.detailTable .folderChildRow+.folderRow.folderOpen>td:first-child,
+.detailTable.detailTable .folderChildRow+.folderRow.folderOpen>td:last-child,
+.detailTable.detailTable .folderFrameLastDetail+.folderRow.folderOpen>td,
+.detailTable.detailTable .folderFrameLastDetail+.folderRow.folderOpen>td:first-child,
+.detailTable.detailTable .folderFrameLastDetail+.folderRow.folderOpen>td:last-child{
+  border-top:0!important;
+  border-left:0!important;
+  border-right:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+}
+.detailTable.detailTable .folderRow.folderOpen>td,
+.detailTable.detailTable .folderRow.folderOpen>td:first-child,
+.detailTable.detailTable .folderRow.folderOpen>td:last-child,
+.detailTable.detailTable .folderRow.folderOpen>td:not(:first-child):not(:last-child){
+  border-bottom:1px solid #dec77c!important;
+}
+.detailTable.detailTable .folderChildRow>td,
+.detailTable.detailTable .folderChildRow>td:first-child,
+.detailTable.detailTable .folderChildRow>td:last-child,
+.detailTable.detailTable .folderChildRow.folderTreeLast>td,
+.detailTable.detailTable .folderChildRow.folderTreeLast>td:first-child,
+.detailTable.detailTable .folderChildRow.folderTreeLast>td:last-child,
+.detailTable.detailTable .folderChildDetail>td,
+.detailTable.detailTable .folderChildDetail>td:first-child,
+.detailTable.detailTable .folderChildDetail>td:last-child,
+.detailTable.detailTable .folderFrameLastDetail:not(.hidden)>td{
+  border-top:0!important;
+  border-left:0!important;
+  border-right:0!important;
+  border-bottom:1px solid rgba(150,115,0,.14)!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+}
+
+/* TEST86: remove every legacy folder-frame separator.  Folder membership is
+   expressed by the tint and tree branch, not by extra table borders. */
+.detailTable.detailTable .folderRow,
+.detailTable.detailTable .folderRow.folderOpen{
+  filter:none!important;
+}
+.detailTable.detailTable .folderRow>td,
+.detailTable.detailTable .folderRow>td:first-child,
+.detailTable.detailTable .folderRow>td:last-child,
+.detailTable.detailTable .folderRow.folderOpen>td,
+.detailTable.detailTable .folderRow.folderOpen>td:first-child,
+.detailTable.detailTable .folderRow.folderOpen>td:last-child,
+.detailTable.detailTable .folderRow.folderOpen>td:not(:first-child):not(:last-child),
+.detailTable.detailTable .folderChildRow>td,
+.detailTable.detailTable .folderChildRow>td:first-child,
+.detailTable.detailTable .folderChildRow>td:last-child,
+.detailTable.detailTable .folderChildRow.folderTreeLast>td,
+.detailTable.detailTable .folderChildRow.folderTreeLast>td:first-child,
+.detailTable.detailTable .folderChildRow.folderTreeLast>td:last-child,
+.detailTable.detailTable .folderChildDetail>td,
+.detailTable.detailTable .folderFrameLastDetail:not(.hidden)>td{
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+}
+
+/* TEST86a: one shared child-card tint and one thin square frame per open folder. */
+.detailTable.detailTable .folderChildRow>td,
+.detailTable.detailTable .folderChildRow>td:first-child,
+.detailTable.detailTable .folderChildRow>td:last-child,
+.detailTable.detailTable .folderChildDetail>td,
+.detailTable.detailTable .folderFrameLastDetail:not(.hidden)>td{
+  background:#fffbea!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+}
+.detailTable.detailTable .folderRow.folderOpen>td{
+  border-top:1px solid var(--folder-accent,#c99a13)!important;
+  border-bottom:1px solid rgba(150,115,0,.14)!important;
+}
+.detailTable.detailTable .folderRow.folderOpen>td:first-child{
+  border-left:1px solid var(--folder-accent,#c99a13)!important;
+}
+.detailTable.detailTable .folderRow.folderOpen>td:last-child{
+  border-right:1px solid var(--folder-accent,#c99a13)!important;
+}
+.detailTable.detailTable .folderChildRow>td,
+.detailTable.detailTable .folderChildDetail>td{
+  border-top:0!important;
+  border-bottom:1px solid rgba(150,115,0,.14)!important;
+}
+.detailTable.detailTable .folderChildRow>td:first-child,
+.detailTable.detailTable .folderChildDetail>td:first-child{
+  border-left:1px solid var(--folder-accent,#c99a13)!important;
+}
+.detailTable.detailTable .folderChildRow>td:last-child,
+.detailTable.detailTable .folderChildDetail>td:last-child{
+  border-right:1px solid var(--folder-accent,#c99a13)!important;
+}
+.detailTable.detailTable .folderChildRow.folderTreeLast>td,
+.detailTable.detailTable .folderFrameLastDetail:not(.hidden)>td{
+  border-bottom:1px solid var(--folder-accent,#c99a13)!important;
+}
+
+/* TEST86b: a single colspan row closes the frame across all three columns. */
+.detailTable.detailTable .folderChildRow.folderTreeLast>td,
+.detailTable.detailTable .folderChildRow.folderTreeLast>td:first-child,
+.detailTable.detailTable .folderChildRow.folderTreeLast>td:last-child{
+  border-bottom:0!important;
+}
+.detailTable.detailTable .folderFrameEnd>td{
+  height:0!important;
+  min-height:0!important;
+  padding:0!important;
+  line-height:0!important;
+  font-size:0!important;
+  background:#fffbea!important;
+  border:0!important;
+  border-bottom:1px solid var(--folder-accent,#c99a13)!important;
+  box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset -1px 0 0 var(--folder-accent,#c99a13)!important;
+}
+.folderFrameEnd[data-folder-tone="0"]{--folder-accent:#c99a13}
+.folderFrameEnd[data-folder-tone="1"]{--folder-accent:#b88f23}
+.folderFrameEnd[data-folder-tone="2"]{--folder-accent:#b59a2a}
+.folderFrameEnd[data-folder-tone="3"]{--folder-accent:#b8860d}
+.folderFrameEnd[data-folder-tone="4"]{--folder-accent:#b48a17}
+.folderFrameEnd[data-folder-tone="5"]{--folder-accent:#c39208}
+
+/* TEST86c: draw the closing edge with a real full-width element, not a
+   collapsed table-cell border. */
+.detailTable.detailTable .folderChildRow.folderTreeLast>td,
+.detailTable.detailTable .folderChildRow.folderTreeLast>td:first-child,
+.detailTable.detailTable .folderChildRow.folderTreeLast>td:last-child{
+  border-bottom:0!important;
+  box-shadow:none!important;
+}
+.detailTable.detailTable .folderFrameEnd>td{
+  height:1px!important;
+  padding:0!important;
+  border:0!important;
+  background:#fffbea!important;
+  box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13),inset -1px 0 0 var(--folder-accent,#c99a13)!important;
+}
+.detailTable.detailTable .folderFrameEnd>td>div{
+  height:1px!important;
+  margin:0!important;
+  padding:0!important;
+  background:var(--folder-accent,#c99a13)!important;
+}
+
+/* TEST86d: join the final child to the full-width closing edge. */
+.detailTable.detailTable .folderChildRow.folderTreeLast>td:first-child{
+  border-left:1px solid var(--folder-accent,#c99a13)!important;
+}
+.detailTable.detailTable .folderChildRow.folderTreeLast>td:last-child{
+  border-right:1px solid var(--folder-accent,#c99a13)!important;
+}
+.detailTable.detailTable .folderFrameEnd>td{
+  border-left:1px solid var(--folder-accent,#c99a13)!important;
+  border-right:1px solid var(--folder-accent,#c99a13)!important;
+}
+.unifiedTable .folderNameBtn{
+  font-size:18px!important;
+  font-weight:850!important;
+}
+
+/* TEST86e: use inset edges on the final child row so collapsed table borders
+   cannot hide its left and right frame lines. */
+.detailTable.detailTable .folderChildRow.folderTreeLast>td:first-child{
+  box-shadow:inset 1px 0 0 var(--folder-accent,#c99a13)!important;
+}
+.detailTable.detailTable .folderChildRow.folderTreeLast>td:last-child{
+  box-shadow:inset -1px 0 0 var(--folder-accent,#c99a13)!important;
+}
+.unifiedTable .folderNameBtn{
+  font-size:20px!important;
+  font-weight:850!important;
+}
+
+/* TEST86f: keep the final-row edges present but visually lighter. */
+.detailTable.detailTable .folderChildRow.folderTreeLast>td:first-child{
+  box-shadow:inset 1px 0 0 color-mix(in srgb,var(--folder-accent,#c99a13) 58%,transparent)!important;
+}
+.detailTable.detailTable .folderChildRow.folderTreeLast>td:last-child{
+  box-shadow:inset -1px 0 0 color-mix(in srgb,var(--folder-accent,#c99a13) 58%,transparent)!important;
+}
+.unifiedTable .folderNameBtn{font-size:19px!important}
+
+/* TEST86g: remove the inset edge that looked like a second inner border. */
+.detailTable.detailTable .folderChildRow.folderTreeLast>td:first-child,
+.detailTable.detailTable .folderChildRow.folderTreeLast>td:last-child{
+  box-shadow:none!important;
+}
+.unifiedTable .folderNameBtn{font-size:18px!important}
+
+/* TEST87: folder name size is a user-selectable main-screen preference. */
+body[data-folder-name-size="small"] .unifiedTable .folderNameBtn{font-size:15px!important}
+body[data-folder-name-size="medium"] .unifiedTable .folderNameBtn{font-size:18px!important}
+body[data-folder-name-size="large"] .unifiedTable .folderNameBtn{font-size:20px!important}
+
+/* TEST88: use dedicated full-width edge rows.  This avoids collapsed table
+   borders being replaced by the card immediately above or below a folder. */
+.detailTable.detailTable .folderFrameStart>td,
+.detailTable.detailTable .folderFrameEnd>td{
+  height:1px!important;
+  min-height:1px!important;
+  padding:0!important;
+  border:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  line-height:0!important;
+  font-size:0!important;
+}
+.detailTable.detailTable .folderFrameStart>td>div,
+.detailTable.detailTable .folderFrameEnd>td>div{
+  display:block!important;
+  width:100%!important;
+  height:1px!important;
+  margin:0!important;
+  padding:0!important;
+  background:var(--folder-accent,#c99a13)!important;
+}
+.folderFrameStart[data-folder-tone="0"],.folderFrameEnd[data-folder-tone="0"]{--folder-accent:#c99a13}
+.folderFrameStart[data-folder-tone="1"],.folderFrameEnd[data-folder-tone="1"]{--folder-accent:#b88f23}
+.folderFrameStart[data-folder-tone="2"],.folderFrameEnd[data-folder-tone="2"]{--folder-accent:#b59a2a}
+.folderFrameStart[data-folder-tone="3"],.folderFrameEnd[data-folder-tone="3"]{--folder-accent:#b8860d}
+.folderFrameStart[data-folder-tone="4"],.folderFrameEnd[data-folder-tone="4"]{--folder-accent:#b48a17}
+.folderFrameStart[data-folder-tone="5"],.folderFrameEnd[data-folder-tone="5"]{--folder-accent:#c39208}
+.detailTable.detailTable .folderRow.folderOpen>td{border-top:0!important}
+
+/* TEST89: a closed folder is also a single, visibly enclosed unit. */
+.detailTable.detailTable .folderRow:not(.folderOpen)>td{
+  box-shadow:inset 0 1px 0 #dec77c,inset 0 -1px 0 #dec77c!important;
+}
+.detailTable.detailTable .folderRow:not(.folderOpen)>td:first-child{
+  box-shadow:inset 1px 0 0 #dec77c,inset 0 1px 0 #dec77c,inset 0 -1px 0 #dec77c!important;
+}
+.detailTable.detailTable .folderRow:not(.folderOpen)>td:last-child{
+  box-shadow:inset -1px 0 0 #dec77c,inset 0 1px 0 #dec77c,inset 0 -1px 0 #dec77c!important;
+}
+
+/* The mobile table can cover the parent border at its lowest row.  Draw the
+   lower edge in the parent stacking layer so both rounded corners stay whole. */
+@media(max-width:560px){
+  .detailExplorer.unifiedExplorer{
+    position:relative;
+    border:1px solid #ddd!important;
+    border-radius:10px!important;
+    overflow:hidden!important;
+  }
+  .detailExplorer.unifiedExplorer::after{
+    content:'';
+    position:absolute;
+    z-index:6;
+    left:0;
+    right:0;
+    bottom:0;
+    height:1px;
+    background:#ddd;
+    pointer-events:none;
+  }
+}
+
+/* TEST92: make a card's folder drop target unmistakable while dragging. */
+.detailTable.detailTable .folderRow.folderDropTarget>td,
+.detailTable.detailTable .folderRow.folderDropTarget>td:first-child,
+.detailTable.detailTable .folderRow.folderDropTarget>td:last-child{
+  background:linear-gradient(180deg,#fff7bd 0%,#ffd86b 100%)!important;
+  border-color:#a96d00!important;
+  box-shadow:inset 0 0 0 2px #a96d00!important;
+}
+.detailTable.detailTable .folderRow.folderDropTarget .folderNameBtn,
+.detailTable.detailTable .folderRow.folderDropTarget .folderCountInline{
+  color:#684100!important;
+  font-weight:900!important;
+}
+
+/* TEST94: match the pointer cue to the complete card drag surface. */
+.unifiedTable td.nameCell{cursor:pointer}
+.unifiedTable td.nameCell .cardThumbDeadZone{cursor:default}
+
+/* TEST100a: sorting changes only the arrow, not the header's color. */
+.detailTable .sortableHead.active{
+  color:inherit!important;
+  background:#f2f7fb!important;
+  box-shadow:none!important;
+}
+
+/* Keep the folder enclosure visible while its temporary exit target exists. */
+body.pp-dnd-active .detailTable.detailTable .folderFrameEnd>td>div{
+  display:block!important;
+  opacity:1!important;
+}
+
+/* Use the same green moving cue for folder previews as for card previews. */
+.folder-dnd-ghost{
+  opacity:.35!important;
+  background:#bff3cf!important;
+  border:2px solid #43a867!important;
+  border-radius:12px!important;
+  box-shadow:0 6px 18px rgba(55,145,85,.22)!important;
+  filter:none!important;
+  overflow:hidden!important;
+  box-sizing:border-box!important;
+}
+.folder-dnd-ghost table,
+.folder-dnd-ghost .folderRow{
+  border:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+.folder-dnd-ghost .folderRow>td{
+  background:#bff3cf!important;
+  border:0!important;
+  box-shadow:none!important;
+}
+.folder-dnd-ghost .folderRow>td:first-child{
+  border:0!important;
+  box-shadow:none!important;
+}
+.folder-dnd-ghost .folderRow>td:last-child{
+  border:0!important;
+  box-shadow:none!important;
+}
+
+/* TEST100c: an open folder uses one temporary blue enclosure. */
+.detailTable .folderFrameStart,
+.detailTable .folderFrameEnd,
+.detailTable .folderRow.folderOpen,
+.detailTable .folderChildRow,
+.detailTable .folderChildDetail{
+  --folder-accent:#4f86c6!important;
+}
+
+/* TEST101: make the temporary blue open-folder enclosure slightly clearer. */
+.detailTable.detailTable .folderFrameStart>td,
+.detailTable.detailTable .folderFrameEnd>td{
+  height:2px!important;
+  min-height:2px!important;
+}
+.detailTable.detailTable .folderFrameStart>td>div,
+.detailTable.detailTable .folderFrameEnd>td>div{
+  height:2px!important;
+}
+.detailTable.detailTable .folderRow.folderOpen>td:first-child,
+.detailTable.detailTable .folderChildRow>td:first-child,
+.detailTable.detailTable .folderChildDetail>td:first-child{
+  border-left-width:2px!important;
+}
+.detailTable.detailTable .folderRow.folderOpen>td:last-child,
+.detailTable.detailTable .folderChildRow>td:last-child,
+.detailTable.detailTable .folderChildDetail>td:last-child{
+  border-right-width:2px!important;
+}
+.detailTable.detailTable .folderFrameEnd>td{
+  border-left-width:2px!important;
+  border-right-width:2px!important;
+}
+
+/* TEST102: keep the final visible folder cell as thick as the rest of the
+   blue enclosure, including when its detail row is open. */
+.detailTable.detailTable .folderChildRow.folderTreeLast>td:first-child,
+.detailTable.detailTable .folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td:first-child,
+.detailTable.detailTable .folderFrameLastDetail:not(.hidden)>td:first-child{
+  border-left:2px solid var(--folder-accent,#4f86c6)!important;
+}
+.detailTable.detailTable .folderChildRow.folderTreeLast>td:last-child,
+.detailTable.detailTable .folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td:last-child,
+.detailTable.detailTable .folderFrameLastDetail:not(.hidden)>td:last-child{
+  border-right:2px solid var(--folder-accent,#4f86c6)!important;
+}
+
+/* TEST106: preserve the favorite column width without rendering a favorite
+   control for cards inside a folder. */
+.detailTable .folderChildRow .favoriteSlot{
+  display:block;
+  width:100%;
+  min-width:42px;
+  min-height:54px;
+}
+body[data-card-cell-size="small"] .detailTable .folderChildRow .favoriteSlot{min-height:42px}
+body[data-card-cell-size="large"] .detailTable .folderChildRow .favoriteSlot{min-height:66px}
+
+/* TEST100d3: touch browsers can keep :hover after a tap.  Remove that
+   desktop-only cue without affecting real D&D destination highlights. */
+@media (hover:none), (pointer:coarse){
+  .detailTable tbody>tr:not(.rowDetail):hover{
+    background:transparent!important;
+  }
+  .detailTable.detailTable .folderRow:not(.folderDropTarget):hover>td{
+    background:linear-gradient(180deg,#fff7d9,#f7e7ad)!important;
+  }
+}
+
+/* TEST100e2: the optional tap glow also covers card and folder cells. */
+body.buttonGlowEnabled .detailTable.detailTable tbody>tr[data-row]:active,
+body.buttonGlowEnabled .detailTable.detailTable tbody>tr.folderRow:active{
+  position:relative;
+  z-index:3;
+  filter:brightness(1.06) drop-shadow(0 0 7px rgba(55,133,230,.55))!important;
+}
+.detailTable tbody>tr[data-row],
+.detailTable tbody>tr[data-row] *,
+.detailTable tbody>tr.folderRow,
+.detailTable tbody>tr.folderRow *{
+  -webkit-tap-highlight-color:transparent!important;
+}
