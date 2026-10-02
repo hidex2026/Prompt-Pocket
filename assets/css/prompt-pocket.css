@@ -2223,17 +2223,33 @@ body.pp-dnd-active .detailTable.detailTable .folderFrameEnd>td>div{
 
 /* Use the same green moving cue for folder previews as for card previews. */
 .folder-dnd-ghost{
-  opacity:.72!important;
-  filter:drop-shadow(0 8px 20px rgba(55,145,85,.25))!important;
+  opacity:.35!important;
+  background:#bff3cf!important;
+  border:2px solid #43a867!important;
+  border-radius:12px!important;
+  box-shadow:0 6px 18px rgba(55,145,85,.22)!important;
+  filter:none!important;
+  overflow:hidden!important;
 }
 .folder-dnd-ghost .folderRow>td{
   background:#bff3cf!important;
-  border-color:#43a867!important;
-  box-shadow:inset 0 2px 0 #43a867,inset 0 -2px 0 #43a867!important;
+  border:0!important;
+  box-shadow:none!important;
 }
 .folder-dnd-ghost .folderRow>td:first-child{
-  box-shadow:inset 2px 0 0 #43a867,inset 0 2px 0 #43a867,inset 0 -2px 0 #43a867!important;
+  border:0!important;
+  box-shadow:none!important;
 }
 .folder-dnd-ghost .folderRow>td:last-child{
-  box-shadow:inset -2px 0 0 #43a867,inset 0 2px 0 #43a867,inset 0 -2px 0 #43a867!important;
+  border:0!important;
+  box-shadow:none!important;
+}
+
+/* TEST100c: an open folder uses one temporary blue enclosure. */
+.detailTable .folderFrameStart,
+.detailTable .folderFrameEnd,
+.detailTable .folderRow.folderOpen,
+.detailTable .folderChildRow,
+.detailTable .folderChildDetail{
+  --folder-accent:#4f86c6!important;
 }
