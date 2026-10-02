@@ -119,6 +119,8 @@ let prefs=JSON.parse(localStorage.getItem(PREF_KEY)||'{"view":"card","welcomed":
 prefs.tagOrder=Array.isArray(prefs.tagOrder)?prefs.tagOrder:[];
 prefs.hiddenTags=Array.isArray(prefs.hiddenTags)?prefs.hiddenTags:[];
 prefs.rememberOps=!!prefs.rememberOps;
+prefs.openFolderIds=Array.isArray(prefs.openFolderIds)?prefs.openFolderIds:[];
+prefs.openCardIds=Array.isArray(prefs.openCardIds)?prefs.openCardIds:[];
 delete prefs.shortcutEnabled;
 prefs.buttonGlowEnabled=!!prefs.buttonGlowEnabled;
 prefs.doubleTapOpenEnabled=!!prefs.doubleTapOpenEnabled;
@@ -153,7 +155,7 @@ normalize();
 const FOLDER_KEY='promptPocketFolders.v1';
 let folders=[];
 try{folders=JSON.parse(localStorage.getItem(FOLDER_KEY)||'[]');if(!Array.isArray(folders))folders=[];folders=folders.map(f=>({...f,fav:!!f.fav}))}catch{folders=[]}
-const openFolders=new Set();
+const openFolders=new Set(prefs.rememberOps?prefs.openFolderIds.filter(id=>folders.some(f=>f.id===id)&&items.some(x=>x.folderId===id)):[]);
 function saveFolders(){localStorage.setItem(FOLDER_KEY,JSON.stringify(folders))}
 function folderById(id){return folders.find(f=>f.id===id)}
 function folderCount(id){return items.filter(x=>x.folderId===id).length}
@@ -162,6 +164,18 @@ function save(){
   catch(err){console.error('Prompt Pocket save failed:',err);alert('データを保存できませんでした。\n画像データなどでブラウザの保存容量が不足している可能性があります。\n画像を小さくしてもう一度お試しください。');return false;}
 }
 function savePrefs(){prefs.customTags=[...customTags];localStorage.setItem(PREF_KEY,JSON.stringify(prefs));}
+function rememberOpenFolderState(){
+  if(!prefs.rememberOps)return;
+  const next=[...openFolders].filter(id=>folders.some(f=>f.id===id)&&items.some(x=>x.folderId===id));
+  if(JSON.stringify(next)===JSON.stringify(prefs.openFolderIds||[]))return;
+  prefs.openFolderIds=next;
+  savePrefs();
+}
+function rememberOpenCardState(){
+  if(!prefs.rememberOps)return;
+  prefs.openCardIds=getOpenDetailIds().filter(id=>items.some(x=>x.id===id));
+  savePrefs();
+}
 const IMAGE_DB_NAME='promptPocketImages';
 const IMAGE_STORE_NAME='images';
 const IMAGE_DB_MIGRATION_KEY='promptPocket.imagesInIndexedDB.v1';
@@ -347,6 +361,7 @@ function fmt(ts){return new Date(ts).toLocaleString('ja-JP',{year:'numeric',mont
 function sortList(list){const s=$('sort').value;if(s==='manual'||s==='foldersFirst'){const order=Array.isArray(prefs.manualOrder)?prefs.manualOrder:[];list.sort((a,b)=>{const ai=order.indexOf(a.id),bi=order.indexOf(b.id);if(ai<0&&bi<0)return b.created-a.created;if(ai<0)return 1;if(bi<0)return -1;return ai-bi});}else if(s==='nameAsc')list.sort((a,b)=>a.name.localeCompare(b.name,'ja'));else if(s==='fav')list.sort((a,b)=>(b.fav?1:0)-(a.fav?1:0)||b.created-a.created);else list.sort((a,b)=>b.created-a.created);list.sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0));return list;}
 function actionButtons(x){return `<button data-copy="${x.id}">📋 コピー</button><button data-edit="${x.id}">✏️ 編集</button><button data-duplicate="${x.id}">📄 複製</button><button class="dangerMini" data-delete="${x.id}">🗑️ 削除</button>${x.source?`<button data-source="${x.id}">出典</button>`:''}`;}
 function render(){
+  rememberOpenFolderState();
   document.querySelector('.folderPopupPortal')?.remove();
   prefs.view='detail';
   renderFilters();
@@ -411,6 +426,7 @@ function render(){
   hydrateLazyImages($('cards'));
   updateUndo();
   bindHeaderSort();
+  if(prefs.rememberOps)restoreOpenDetails((prefs.openCardIds||[]).filter(id=>items.some(x=>x.id===id)));
   updateCloseAllButton();
 }
 function initColumnResize(){
@@ -439,7 +455,7 @@ function vibrateDragLift(){
   try{return typeof navigator.vibrate==='function'?navigator.vibrate(35):false}catch{return false}
 }
 function updateCloseAllButton(){const button=$('closeAllBtn');if(!button)return;const canClose=hasOpenContent();button.disabled=!canClose;button.setAttribute('aria-disabled',String(!canClose))}
-function closeAllOpenContent(){openFolders.clear();document.querySelector('.folderPopupPortal')?.remove();render()}
+function closeAllOpenContent(){openFolders.clear();if(prefs.rememberOps){prefs.openFolderIds=[];prefs.openCardIds=[];savePrefs()}document.querySelector('.folderPopupPortal')?.remove();render()}
 function getOpenDetailIds(){return [...document.querySelectorAll('.rowDetail:not(.hidden)')].map(r=>r.id.replace('rowDetail-',''))}function restoreOpenDetails(ids){ids.forEach(id=>{const detail=$('rowDetail-'+id);detail?.classList.remove('hidden');updatePromptOverflow(detail)});updateCloseAllButton()}function renderKeepingDetails(){const open=getOpenDetailIds();render();restoreOpenDetails(open)}
 let headerSortActive=null,headerSortReturnMode=null;
 function setSortMode(mode,keepHeaderState=false){const allowed=['manual','foldersFirst','createdDesc','nameAsc','fav'];if(!allowed.includes(mode))mode='manual';if(!keepHeaderState){headerSortActive=null;headerSortReturnMode=null}$('sort').value=mode;if(prefs.rememberOps){prefs.sort=mode;savePrefs()}render()}
@@ -503,8 +519,9 @@ function bindFolderReorder(){
       const cancelDrag=()=>{clear();drag=false;row.classList.remove('folderDragging');ghost?.remove();ghost=null;ppInsertLine(null)};
       const toggleFolder=()=>{
         const id=row.dataset.folder;
-      if(folderCount(id)===0){openFolders.delete(id);toast('このフォルダにカードがありません');return}
+      if(folderCount(id)===0){openFolders.delete(id);rememberOpenFolderState();toast('このフォルダにカードがありません');return}
         openFolders.has(id)?openFolders.delete(id):openFolders.add(id);
+        rememberOpenFolderState();
         render();
       };
       const startDrag=(x,y,pointerId=null)=>{
@@ -739,7 +756,7 @@ function clearCopyUiState(){
   try{getSelection()?.removeAllRanges()}catch{}
   if(document.activeElement instanceof HTMLElement&&!['INPUT','TEXTAREA'].includes(document.activeElement.tagName))document.activeElement.blur();
 }
-function bindActions(){document.querySelectorAll('[data-fav]').forEach(b=>b.onclick=()=>{snapshot('お気に入り変更');const x=items.find(i=>i.id===b.dataset.fav);x.fav=!x.fav;x.updated=Date.now();save();renderKeepingDetails()});document.querySelectorAll('[data-pin]').forEach(b=>b.onclick=()=>{const x=items.find(i=>i.id===b.dataset.pin);if(!x)return;if(!x.pinned&&items.filter(i=>i.pinned).length>=3){alert('📌 ピン留めできるのは3件までです。\n別のピンを解除してから追加してください。');return}const keepScrollY=window.scrollY;snapshot('ピン留め変更');x.pinned=!x.pinned;x.updated=Date.now();save();renderKeepingDetails();requestAnimationFrame(()=>window.scrollTo({top:keepScrollY,left:0,behavior:'auto'}))});document.querySelectorAll('[data-copy]').forEach(b=>b.onclick=async()=>{const x=items.find(i=>i.id===b.dataset.copy);if(!x)return;let copied=false;try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(x.prompt);copied=true}}catch{}if(!copied){const ta=document.createElement('textarea');ta.value=x.prompt;ta.setAttribute('readonly','');ta.style.position='fixed';ta.style.left='-9999px';ta.style.top='0';ta.style.opacity='0';ta.style.pointerEvents='none';document.body.appendChild(ta);ta.focus({preventScroll:true});ta.select();ta.setSelectionRange(0,ta.value.length);try{copied=document.execCommand('copy')}catch{}ta.remove()}clearCopyUiState();setTimeout(clearCopyUiState,60);if(copied){x.useCount=(x.useCount||0)+1;x.lastUsed=Date.now();save();toast('コピーしました')}else{toast('コピーできませんでした')}});document.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>openEditor(items.find(i=>i.id===b.dataset.edit)));document.querySelectorAll('[data-duplicate]').forEach(b=>b.onclick=()=>duplicateItem(b.dataset.duplicate));document.querySelectorAll('[data-delete]').forEach(b=>b.onclick=()=>deleteItem(b.dataset.delete));document.querySelectorAll('[data-source]').forEach(b=>b.onclick=()=>{const x=items.find(i=>i.id===b.dataset.source);window.open(x.source,'_blank','noopener')});document.querySelectorAll('[data-toggle-row]').forEach(b=>b.onclick=()=>{$('rowDetail-'+b.dataset.toggleRow)?.classList.toggle('hidden')});document.querySelectorAll('[data-menu-toggle]').forEach(b=>b.onclick=e=>{e.stopPropagation();const wrap=b.closest('.detailMenuWrap'),menu=wrap?.querySelector('.detailPopupMenu');document.querySelectorAll('.detailPopupMenu').forEach(m=>{if(m!==menu){m.classList.add('hidden');m.classList.remove('openUp')}});if(!menu)return;const opening=menu.classList.contains('hidden');menu.classList.toggle('hidden');menu.classList.remove('openUp');if(opening){const r=menu.getBoundingClientRect();const bottomNav=document.querySelector('.bottomnav');const safeBottom=bottomNav?Math.min(window.innerHeight,bottomNav.getBoundingClientRect().top):window.innerHeight;if(r.bottom>safeBottom-8&&wrap.getBoundingClientRect().top-r.height-5>8)menu.classList.add('openUp')}});document.querySelectorAll('.detailPopupMenu').forEach(m=>m.onclick=e=>e.stopPropagation());const favSortBtn=$('detailFavSortBtn');if(favSortBtn)favSortBtn.onclick=()=>{detailFavSort=!detailFavSort;if(prefs.rememberOps){prefs.detailFavSort=detailFavSort;savePrefs()}render()};bindPocketDnd();}
+function bindActions(){document.querySelectorAll('[data-fav]').forEach(b=>b.onclick=()=>{snapshot('お気に入り変更');const x=items.find(i=>i.id===b.dataset.fav);x.fav=!x.fav;x.updated=Date.now();save();renderKeepingDetails()});document.querySelectorAll('[data-pin]').forEach(b=>b.onclick=()=>{const x=items.find(i=>i.id===b.dataset.pin);if(!x)return;if(!x.pinned&&items.filter(i=>i.pinned).length>=3){alert('📌 ピン留めできるのは3件までです。\n別のピンを解除してから追加してください。');return}const keepScrollY=window.scrollY;snapshot('ピン留め変更');x.pinned=!x.pinned;x.updated=Date.now();save();renderKeepingDetails();requestAnimationFrame(()=>window.scrollTo({top:keepScrollY,left:0,behavior:'auto'}))});document.querySelectorAll('[data-copy]').forEach(b=>b.onclick=async()=>{const x=items.find(i=>i.id===b.dataset.copy);if(!x)return;let copied=false;try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(x.prompt);copied=true}}catch{}if(!copied){const ta=document.createElement('textarea');ta.value=x.prompt;ta.setAttribute('readonly','');ta.style.position='fixed';ta.style.left='-9999px';ta.style.top='0';ta.style.opacity='0';ta.style.pointerEvents='none';document.body.appendChild(ta);ta.focus({preventScroll:true});ta.select();ta.setSelectionRange(0,ta.value.length);try{copied=document.execCommand('copy')}catch{}ta.remove()}clearCopyUiState();setTimeout(clearCopyUiState,60);if(copied){x.useCount=(x.useCount||0)+1;x.lastUsed=Date.now();save();toast('コピーしました')}else{toast('コピーできませんでした')}});document.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>openEditor(items.find(i=>i.id===b.dataset.edit)));document.querySelectorAll('[data-duplicate]').forEach(b=>b.onclick=()=>duplicateItem(b.dataset.duplicate));document.querySelectorAll('[data-delete]').forEach(b=>b.onclick=()=>deleteItem(b.dataset.delete));document.querySelectorAll('[data-source]').forEach(b=>b.onclick=()=>{const x=items.find(i=>i.id===b.dataset.source);window.open(x.source,'_blank','noopener')});document.querySelectorAll('[data-toggle-row]').forEach(b=>b.onclick=()=>{$('rowDetail-'+b.dataset.toggleRow)?.classList.toggle('hidden');rememberOpenCardState()});document.querySelectorAll('[data-menu-toggle]').forEach(b=>b.onclick=e=>{e.stopPropagation();const wrap=b.closest('.detailMenuWrap'),menu=wrap?.querySelector('.detailPopupMenu');document.querySelectorAll('.detailPopupMenu').forEach(m=>{if(m!==menu){m.classList.add('hidden');m.classList.remove('openUp')}});if(!menu)return;const opening=menu.classList.contains('hidden');menu.classList.toggle('hidden');menu.classList.remove('openUp');if(opening){const r=menu.getBoundingClientRect();const bottomNav=document.querySelector('.bottomnav');const safeBottom=bottomNav?Math.min(window.innerHeight,bottomNav.getBoundingClientRect().top):window.innerHeight;if(r.bottom>safeBottom-8&&wrap.getBoundingClientRect().top-r.height-5>8)menu.classList.add('openUp')}});document.querySelectorAll('.detailPopupMenu').forEach(m=>m.onclick=e=>e.stopPropagation());const favSortBtn=$('detailFavSortBtn');if(favSortBtn)favSortBtn.onclick=()=>{detailFavSort=!detailFavSort;if(prefs.rememberOps){prefs.detailFavSort=detailFavSort;savePrefs()}render()};bindPocketDnd();}
 
 
 /* Prompt Pocket D&D BOUNDARY-CONFIRM TEST
@@ -1242,6 +1259,7 @@ function toggleCardDetail(row){
   if(!detail)return;
   detail.classList.toggle('hidden');
   if(!detail.classList.contains('hidden'))updatePromptOverflow(detail);
+  rememberOpenCardState();
   updateCloseAllButton();
 }
 function bindCardPrimaryInteractions(row,area){
@@ -1583,7 +1601,7 @@ document.addEventListener('contextmenu',e=>{
 $('searchMobile').onclick=()=>toggleSearchPanel();
 $('helpMobile').onclick=()=>openMainHelp();
 
-$('optionSave').onclick=()=>{if(optionPrefsDraft){prefs=structuredClone(optionPrefsDraft);if(prefs.rememberOps){prefs.view=prefs.view||'card';prefs.sort=$('sort').value;prefs.detailFavSort=detailFavSort}else{delete prefs.sort;delete prefs.detailFavSort;detailFavSort=false}savePrefs();document.body.classList.toggle('buttonGlowEnabled',!!prefs.buttonGlowEnabled);document.body.dataset.cardCellSize=prefs.cardCellSize||'medium';document.body.dataset.folderNameSize=prefs.folderNameSize||'medium'}optionPrefsDraft=null;$('optionDialog').close();toast('オプションを保存しました')};
+$('optionSave').onclick=()=>{if(optionPrefsDraft){prefs=structuredClone(optionPrefsDraft);if(prefs.rememberOps){prefs.view=prefs.view||'card';prefs.sort=$('sort').value;prefs.detailFavSort=detailFavSort;prefs.openFolderIds=[...openFolders];prefs.openCardIds=getOpenDetailIds()}else{delete prefs.sort;delete prefs.detailFavSort;delete prefs.openFolderIds;delete prefs.openCardIds;detailFavSort=false}savePrefs();document.body.classList.toggle('buttonGlowEnabled',!!prefs.buttonGlowEnabled);document.body.dataset.cardCellSize=prefs.cardCellSize||'medium';document.body.dataset.folderNameSize=prefs.folderNameSize||'medium'}optionPrefsDraft=null;$('optionDialog').close();toast('オプションを保存しました')};
 $('optionCancel').onclick=()=>{optionPrefsDraft=null;$('optionDialog').close()};
 $('optionClose').onclick=()=>$('optionCancel').click();
 $('resetDataBtn').onclick=resetDataToInitial;
@@ -1650,6 +1668,8 @@ $('importFile').onchange=async e=>{
       prefs.cardCellSize=['small','medium','large'].includes(prefs.cardCellSize)?prefs.cardCellSize:'medium';
       prefs.folderNameSize=['small','medium','large'].includes(prefs.folderNameSize)?prefs.folderNameSize:'medium';
     }
+    openFolders.clear();
+    if(prefs.rememberOps&&Array.isArray(prefs.openFolderIds))prefs.openFolderIds.filter(id=>folders.some(f=>f.id===id)&&items.some(x=>x.folderId===id)).forEach(id=>openFolders.add(id));
     customTags=new Set(Array.isArray(data.customTags)?data.customTags:[]);
     prefs.customTags=[...customTags];
     undoState=null;
@@ -1762,7 +1782,10 @@ $('helpClose').onclick=()=>$('helpDialog').close();
 $('usefulHelpBtn').onclick=()=>{$('simpleHelp').classList.add('hidden');$('detailHelp').classList.add('hidden');$('usefulHelp').classList.remove('hidden');$('helpTitle').textContent='便利機能'};
 $('moreHelpBtn').onclick=()=>{$('simpleHelp').classList.add('hidden');$('usefulHelp').classList.add('hidden');$('detailHelp').classList.remove('hidden');$('helpTitle').textContent='詳しい使い方'};
 $('backSimpleHelp').onclick=()=>{$('detailHelp').classList.add('hidden');$('usefulHelp').classList.add('hidden');$('simpleHelp').classList.remove('hidden');$('helpTitle').textContent='Help'};
-$('migrationHelpBtn').onclick=()=>{$('optionDialog').close();$('migrationDialog').showModal()};$('migrationClose').onclick=()=>$('migrationDialog').close();
+$('migrationHelpBtn').onclick=()=>{$('optionDialog').close();$('migrationDialog').showModal()};
+const closeMigrationHelp=()=>{$('migrationDialog').close();$('optionDialog').showModal()};
+$('migrationClose').onclick=closeMigrationHelp;
+$('migrationDialog').addEventListener('cancel',e=>{e.preventDefault();closeMigrationHelp()});
 
 let welcomeIsDebug=false;
 $('welcomeStart').onclick=()=>{

@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#ffffff">
-  <title>Prompt Pocket PP_v1.9_TEST100e3</title>
+  <title>Prompt Pocket PP_v1.9_TEST100e4</title>
   <!--
   Prompt Pocket ver.1.9 / FOLDER TEST1
   Folder feature baseline:
@@ -20,7 +20,7 @@
 <body>
 <header class="topbar">
   <div>
-    <div class="titleLine"><h1>Prompt Pocket</h1><span class="headerVersion">PP_v1.9_TEST100e3</span></div>
+    <div class="titleLine"><h1>Prompt Pocket</h1><span class="headerVersion">PP_v1.9_TEST100e4</span></div>
   </div>
   <div class="topActions">
     <button id="newBtn" class="primary">＋ 新規登録</button>
@@ -217,7 +217,7 @@
       <details class="optionOther optionOperationFold">
         <summary>⚙ 操作</summary>
         <section>
-        <label class="rememberOption"><input id="rememberOps" type="checkbox"> <span><b>操作状態を記憶する</b><small>並び順・カード／一覧・★お気に入り優先の状態を、次回起動時も引き継ぎます。</small></span></label>
+        <label class="rememberOption"><input id="rememberOps" type="checkbox"> <span><b>操作状態を記憶する</b><small>登録したカードとフォルダは常に保存されます。ONにすると、並び順・フォルダの開閉・開いているカード・★お気に入り優先などの表示状態も次回起動時に引き継ぎます。</small></span></label>
         <label class="rememberOption"><input id="buttonGlowEnabled" type="checkbox"> <span><b>タップ時に周囲を光らせる</b><small>ボタンやセルをタップしたときに周囲を光らせ、操作を視覚的に分かりやすくします。</small></span></label>
         <label class="rememberOption"><input id="doubleTapOpenEnabled" type="checkbox"> <span><b>フォルダ、カードはダブルタップで開く</b><small>誤って開くのを防ぐため、一覧のフォルダとプロンプトカードをダブルタップで開きます。長押しの移動操作は変わりません。</small></span></label>
         <label class="rememberOption"><input id="dragVibrationEnabled" type="checkbox"> <span><b>カード・フォルダの移動開始時に振動する</b><small>ドラッグ操作の開始を短い振動で知らせます。対応端末でのみ動作します。</small></span></label>
@@ -231,9 +231,9 @@
         <label class="optionSelectLabel" for="folderNameSize"><b>フォルダ名の大きさ</b><small>一覧に表示するフォルダ名の文字サイズを変更します。</small></label>
         <select id="folderNameSize" class="wideOptionSelect"><option value="small">小（15px）</option><option value="medium">中（18px）</option><option value="large">大（20px）</option></select>
       </section></details>
-<details class="optionOther optionDataFold"><summary>📦 データの保存・復元</summary><section><p>書き出したデータはバックアップとして保管できます。別のスマホで読み込めば、データを引き継げます。</p><div class="manageActions"><button id="exportBtn" class="primary">📤 データを書き出す</button><button id="importBtn" class="ghost">📥 データを読み込む</button><input id="importFile" type="file" accept="application/json,.json" hidden></div><button id="migrationHelpBtn" class="textButton" type="button">機種変更の方法を見る</button></section></details>
-      <details class="optionOther"><summary>⚠ その他の設定</summary><section><div class="manageActions"><button id="sampleBtn" class="ghost wide" type="button">📚 サンプルを追加</button></div></section></details>
-      <details class="optionOther optionDeleteFold"><summary>🗑 データの削除</summary><section class="optionActionList">
+      <details class="optionOther"><summary>📚 その他の設定</summary><section><div class="manageActions"><button id="sampleBtn" class="ghost wide" type="button">📚 サンプルを追加</button></div></section></details>
+      <details class="optionOther optionDataFold"><summary>📦 データの保存・復元</summary><section><p>バックアップは通常、端末のダウンロードフォルダに保存されます。機種変更時はファイルを新しい端末へ移し、「データを読み込む」から選択してください。</p><div class="manageActions"><button id="exportBtn" class="primary">📤 データを書き出す</button><button id="importBtn" class="ghost">📥 データを読み込む</button><input id="importFile" type="file" accept="application/json,.json" hidden></div><button id="migrationHelpBtn" class="textButton" type="button">機種変更の方法を見る</button></section></details>
+      <details class="optionOther optionDeleteFold"><summary>⚠ データの削除</summary><section class="optionActionList">
         <div class="optionActionItem"><button id="resetDataBtn" class="ghost wide" type="button">データの初期化</button><small>すべての登録データと設定を削除し、Prompt Pocketを初期状態に戻します。初期カードとサンプルフォルダは再作成されます。</small></div>
         <div class="optionActionItem"><button id="clearCacheBtn" class="ghost wide" type="button">キャッシュの削除</button><small>表示やデータの読み込みがおかしくなったときに、保存されているキャッシュを削除して新しく読み込み直します。登録したカードやフォルダは削除されません。</small></div>
         <div class="optionActionItem dangerOptionItem"><button id="eraseEverythingBtn" class="dangerStrong wide" type="button">すべてを削除する</button><small>すべての登録データ、設定、画像、キャッシュを削除し、初期カードも作成しません。Prompt Pocketを使用しなくなるときのアンインストール用です。</small></div>
@@ -285,7 +285,7 @@
       <div class="detailHelpCard"><h3>🔍 検索と表示</h3><p>「🔍 検索」から、名前・作者・タグ・プロンプトなどで絞り込めます。「カード」「一覧」で表示方法を切り替え、並び替えメニューから登録日時・更新日時・名前・作者・使用回数などの順に変更できます。</p></div>
       <div class="detailHelpCard"><h3>🏷️ タグ</h3><p>プロンプトに好きなタグを付けて整理できます。「＋追加」で新しいタグを作成でき、ドラッグ＆ドロップで並び替えもできます。「－削除」はタグだけを削除し、プロンプト本体は削除しません。</p></div>
       <div class="detailHelpCard"><h3>登録・編集と詳細設定</h3><p>［＋］から名前とプロンプトを登録します。［📋 貼り付け］のほか、プロンプト欄へ直接入力・編集することもできます。参考画像は任意です。「⚙ 詳細設定」を開くと、作者名、Xアカウント、出典URL、タグ、メモなども登録できます。登録済みの内容は「編集」から変更できます。</p></div>
-      <div class="detailHelpCard"><h3>操作状態を記憶する</h3><p>⚙ オプションで「操作状態を記憶する」をONにすると、並び順・カード／一覧の表示状態・★お気に入り優先表示のON／OFFを保存し、次回起動時も同じ状態から始めます。OFFの場合は起動時に標準の状態へ戻ります。</p></div>
+      <div class="detailHelpCard"><h3>操作状態を記憶する</h3><p>登録したカードとフォルダは設定にかかわらず常に保存されます。⚙ オプションで「操作状態を記憶する」をONにすると、並び順・フォルダの開閉・開いているカード・★お気に入り優先表示なども保存し、次回起動時に同じ状態から始めます。</p></div>
       <div class="detailHelpCard"><h3>バックアップと復元</h3><p>⚙ オプションの「データを書き出す」で登録内容をバックアップできます。「データを読み込む」を実行すると、現在のデータは消え、読み込んだバックアップの内容に置き換わります。実行前に警告が表示されます。</p></div>
       <div class="detailHelpCard"><h3>機種変更</h3><p>古い端末でデータを書き出し、そのバックアップファイルを新しい端末へ移します。新しい端末のPrompt Pocketで「データを読み込む」からファイルを選ぶと登録内容を復元できます。</p></div>
       <div class="detailHelpCard"><h3>データの保存場所</h3><p>通常の登録データはPrompt Pocketを開いているブラウザ内に保存されます。大切なデータは定期的に「データを書き出す」でバックアップしてください。</p></div>
