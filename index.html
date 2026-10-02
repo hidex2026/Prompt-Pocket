@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#ffffff">
-  <title>Prompt Pocket PP_v1.9_TEST100e5</title>
+  <title>Prompt Pocket PP_v1.9_TEST100e6</title>
   <!--
   Prompt Pocket ver.1.9 / FOLDER TEST1
   Folder feature baseline:
@@ -20,7 +20,7 @@
 <body>
 <header class="topbar">
   <div>
-    <div class="titleLine"><h1>Prompt Pocket</h1><span class="headerVersion">PP_v1.9_TEST100e5</span></div>
+    <div class="titleLine"><h1>Prompt Pocket</h1><span class="headerVersion">PP_v1.9_TEST100e6</span></div>
   </div>
   <div class="topActions">
     <button id="newBtn" class="primary">＋ 新規登録</button>
@@ -221,8 +221,6 @@
         <label class="rememberOption"><input id="buttonGlowEnabled" type="checkbox"> <span><b>タップ時に周囲を光らせる</b><small>ボタンやセルをタップしたときに周囲を光らせ、操作を視覚的に分かりやすくします。</small></span></label>
         <label class="rememberOption"><input id="doubleTapOpenEnabled" type="checkbox"> <span><b>フォルダ、カードはダブルタップで開く</b><small>誤って開くのを防ぐため、一覧のフォルダとプロンプトカードをダブルタップで開きます。長押しの移動操作は変わりません。</small></span></label>
         <label class="rememberOption"><input id="dragVibrationEnabled" type="checkbox"> <span><b>カード・フォルダの移動開始時に振動する</b><small>ドラッグ操作の開始を短い振動で知らせます。対応端末でのみ動作します。</small></span></label>
-        <div class="shortcutRow optionChoiceRow"><span><b>メイン画面での<mark class="optionAddBadge">［＋追加］</mark>・［🔍検索］・［📖ヘルプ］の開き方</b><small>誤タッチを防ぐために、各ボタンの開き方を選べます。</small></span><select id="mainActionOpenMode"><option value="single">シングルタップ</option><option value="double">ダブルタップ</option></select></div>
-        <div class="shortcutRow optionChoiceRow"><span><b>長押しの時間</b><small><mark class="optionAddBadge">［＋追加］</mark>やカード・フォルダのドラッグを開始するまでの時間を設定します。</small></span><select id="shortcutDelay"><option value="500">0.5秒</option><option value="800">0.8秒</option><option value="1000">1.0秒</option></select></div>
       </section>
       </details>
       <details class="optionOther optionMainScreenFold"><summary>🖥 メイン画面の設定</summary><section>
@@ -230,12 +228,14 @@
         <select id="cardCellSize" class="wideOptionSelect"><option value="small">小</option><option value="medium">中</option><option value="large">大</option></select>
         <label class="optionSelectLabel" for="folderNameSize"><b>フォルダ名の大きさ</b><small>一覧に表示するフォルダ名の文字サイズを変更します。</small></label>
         <select id="folderNameSize" class="wideOptionSelect"><option value="small">小（15px）</option><option value="medium">中（18px）</option><option value="large">大（20px）</option></select>
+        <div class="shortcutRow optionChoiceRow"><span><b>メイン画面での<mark class="optionAddBadge">［＋追加］</mark>・［🔍検索］・［📖ヘルプ］の開き方</b><small>誤タッチを防ぐために、各ボタンの開き方を選べます。</small></span><select id="mainActionOpenMode"><option value="single">シングルタップ</option><option value="double">ダブルタップ</option></select></div>
+        <div class="shortcutRow optionChoiceRow"><span><b>長押しの時間</b><small><mark class="optionAddBadge">［＋追加］</mark>やカード・フォルダのドラッグを開始するまでの時間を設定します。</small></span><select id="shortcutDelay"><option value="500">0.5秒</option><option value="800">0.8秒</option><option value="1000">1.0秒</option></select></div>
       </section></details>
       <details class="optionOther"><summary>📚 その他の設定</summary><section><div class="manageActions"><button id="sampleBtn" class="ghost wide" type="button">📚 サンプルを追加</button></div></section></details>
       <details class="optionOther optionDataFold"><summary>📦 データの保存・復元</summary><section><p>バックアップは通常、端末のダウンロードフォルダに保存されます。機種変更時はファイルを新しい端末へ移し、「データを読み込む」から選択してください。</p><div class="manageActions"><button id="exportBtn" class="primary">📤 データを書き出す</button><button id="importBtn" class="ghost">📥 データを読み込む</button><input id="importFile" type="file" accept="application/json,.json" hidden></div><button id="migrationHelpBtn" class="textButton" type="button">機種変更の方法を見る</button></section></details>
       <details class="optionOther optionDeleteFold"><summary>⚠ データの削除</summary><section class="optionActionList">
-        <div class="optionActionItem"><button id="resetDataBtn" class="dangerSoft wide" type="button">データの初期化</button><small>すべての登録データと設定を削除し、Prompt Pocketを初期状態に戻します。初期カードとサンプルフォルダは再作成されます。</small></div>
-        <div class="optionActionItem"><button id="clearCacheBtn" class="dangerSoft wide" type="button">キャッシュの削除</button><small>表示やデータの読み込みがおかしくなったときに、保存されているキャッシュを削除して新しく読み込み直します。登録したカードやフォルダは削除されません。</small></div>
+        <div class="optionActionItem"><button id="resetDataBtn" class="dangerStrong wide" type="button">データの初期化</button><small>すべての登録データと設定を削除し、Prompt Pocketを初期状態に戻します。初期カードとサンプルフォルダは再作成されます。</small></div>
+        <div class="optionActionItem"><button id="clearCacheBtn" class="dangerStrong wide" type="button">キャッシュの削除</button><small>表示やデータの読み込みがおかしくなったときに、保存されているキャッシュを削除して新しく読み込み直します。登録したカードやフォルダは削除されません。</small></div>
         <div class="optionActionItem dangerOptionItem"><button id="eraseEverythingBtn" class="dangerStrong wide" type="button">すべてを削除する</button><small>すべての登録データ、設定、画像、キャッシュを削除し、初期カードも作成しません。Prompt Pocketを使用しなくなるときのアンインストール用です。</small></div>
       </section></details>
       <details id="developerOptions" class="optionOther optionDeveloperFold"><summary id="developerSummary">🛠 開発者向け機能</summary><section>

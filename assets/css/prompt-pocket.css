@@ -938,7 +938,7 @@ main{padding-top:6px}
   margin:0;
   flex:none;
 }
-.optionAddBadge{display:inline-block;margin:0 2px;padding:1px 5px;border-radius:6px;background:#f5a623;color:#3f2900;font-weight:900}
+.optionAddBadge{display:inline-block;margin:0 1px;padding:1px 2px;border-radius:4px;background:#f5a623;color:#3f2900;font-weight:900}
 #bottomNew{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:manipulation}
 
 /* v1.76: make rarely-used / destructive options visually distinct */
@@ -958,8 +958,6 @@ main{padding-top:6px}
 .optionDeleteFold summary:after{color:#b43a3a!important}
 .optionDeleteFold>section{background:#fff8f8!important;border-top-color:#efb2b2!important}
 .optionDeleteFold .optionActionItem{border-bottom-color:#f0caca}
-.dangerSoft{border:1px solid #e79292;border-radius:14px;padding:11px 14px;background:#f7caca;color:#8d2020;font-weight:800;cursor:pointer}
-.dangerSoft:hover{background:#f3bcbc}
 .optionDeveloperFold summary small{display:inline;margin-left:6px;color:#8c7b5e;font-size:12px;font-weight:700}
 .optionDeveloperFold .debugActions{display:grid;gap:9px}
 
