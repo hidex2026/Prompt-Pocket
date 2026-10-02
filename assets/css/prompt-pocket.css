@@ -2316,6 +2316,19 @@ body.pp-dnd-active .detailTable.detailTable .folderFrameEnd>td>div{
   border-right-width:2px!important;
 }
 
+/* TEST102: keep the final visible folder cell as thick as the rest of the
+   blue enclosure, including when its detail row is open. */
+.detailTable.detailTable .folderChildRow.folderTreeLast>td:first-child,
+.detailTable.detailTable .folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td:first-child,
+.detailTable.detailTable .folderFrameLastDetail:not(.hidden)>td:first-child{
+  border-left:2px solid var(--folder-accent,#4f86c6)!important;
+}
+.detailTable.detailTable .folderChildRow.folderTreeLast>td:last-child,
+.detailTable.detailTable .folderChildRow.folderTreeLast:has(+.folderFrameLastDetail:not(.hidden))>td:last-child,
+.detailTable.detailTable .folderFrameLastDetail:not(.hidden)>td:last-child{
+  border-right:2px solid var(--folder-accent,#4f86c6)!important;
+}
+
 /* TEST100d3: touch browsers can keep :hover after a tap.  Remove that
    desktop-only cue without affecting real D&D destination highlights. */
 @media (hover:none), (pointer:coarse){
