@@ -429,9 +429,6 @@ function initColumnResize(){
 
 function updatePromptOverflow(detail){requestAnimationFrame(()=>{const p=detail?.querySelector('.unifiedPrompt');if(p)p.classList.toggle('hasOverflow',p.scrollHeight>p.clientHeight+1)})}
 function hasOpenContent(){return openFolders.size>0||!!document.querySelector('.rowDetail:not(.hidden)')}
-function vibrateDragLift(){
-  try{return typeof navigator.vibrate==='function'?navigator.vibrate(35):false}catch{return false}
-}
 function updateCloseAllButton(){const button=$('closeAllBtn');if(!button)return;const canClose=hasOpenContent();button.disabled=!canClose;button.setAttribute('aria-disabled',String(!canClose))}
 function closeAllOpenContent(){openFolders.clear();document.querySelector('.folderPopupPortal')?.remove();render()}
 function getOpenDetailIds(){return [...document.querySelectorAll('.rowDetail:not(.hidden)')].map(r=>r.id.replace('rowDetail-',''))}function restoreOpenDetails(ids){ids.forEach(id=>{const detail=$('rowDetail-'+id);detail?.classList.remove('hidden');updatePromptOverflow(detail)});updateCloseAllButton()}function renderKeepingDetails(){const open=getOpenDetailIds();render();restoreOpenDetails(open)}
@@ -506,7 +503,6 @@ function bindFolderReorder(){
         // Keep exactly one floating folder copy for a drag operation.
         if(drag||ghost)return;
         clear();
-        vibrateDragLift();
         drag=true;suppressClick=true;row.classList.add('folderDragging');
         document.querySelectorAll('.folder-dnd-ghost').forEach(node=>node.remove());
         ppCollapseForDrag({row});
@@ -527,7 +523,7 @@ function bindFolderReorder(){
         document.body.appendChild(ghost);
         ghostOffsetY=Math.min(Math.max(y-r.top,8),r.height-8);lastX=x;lastY=y;
         ghost.style.transform=`translate3d(${r.left}px,${y-ghostOffsetY}px,0) scale(.985)`;
-        if(pointerId!==null){try{handle.setPointerCapture(pointerId)}catch{}}
+        navigator.vibrate?.(20);if(pointerId!==null){try{handle.setPointerCapture(pointerId)}catch{}}
       };
       const insertionAt=(x,y)=>{
         const table=row.closest('.detailTable');
@@ -836,7 +832,6 @@ function ppStart(st){
   // be strictly one-shot for its current drag state.
   if(ppDnd!==st||st.active||st.ghost)return;
   clearTimeout(st.timer);st.timer=null;
-  vibrateDragLift();
   document.querySelectorAll('.pp-dnd-ghost').forEach(node=>node.remove());
   ppCollapseForDrag(st);
   ppEnsureFolderExitSlot(st);
@@ -844,6 +839,8 @@ function ppStart(st){
   if(st.source?.dataset)st.source.dataset.dndSuppress='1';
   st.row.classList.add('pp-dnd-source');
   document.body.classList.add('pp-dnd-active');
+  navigator.vibrate?.(20);
+
   const r=st.row.getBoundingClientRect();
   const g=st.row.cloneNode(true);
   /* Prevent the detached ghost from auto-sizing its title/copy/menu columns. */
