@@ -2230,6 +2230,13 @@ body.pp-dnd-active .detailTable.detailTable .folderFrameEnd>td>div{
   box-shadow:0 6px 18px rgba(55,145,85,.22)!important;
   filter:none!important;
   overflow:hidden!important;
+  box-sizing:border-box!important;
+}
+.folder-dnd-ghost table,
+.folder-dnd-ghost .folderRow{
+  border:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
 }
 .folder-dnd-ghost .folderRow>td{
   background:#bff3cf!important;

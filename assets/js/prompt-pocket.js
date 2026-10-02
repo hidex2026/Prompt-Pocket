@@ -511,7 +511,9 @@ function bindFolderReorder(){
         // that invalid structure differently while it moves, which produced
         // several painted copies on desktop.  Keep the cloned row in its own
         // real table so there is exactly one valid floating preview.
-        ghost=document.createElement('div');ghost.className='folder-dnd-ghost';
+        // Reuse the card ghost class so cards and folders receive the exact
+        // same green outline, translucency, rounding and shadow.
+        ghost=document.createElement('div');ghost.className='pp-dnd-ghost folder-dnd-ghost';
         const ghostTable=document.createElement('table');ghostTable.className='detailTable unifiedTable';
         const ghostBody=document.createElement('tbody');
         const ghostRow=row.cloneNode(true);
