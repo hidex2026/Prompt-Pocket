@@ -2260,3 +2260,14 @@ body.pp-dnd-active .detailTable.detailTable .folderFrameEnd>td>div{
 .detailTable .folderChildDetail{
   --folder-accent:#4f86c6!important;
 }
+
+/* TEST100d3: touch browsers can keep :hover after a tap.  Remove that
+   desktop-only cue without affecting real D&D destination highlights. */
+@media (hover:none), (pointer:coarse){
+  .detailTable tbody>tr:not(.rowDetail):hover{
+    background:transparent!important;
+  }
+  .detailTable.detailTable .folderRow:not(.folderDropTarget):hover>td{
+    background:linear-gradient(180deg,#fff7d9,#f7e7ad)!important;
+  }
+}
