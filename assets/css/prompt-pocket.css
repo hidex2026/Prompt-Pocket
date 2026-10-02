@@ -2329,6 +2329,13 @@ body.pp-dnd-active .detailTable.detailTable .folderFrameEnd>td>div{
   border-right:2px solid var(--folder-accent,#4f86c6)!important;
 }
 
+/* TEST105: a child card follows its folder's favorite state visually.  Keep
+   the card's own value stored so it returns after the card leaves the folder. */
+.detailTable .folderChildRow .favoriteHit{
+  visibility:hidden!important;
+  pointer-events:none!important;
+}
+
 /* TEST100d3: touch browsers can keep :hover after a tap.  Remove that
    desktop-only cue without affecting real D&D destination highlights. */
 @media (hover:none), (pointer:coarse){
