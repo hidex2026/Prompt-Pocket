@@ -122,7 +122,7 @@ prefs.rememberOps=!!prefs.rememberOps;
 prefs.openFolderIds=Array.isArray(prefs.openFolderIds)?prefs.openFolderIds:[];
 prefs.openCardIds=Array.isArray(prefs.openCardIds)?prefs.openCardIds:[];
 delete prefs.shortcutEnabled;
-prefs.buttonGlowEnabled=!!prefs.buttonGlowEnabled;
+prefs.buttonGlowEnabled=Object.prototype.hasOwnProperty.call(prefs,'buttonGlowEnabled')?!!prefs.buttonGlowEnabled:true;
 prefs.doubleTapOpenEnabled=!!prefs.doubleTapOpenEnabled;
 prefs.dragVibrationEnabled=Object.prototype.hasOwnProperty.call(prefs,'dragVibrationEnabled')?!!prefs.dragVibrationEnabled:true;
 prefs.cardCellSize=['small','medium','large'].includes(prefs.cardCellSize)?prefs.cardCellSize:'medium';
@@ -1448,7 +1448,7 @@ function closeEditor(){editorTagDraft=null;imageBlob=null;if(editorImageObjectUr
 $('editor').addEventListener('cancel',e=>{e.preventDefault();closeEditor()});
 $('cancelBtn').onclick=closeEditor;$('editorCloseBtn').onclick=closeEditor;$('search').oninput=render;$('sort').onchange=()=>{randomOrder=[];setSortMode($('sort').value)};$('clearFilters').onclick=()=>{$('search').value='';filterTags.clear();render()};$('undoBtn').onclick=()=>{if(!undoState)return;if(!confirm('前の状態に戻しますか？\n\n直前の操作を取り消して、前の状態に戻します。'))return;const current=structuredClone(items);items=structuredClone(undoState.items);undoState={label:'元に戻す前の状態',items:current};save();render();toast('前の状態に戻しました')};
 $('closeAllBtn').onclick=closeAllOpenContent;
-function defaultPrefs(){return {view:'card',welcomed:false,tagOrder:[],hiddenTags:[],rememberOps:false,buttonGlowEnabled:false,doubleTapOpenEnabled:false,dragVibrationEnabled:true,cardCellSize:'medium',folderNameSize:'medium',mainActionOpenMode:'single',shortcutDelay:800,customTags:[]}}
+function defaultPrefs(){return {view:'card',welcomed:false,tagOrder:[],hiddenTags:[],rememberOps:false,buttonGlowEnabled:true,doubleTapOpenEnabled:false,dragVibrationEnabled:true,cardCellSize:'medium',folderNameSize:'medium',mainActionOpenMode:'single',shortcutDelay:800,customTags:[]}}
 async function resetDataToInitial(){
   if(!confirm('登録したカード、フォルダ、タグ、設定、画像を削除して初期状態に戻しますか？\n\nサイト本体のキャッシュは残ります。'))return;
   localStorage.clear();await deleteImageDb();items=[];folders=[];undoState=null;customTags.clear();prefs=defaultPrefs();
