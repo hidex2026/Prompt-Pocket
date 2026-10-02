@@ -119,7 +119,7 @@ let prefs=JSON.parse(localStorage.getItem(PREF_KEY)||'{"view":"card","welcomed":
 prefs.tagOrder=Array.isArray(prefs.tagOrder)?prefs.tagOrder:[];
 prefs.hiddenTags=Array.isArray(prefs.hiddenTags)?prefs.hiddenTags:[];
 prefs.rememberOps=!!prefs.rememberOps;
-prefs.shortcutEnabled=Object.prototype.hasOwnProperty.call(prefs,'shortcutEnabled')?!!prefs.shortcutEnabled:true;
+delete prefs.shortcutEnabled;
 prefs.buttonGlowEnabled=!!prefs.buttonGlowEnabled;
 prefs.doubleTapOpenEnabled=!!prefs.doubleTapOpenEnabled;
 prefs.dragVibrationEnabled=Object.prototype.hasOwnProperty.call(prefs,'dragVibrationEnabled')?!!prefs.dragVibrationEnabled:true;
@@ -128,12 +128,16 @@ document.body.dataset.cardCellSize=prefs.cardCellSize;
 prefs.folderNameSize=['small','medium','large'].includes(prefs.folderNameSize)?prefs.folderNameSize:'medium';
 document.body.dataset.folderNameSize=prefs.folderNameSize;
 document.body.classList.toggle('buttonGlowEnabled',prefs.buttonGlowEnabled);
-// TEST34: 検索とヘルプだけを誤タッチ防止の長押し対象にする。
-prefs.longPressMainActionsEnabled=Object.prototype.hasOwnProperty.call(prefs,'longPressMainActionsEnabled')
+// Keep the former long-press checkbox as a migration source only.
+const legacyMainActionLongPress=Object.prototype.hasOwnProperty.call(prefs,'longPressMainActionsEnabled')
   ?!!prefs.longPressMainActionsEnabled
   :(Object.prototype.hasOwnProperty.call(prefs,'longPressAllButtonsEnabled')
     ?!!prefs.longPressAllButtonsEnabled
     :(!!prefs.longPressHelpEnabled||!!prefs.longPressSearchEnabled));
+prefs.mainActionOpenMode=['single','double','long'].includes(prefs.mainActionOpenMode)
+  ?prefs.mainActionOpenMode
+  :(legacyMainActionLongPress?'long':'single');
+delete prefs.longPressMainActionsEnabled;
 delete prefs.longPressAllButtonsEnabled;
 delete prefs.longPressHelpEnabled;
 delete prefs.longPressSearchEnabled;
@@ -459,7 +463,7 @@ function bindUnifiedReorder(){
       timer=setTimeout(()=>{
         active=true;row.classList.add('dragging');navigator.vibrate?.(20);
         try{area.setPointerCapture(e.pointerId)}catch{}
-      },800);
+      },Number(prefs.shortcutDelay)||800);
     });
     area.addEventListener('pointermove',e=>{
       if(!active){if(timer&&Math.hypot(e.clientX-startX,e.clientY-startY)>10)clearTimer();return}
@@ -593,7 +597,7 @@ function bindFolderReorder(){
         if(e.button!==0)return;
         clear();
         sx=e.clientX;sy=e.clientY;lastX=sx;lastY=sy;drag=false;moved=false;suppressClick=false;
-        timer=setTimeout(()=>startDrag(sx,sy),800);
+        timer=setTimeout(()=>startDrag(sx,sy),Number(prefs.shortcutDelay)||800);
         const cleanup=()=>{
           document.removeEventListener('mousemove',onMove,true);
           document.removeEventListener('mouseup',onUp,true);
@@ -619,7 +623,7 @@ function bindFolderReorder(){
       handle.addEventListener('pointerdown',e=>{
         if(e.pointerType!=='pen')return;
         sx=e.clientX;sy=e.clientY;lastX=sx;lastY=sy;drag=false;moved=false;suppressClick=false;
-        timer=setTimeout(()=>startDrag(sx,sy,e.pointerId),800);
+        timer=setTimeout(()=>startDrag(sx,sy,e.pointerId),Number(prefs.shortcutDelay)||800);
       });
       handle.addEventListener('pointermove',e=>{
         if(e.pointerType!=='pen')return;
@@ -631,7 +635,7 @@ function bindFolderReorder(){
       handle.addEventListener('touchstart',e=>{
         if(e.touches.length!==1)return;
         const t=e.touches[0];sx=t.clientX;sy=t.clientY;lastX=sx;lastY=sy;drag=false;moved=false;suppressClick=false;
-        clear();timer=setTimeout(()=>startDrag(sx,sy),800);
+        clear();timer=setTimeout(()=>startDrag(sx,sy),Number(prefs.shortcutDelay)||800);
       },{passive:true});
       handle.addEventListener('touchmove',e=>{
         const t=e.touches[0];if(!t)return;
@@ -808,7 +812,7 @@ function ppBegin(row,x,y,source=row,pcMode=false){
     candidate:null,pcMode,pcTarget:null,source,scrollDir:0,scrollFrame:null
   };
   const st=ppDnd;
-  st.timer=setTimeout(()=>ppStart(st),800);
+  st.timer=setTimeout(()=>ppStart(st),Number(prefs.shortcutDelay)||800);
 }
 
 function ppCollapseForDrag(st){
@@ -1425,14 +1429,14 @@ async function runQuickAdd(){
   openEditor();$('prompt').value=text;$('prompt').dispatchEvent(new Event('input',{bubbles:true}));toast('コピー中のプロンプトを読み込みました');
 }
 bottomNew.onclick=e=>{if(shortcutFired){shortcutFired=false;e.preventDefault();return}openEditor()};
-bottomNew.onpointerdown=e=>{if(!prefs.shortcutEnabled)return;shortcutFired=false;clearTimeout(shortcutTimer);shortcutTimer=setTimeout(()=>{shortcutFired=true;runQuickAdd()},prefs.shortcutDelay)};
+bottomNew.onpointerdown=e=>{shortcutFired=false;clearTimeout(shortcutTimer);shortcutTimer=setTimeout(()=>{shortcutFired=true;runQuickAdd()},Number(prefs.shortcutDelay)||800)};
 ['pointerup','pointercancel','pointerleave'].forEach(ev=>bottomNew.addEventListener(ev,()=>clearTimeout(shortcutTimer)));
-bottomNew.addEventListener('contextmenu',e=>{if(prefs.shortcutEnabled)e.preventDefault()});
+bottomNew.addEventListener('contextmenu',e=>e.preventDefault());
 function closeEditor(){editorTagDraft=null;imageBlob=null;if(editorImageObjectUrl){URL.revokeObjectURL(editorImageObjectUrl);editorImageObjectUrl=''}$('editor').close();document.body.classList.remove('editor-open')}
 $('editor').addEventListener('cancel',e=>{e.preventDefault();closeEditor()});
 $('cancelBtn').onclick=closeEditor;$('editorCloseBtn').onclick=closeEditor;$('search').oninput=render;$('sort').onchange=()=>{randomOrder=[];setSortMode($('sort').value)};$('clearFilters').onclick=()=>{$('search').value='';filterTags.clear();render()};$('undoBtn').onclick=()=>{if(!undoState)return;if(!confirm('前の状態に戻しますか？\n\n直前の操作を取り消して、前の状態に戻します。'))return;const current=structuredClone(items);items=structuredClone(undoState.items);undoState={label:'元に戻す前の状態',items:current};save();render();toast('前の状態に戻しました')};
 $('closeAllBtn').onclick=closeAllOpenContent;
-function defaultPrefs(){return {view:'card',welcomed:false,tagOrder:[],hiddenTags:[],rememberOps:false,shortcutEnabled:true,buttonGlowEnabled:false,doubleTapOpenEnabled:false,dragVibrationEnabled:true,cardCellSize:'medium',folderNameSize:'medium',longPressMainActionsEnabled:false,shortcutDelay:800,customTags:[]}}
+function defaultPrefs(){return {view:'card',welcomed:false,tagOrder:[],hiddenTags:[],rememberOps:false,buttonGlowEnabled:false,doubleTapOpenEnabled:false,dragVibrationEnabled:true,cardCellSize:'medium',folderNameSize:'medium',mainActionOpenMode:'single',shortcutDelay:800,customTags:[]}}
 async function resetDataToInitial(){
   if(!confirm('登録したカード、フォルダ、タグ、設定、画像を削除して初期状態に戻しますか？\n\nサイト本体のキャッシュは残ります。'))return;
   localStorage.clear();await deleteImageDb();items=[];folders=[];undoState=null;customTags.clear();prefs=defaultPrefs();
@@ -1500,15 +1504,15 @@ async function pasteClipboardImage(){
   }catch(err){toast('クリップボードの画像を読み取れませんでした')}
 }
 imageDropZone.onclick=e=>{if(imageShortcutFired){imageShortcutFired=false;e.preventDefault();return}$('image').click()};
-imageDropZone.onpointerdown=()=>{if(!prefs.shortcutEnabled)return;imageShortcutFired=false;clearTimeout(imageShortcutTimer);imageShortcutTimer=setTimeout(()=>{imageShortcutFired=true;pasteClipboardImage()},prefs.shortcutDelay||800)};
+imageDropZone.onpointerdown=()=>{imageShortcutFired=false;clearTimeout(imageShortcutTimer);imageShortcutTimer=setTimeout(()=>{imageShortcutFired=true;pasteClipboardImage()},Number(prefs.shortcutDelay)||800)};
 ['pointerup','pointercancel','pointerleave'].forEach(ev=>imageDropZone.addEventListener(ev,()=>clearTimeout(imageShortcutTimer)));
-imageDropZone.addEventListener('contextmenu',e=>{if(prefs.shortcutEnabled)e.preventDefault()});
+imageDropZone.addEventListener('contextmenu',e=>e.preventDefault());
 imageDropZone.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$('image').click()}};
 $('imageDropZone').ondragover=e=>{e.preventDefault();$('imageDropZone').classList.add('dragOver')};$('imageDropZone').ondragleave=()=>$('imageDropZone').classList.remove('dragOver');$('imageDropZone').ondrop=e=>{e.preventDefault();$('imageDropZone').classList.remove('dragOver');loadImageFile(e.dataTransfer.files[0])};
 $('pastePromptBtn').onclick=async()=>{const field=$('prompt');let text='';try{if(navigator.clipboard?.readText){text=await navigator.clipboard.readText()}else{throw new Error('clipboard unavailable')}}catch(err){alert('クリップボードを読み取れませんでした。\nブラウザの権限設定を確認するか、入力欄を長押しして貼り付けてください。');return}if(!text)return toast('クリップボードに文字がありません');if(field.value.trim()&&!confirm('現在のプロンプトは上書きされます。\n貼り付けますか？'))return;field.value=text;field.dispatchEvent(new Event('input',{bubbles:true}));field.focus();toast('プロンプトを貼り付けました')};
 $('form').onsubmit=async e=>{e.preventDefault();const id=$('editId').value||crypto.randomUUID();const old=items.find(x=>x.id===id);const now=Date.now();let storedImage=imageData;if(imageBlob){try{await putImageBlob(id,imageBlob);storedImage='idb:'+id}catch{storedImage=await blobToDataUrl(imageBlob);toast('この環境では画像を従来方式で保存します')}}const obj={id,name:$('name').value.trim(),prompt:$('prompt').value.trim(),author:$('author').value.trim(),xhandle:$('xhandle').value.trim(),source:$('source').value.trim(),memo:$('memo').value.trim(),tags:[...selectedTags],image:storedImage,fav:old?.fav||false,pinned:old?.pinned||false,useCount:old?.useCount||0,lastUsed:old?.lastUsed||0,created:old?.created||now,updated:now};if(!obj.name||!obj.prompt)return;snapshot(old?'編集':'新規登録');const before=items,deleted=editorTagDraft?.deletedTags||new Set();let next=items.map(x=>deleted.size?{...x,tags:(x.tags||[]).filter(t=>!deleted.has(t))}:x);items=old?next.map(x=>x.id===id?obj:x):[...next,obj];if(!save()){items=before;return}if(editorTagDraft){customTags=new Set(editorTagDraft.customTags);prefs.hiddenTags=[...editorTagDraft.hiddenTags];prefs.tagOrder=[...editorTagDraft.tagOrder];filterTags=new Set([...filterTags].filter(t=>!deleted.has(t)));savePrefs()}editorTagDraft=null;imageBlob=null;if(editorImageObjectUrl){URL.revokeObjectURL(editorImageObjectUrl);editorImageObjectUrl=''}$('editor').close();document.body.classList.remove('editor-open');render();toast('設定を保存しました')};
 let optionPrefsDraft=null;
-const openOptions=()=>{optionPrefsDraft=structuredClone(prefs);$('rememberOps').checked=!!optionPrefsDraft.rememberOps;$('buttonGlowEnabled').checked=!!optionPrefsDraft.buttonGlowEnabled;$('doubleTapOpenEnabled').checked=!!optionPrefsDraft.doubleTapOpenEnabled;$('dragVibrationEnabled').checked=!!optionPrefsDraft.dragVibrationEnabled;$('cardCellSize').value=['small','medium','large'].includes(optionPrefsDraft.cardCellSize)?optionPrefsDraft.cardCellSize:'medium';$('folderNameSize').value=['small','medium','large'].includes(optionPrefsDraft.folderNameSize)?optionPrefsDraft.folderNameSize:'medium';$('shortcutEnabled').checked=!!optionPrefsDraft.shortcutEnabled;$('longPressMainActionsEnabled').checked=!!optionPrefsDraft.longPressMainActionsEnabled;$('shortcutDelay').value=String(optionPrefsDraft.shortcutDelay||800);$('shortcutDelay').disabled=!(optionPrefsDraft.shortcutEnabled||optionPrefsDraft.longPressMainActionsEnabled);$('optionDialog').showModal()};
+const openOptions=()=>{optionPrefsDraft=structuredClone(prefs);$('rememberOps').checked=!!optionPrefsDraft.rememberOps;$('buttonGlowEnabled').checked=!!optionPrefsDraft.buttonGlowEnabled;$('doubleTapOpenEnabled').checked=!!optionPrefsDraft.doubleTapOpenEnabled;$('dragVibrationEnabled').checked=!!optionPrefsDraft.dragVibrationEnabled;$('cardCellSize').value=['small','medium','large'].includes(optionPrefsDraft.cardCellSize)?optionPrefsDraft.cardCellSize:'medium';$('folderNameSize').value=['small','medium','large'].includes(optionPrefsDraft.folderNameSize)?optionPrefsDraft.folderNameSize:'medium';$('mainActionOpenMode').value=['single','double','long'].includes(optionPrefsDraft.mainActionOpenMode)?optionPrefsDraft.mainActionOpenMode:'single';$('shortcutDelay').value=String(optionPrefsDraft.shortcutDelay||800);$('shortcutDelay').disabled=false;$('optionDialog').showModal()};
 function openSearchKeepingScroll(){
   const panel=$('searchPanel');
   panel.classList.remove('hidden');
@@ -1522,10 +1526,10 @@ function openSearchKeepingScroll(){
 }
 $('viewOptionBtn').onclick=openOptions;
 
-/* TEST34: 設定ON時はメイン画面の検索・ヘルプだけを長押し操作にする。
-   キーボード操作やコードからの .click() は従来どおり通し、実際のポインター短押しだけ抑止する。 */
+/* TEST100e: search/help can use single tap, double tap or long press. */
 let ppMainActionHold=null;
-function ppLongPressTarget(target){
+let ppMainActionLastTap=null;
+function ppMainActionTarget(target){
   const btn=target?.closest?.('button');
   if(!btn||btn.disabled||!['searchMobile','searchToggleBtn','helpMobile','helpBtn'].includes(btn.id))return null;
   return btn;
@@ -1536,9 +1540,9 @@ function ppCancelMainActionHold(){
   ppMainActionHold=null;
 }
 document.addEventListener('pointerdown',e=>{
-  if(!prefs.longPressMainActionsEnabled)return;
+  if(prefs.mainActionOpenMode!=='long')return;
   if(e.pointerType==='mouse'&&e.button!==0)return;
-  const btn=ppLongPressTarget(e.target);
+  const btn=ppMainActionTarget(e.target);
   if(!btn)return;
   ppCancelMainActionHold();
   const st={btn,pointerId:e.pointerId,x:e.clientX,y:e.clientY,timer:null};
@@ -1558,15 +1562,23 @@ document.addEventListener('pointermove',e=>{
   if(ppMainActionHold&&e.pointerId===ppMainActionHold.pointerId)ppCancelMainActionHold();
 },true));
 document.addEventListener('click',e=>{
-  if(!prefs.longPressMainActionsEnabled||e.detail===0)return;
-  const btn=ppLongPressTarget(e.target);
+  if(e.detail===0)return;
+  const btn=ppMainActionTarget(e.target);
   if(!btn)return;
+  const mode=prefs.mainActionOpenMode||'single';
+  if(mode==='single')return;
   e.preventDefault();
   e.stopImmediatePropagation();
+  if(mode!=='double')return;
+  const now=Date.now();
+  if(ppMainActionLastTap?.btn===btn&&now-ppMainActionLastTap.time<=450){
+    ppMainActionLastTap=null;
+    btn.click();
+  }else ppMainActionLastTap={btn,time:now};
 },true);
 document.addEventListener('contextmenu',e=>{
-  if(!prefs.longPressMainActionsEnabled)return;
-  if(ppLongPressTarget(e.target))e.preventDefault();
+  if(prefs.mainActionOpenMode!=='long')return;
+  if(ppMainActionTarget(e.target))e.preventDefault();
 },true);
 $('searchMobile').onclick=()=>toggleSearchPanel();
 $('helpMobile').onclick=()=>openMainHelp();
@@ -1584,8 +1596,7 @@ $('doubleTapOpenEnabled').onchange=e=>{if(optionPrefsDraft)optionPrefsDraft.doub
 $('dragVibrationEnabled').onchange=e=>{if(optionPrefsDraft)optionPrefsDraft.dragVibrationEnabled=e.target.checked};
 $('cardCellSize').onchange=e=>{if(optionPrefsDraft)optionPrefsDraft.cardCellSize=['small','medium','large'].includes(e.target.value)?e.target.value:'medium'};
 $('folderNameSize').onchange=e=>{if(optionPrefsDraft)optionPrefsDraft.folderNameSize=['small','medium','large'].includes(e.target.value)?e.target.value:'medium'};
-$('shortcutEnabled').onchange=e=>{if(optionPrefsDraft)optionPrefsDraft.shortcutEnabled=e.target.checked;$('shortcutDelay').disabled=!(e.target.checked||$('longPressMainActionsEnabled').checked)};
-$('longPressMainActionsEnabled').onchange=e=>{if(optionPrefsDraft)optionPrefsDraft.longPressMainActionsEnabled=e.target.checked;$('shortcutDelay').disabled=!($('shortcutEnabled').checked||e.target.checked)};
+$('mainActionOpenMode').onchange=e=>{const mode=['single','double','long'].includes(e.target.value)?e.target.value:'single';if(optionPrefsDraft)optionPrefsDraft.mainActionOpenMode=mode};
 $('shortcutDelay').onchange=e=>{if(optionPrefsDraft)optionPrefsDraft.shortcutDelay=Number(e.target.value)||800};
 $('optionDialog').addEventListener('cancel',e=>{e.preventDefault();$('optionCancel').click()});
 
@@ -1629,7 +1640,10 @@ $('importFile').onchange=async e=>{
       prefs={...prefs,...data.prefs};
       prefs.tagOrder=Array.isArray(prefs.tagOrder)?prefs.tagOrder:[];
       prefs.hiddenTags=Array.isArray(prefs.hiddenTags)?prefs.hiddenTags:[];
-      prefs.longPressMainActionsEnabled=Object.prototype.hasOwnProperty.call(data.prefs,'longPressMainActionsEnabled')?!!data.prefs.longPressMainActionsEnabled:(Object.prototype.hasOwnProperty.call(data.prefs,'longPressAllButtonsEnabled')?!!data.prefs.longPressAllButtonsEnabled:(!!data.prefs.longPressHelpEnabled||!!data.prefs.longPressSearchEnabled));
+      const importedLegacyLong=Object.prototype.hasOwnProperty.call(data.prefs,'longPressMainActionsEnabled')?!!data.prefs.longPressMainActionsEnabled:(Object.prototype.hasOwnProperty.call(data.prefs,'longPressAllButtonsEnabled')?!!data.prefs.longPressAllButtonsEnabled:(!!data.prefs.longPressHelpEnabled||!!data.prefs.longPressSearchEnabled));
+      prefs.mainActionOpenMode=['single','double','long'].includes(data.prefs.mainActionOpenMode)?data.prefs.mainActionOpenMode:(importedLegacyLong?'long':'single');
+      delete prefs.shortcutEnabled;
+      delete prefs.longPressMainActionsEnabled;
       delete prefs.longPressAllButtonsEnabled;
       delete prefs.longPressHelpEnabled;
       delete prefs.longPressSearchEnabled;

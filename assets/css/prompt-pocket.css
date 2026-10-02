@@ -901,6 +901,7 @@ main{padding-top:6px}
 @keyframes cueBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(7px)}}
 .shortcutRow{display:flex;gap:10px;align-items:center;margin-top:10px;padding-left:30px}
 .shortcutRow span{font-size:12px;color:#666;white-space:nowrap}.shortcutRow select{width:auto;min-width:100px;padding:8px 10px}
+.shortcutDelayRow span{display:grid;gap:3px;white-space:normal}.shortcutDelayRow span b{font-size:13px;color:#333}.shortcutDelayRow span small{font-size:11px;line-height:1.4;color:#777}
 @media(max-width:560px){
   .shortcutRow{
     padding-left:0;
