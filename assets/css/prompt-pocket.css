@@ -2373,5 +2373,12 @@ body.buttonGlowEnabled .detailTable.detailTable tbody>tr.folderRow:active{
 .tutorialAddLabel{display:inline-block;padding:1px 5px;border-radius:4px;background:#f5a623;color:#3f2b00}
 .tutorialMessage{height:84px;box-sizing:border-box;display:grid;place-items:center;padding:0 8px;overflow:hidden}.tutorialMessage h2{margin:0 0 4px}.tutorialMessage p{margin:0;line-height:1.5}
 .tutorialFinalIcon{font-size:72px}
+.tutorialMedia{background:#fff8d9}
+#welcomeDialog{background:#fff8d9}
+#welcomeDialog .welcomePanel{padding:16px}
+#welcomeDialog .welcomeCopy{font-size:14px;line-height:1.5;margin:10px 0;padding:12px}
+#welcomeDialog .welcomeCatch{font-size:15px;margin:10px 0}
+#welcomeDialog .welcomeHelpNote{font-size:12px;line-height:1.5;margin:8px 0}
+#welcomeDialog .welcomeCopy strong{margin-top:8px}
 .tutorialActions{height:54px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.tutorialActions button{min-width:0;border:2px solid #4d4d4d!important;border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,.12)}.tutorialActions .tutorialBack{background:#dcecff!important;border-color:#4776a5!important;color:#1f568b!important}.tutorialActions .tutorialNext{background:#316f9f!important;border-color:#1e527d!important;color:#fff!important}.tutorialActions button:disabled{opacity:.38;cursor:default}.tutorialActions .tutorialActionPlaceholder{visibility:hidden;pointer-events:none}
 @media(max-width:560px){#tutorialDialog{width:calc(100vw - 16px);height:calc(66dvh);min-height:500px;max-height:calc(100dvh - 16px);border-radius:18px}.tutorialPanel{padding:14px;grid-template-rows:28px 8px minmax(0,1fr) 52px;gap:10px}.tutorialStep{grid-template-rows:260px 84px}.tutorialActions{height:52px;gap:6px}}

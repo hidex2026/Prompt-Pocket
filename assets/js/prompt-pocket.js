@@ -67,7 +67,7 @@ const presetPrompts={
 };
 
 let items=JSON.parse(localStorage.getItem(KEY)||localStorage.getItem(LEGACY_KEY)||'[]');
-const APP_VERSION='2.0-alpha.2h';
+const APP_VERSION='2.0-alpha.2i';
 const VERSION_KEY='promptPocket.lastSeenVersion';
 const DATA_VERSION_KEY='promptPocket.dataVersion';
 const DATA_SCHEMA_VERSION='2.0';
@@ -396,7 +396,7 @@ function render(){
     for(const ch of String(id||''))hash=(hash*31+ch.charCodeAt(0))|0;
     return Math.abs(hash)%6;
   };
-  const cardRows=(x,child=false)=>{const tone=child?` data-folder-tone="${folderTone(x.folderId)}"`:'';const favoriteControl=child?'<span class="favoriteSlot" aria-hidden="true"></span>':`<button class="tableIcon favoriteHit" data-fav="${x.id}" title="お気に入り">${x.fav?'★':'☆'}</button>`;return `<tr class="unifiedRow ${child?'folderChildRow':''}" data-row="${x.id}"${child?' data-folder-child="'+esc(x.folderId)+'"':''}${tone}><td>${favoriteControl}</td><td class="nameCell"><div class="cardNameLayout"><span class="cardThumbDeadZone">${child?'<span class="folderBranch">└</span>':''}${imageTag(x.image,'tinyThumb')}</span><span class="unifiedDragArea" title="${esc(x.name)}"><span class="rowName">${esc(x.name)}</span><span class="dragSpace" aria-hidden="true"></span></span></div></td><td><div class="tableActions"><button data-copy="${x.id}">📋 コピー</button><span class="detailMenuWrap"><button data-menu-toggle="${x.id}" aria-label="メニューを開く">⋯</button><div class="detailPopupMenu hidden" id="detailMenu-${x.id}"><button data-edit="${x.id}">✏️ 編集</button><button data-copy="${x.id}">📋 コピー</button><button data-move-folder="${x.id}">📁 フォルダへ移動</button>${child?`<button data-folder-remove="${x.id}">📤 フォルダから出す</button>`:''}<button class="dangerMenu" data-delete="${x.id}">🗑️ 削除</button></div></span></div></td></tr><tr class="rowDetail ${child?'folderChildDetail ':''}hidden" id="rowDetail-${x.id}"${child?' data-folder-detail="'+esc(x.folderId)+'"':''}${tone}><td colspan="3"><div class="unifiedCardDetail"><button class="detailCloseBtn" type="button" data-close-detail="${x.id}" aria-label="${esc(x.name)}の詳細を閉じる">×</button>${x.image?`<div class="unifiedThumb">${imageTag(x.image)}</div>`:'<div class="unifiedThumb unifiedNoImage"><span>サムネイル</span></div>'}<div class="unifiedCardBody"><div class="meta">${x.author?`作者：${esc(x.author)}`:'自作 / 作者未登録'}</div><div class="unifiedPrompt">${esc(x.prompt)}</div><div class="chips">${(x.tags||[]).map(t=>`<span class="chip">${esc(t)}</span>`).join('')}</div><div class="cardactions">${actionButtons(x)}</div></div></div></td></tr>`};
+  const cardRows=(x,child=false)=>{const tone=child?` data-folder-tone="${folderTone(x.folderId)}"`:'';const favoriteControl=child?'<span class="favoriteSlot" aria-hidden="true"></span>':`<button class="tableIcon favoriteHit" data-fav="${x.id}" title="お気に入り">${x.fav?'★':'☆'}</button>`;return `<tr class="unifiedRow ${child?'folderChildRow':''}" data-row="${x.id}"${child?' data-folder-child="'+esc(x.folderId)+'"':''}${tone}><td>${favoriteControl}</td><td class="nameCell"><div class="cardNameLayout"><span class="cardThumbDeadZone">${child?'<span class="folderBranch">└</span>':''}${imageTag(x.image,'tinyThumb')}</span><span class="unifiedDragArea" title="${esc(x.name)}"><span class="rowName">${esc(x.name)}</span><span class="dragSpace" aria-hidden="true"></span></span></div></td><td><div class="tableActions"><button data-copy="${x.id}">📋 コピー</button><span class="detailMenuWrap"><button data-menu-toggle="${x.id}" aria-label="メニューを開く">⋯</button><div class="detailPopupMenu hidden" id="detailMenu-${x.id}"><button data-edit="${x.id}">✏️ 編集</button><button data-copy="${x.id}">📋 コピー</button><button data-duplicate="${x.id}">📄 複製</button>${child?`<button data-folder-remove="${x.id}">📤 フォルダから出す</button>`:''}<button class="dangerMenu" data-delete="${x.id}">🗑️ 削除</button></div></span></div></td></tr><tr class="rowDetail ${child?'folderChildDetail ':''}hidden" id="rowDetail-${x.id}"${child?' data-folder-detail="'+esc(x.folderId)+'"':''}${tone}><td colspan="3"><div class="unifiedCardDetail"><button class="detailCloseBtn" type="button" data-close-detail="${x.id}" aria-label="${esc(x.name)}の詳細を閉じる">×</button>${x.image?`<div class="unifiedThumb">${imageTag(x.image)}</div>`:'<div class="unifiedThumb unifiedNoImage"><span>サムネイル</span></div>'}<div class="unifiedCardBody"><div class="meta">${x.author?`作者：${esc(x.author)}`:'自作 / 作者未登録'}</div><div class="unifiedPrompt">${esc(x.prompt)}</div><div class="chips">${(x.tags||[]).map(t=>`<span class="chip">${esc(t)}</span>`).join('')}</div><div class="cardactions">${actionButtons(x)}</div></div></div></td></tr>`};
 
   const folderHtml=f=>{
     const kids=items.filter(x=>x.folderId===f.id&&matches(x));
@@ -1797,7 +1797,29 @@ async function showTutorial(){
       const tabs=[...$('tutorialContent').querySelectorAll('.tutorialTab')];
       const back=$('tutorialContent').querySelector('.tutorialBack');
       const next=$('tutorialContent').querySelector('.tutorialNext');
+      const positionTutorialPointers=()=>{
+        const step=steps[tutorialStep],media=step?.querySelector('.tutorialMedia');
+        const img=media?.querySelector('img:not(.tutorialPointer)');
+        if(!img?.naturalWidth||!media.clientWidth)return;
+        const scale=Math.min(media.clientWidth/img.naturalWidth,media.clientHeight/img.naturalHeight);
+        const w=img.naturalWidth*scale,h=img.naturalHeight*scale;
+        const ox=(media.clientWidth-w)/2,oy=(media.clientHeight-h)/2;
+        const targets={1:[.20,.40],2:[.70,.67],3:[.60,.23],4:[.51,.90],5:[.72,.16],6:[.46,.78],8:[.92,.68]};
+        const pointer=media.querySelector('.tutorialPointer'),target=targets[tutorialStep];
+        if(pointer&&target){
+          // The fingertip is at 23% x / 20% y in the shared transparent icon.
+          pointer.style.left=(ox+w*target[0]-64*.23)+'px';
+          pointer.style.top=(oy+h*target[1]-64*.20)+'px';
+          pointer.style.bottom='auto';
+        }
+        const start=media.querySelector('.selectionStart'),end=media.querySelector('.selectionEnd');
+        if(start){start.style.left=(ox+w*.015)+'px';start.style.top=(oy+h*.51)+'px'}
+        if(end){end.style.left=(ox+w*.98-14)+'px';end.style.top=(oy+h*.96-14)+'px';end.style.right='auto';end.style.bottom='auto'}
+      };
+      steps.forEach(step=>step.querySelector('img:not(.tutorialPointer)')?.addEventListener('load',positionTutorialPointers));
+      new ResizeObserver(positionTutorialPointers).observe($('tutorialContent'));
       const renderStep=()=>{
+        requestAnimationFrame(positionTutorialPointers);
         const isLast=tutorialStep===steps.length-1;
         steps.forEach((node,index)=>{node.hidden=index!==tutorialStep});
         tabs.forEach((tab,index)=>tab.classList.toggle('active',index===tutorialStep));
