@@ -1793,14 +1793,16 @@ async function showTutorial(){
       $('tutorialContent').innerHTML=await response.text();
       tutorialLoaded=true;
       const steps=[...$('tutorialContent').querySelectorAll('.tutorialStep')];
+      const tabs=[...$('tutorialContent').querySelectorAll('.tutorialTab')];
       const back=$('tutorialContent').querySelector('.tutorialBack');
       const next=$('tutorialContent').querySelector('.tutorialNext');
       const renderStep=()=>{
         const isLast=tutorialStep===steps.length-1;
         steps.forEach((node,index)=>{node.hidden=index!==tutorialStep});
-        back.hidden=tutorialStep===0;
-        next.hidden=isLast;
-        $('tutorialContent').querySelector('.tutorialClose').textContent=isLast?'キャンセル':'閉じる';
+        tabs.forEach((tab,index)=>tab.classList.toggle('active',index===tutorialStep));
+        back.disabled=tutorialStep===0;
+        next.disabled=isLast;
+        $('tutorialContent').querySelector('.tutorialClose').textContent='閉じる';
       };
       $('tutorialContent').querySelector('.tutorialClose').onclick=requestTutorialExit;
       back.onclick=()=>{if(tutorialStep>0){tutorialStep--;renderStep()}};
