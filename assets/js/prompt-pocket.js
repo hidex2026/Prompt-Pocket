@@ -67,7 +67,7 @@ const presetPrompts={
 };
 
 let items=JSON.parse(localStorage.getItem(KEY)||localStorage.getItem(LEGACY_KEY)||'[]');
-const APP_VERSION='2.0-alpha.2';
+const APP_VERSION='2.0-alpha.2a';
 const VERSION_KEY='promptPocket.lastSeenVersion';
 const DATA_VERSION_KEY='promptPocket.dataVersion';
 const DATA_SCHEMA_VERSION='2.0';
@@ -1800,6 +1800,8 @@ async function showTutorial(){
         const isLast=tutorialStep===steps.length-1;
         steps.forEach((node,index)=>{node.hidden=index!==tutorialStep});
         tabs.forEach((tab,index)=>tab.classList.toggle('active',index===tutorialStep));
+        back.classList.toggle('tutorialActionPlaceholder',tutorialStep===0);
+        next.classList.toggle('tutorialActionPlaceholder',isLast);
         back.disabled=tutorialStep===0;
         next.disabled=isLast;
         $('tutorialContent').querySelector('.tutorialClose').textContent='閉じる';
