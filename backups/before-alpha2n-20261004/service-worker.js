@@ -1,20 +1,20 @@
 const CACHE_PREFIX='prompt-pocket-static-';
-const CACHE_NAME=CACHE_PREFIX+'2-0-alpha2n-v1';
+const CACHE_NAME=CACHE_PREFIX+'2-0-alpha2m-v1';
 const APP_SHELL=[
   './',
   './index.html',
   './tutorial.html',
-  './assets/tutorial/tutorial-cover.webp',
-  './assets/tutorial/tutorial-pointer.webp',
-  './assets/tutorial/step-01-copy-prompt.webp',
-  './assets/tutorial/step-02-add-clean.webp',
-  './assets/tutorial/step-03-prompt-input-clean.webp',
-  './assets/tutorial/step-04-copy-photo-clean.webp',
-  './assets/tutorial/step-05-select-image-clean.webp',
-  './assets/tutorial/step-06-save-clean.webp',
-  './assets/tutorial/step-07-card-added.webp',
-  './assets/css/prompt-pocket.css?v=2.0-alpha2n-v1',
-  './assets/js/prompt-pocket.js?v=2.0-alpha2n-v1'
+  './assets/tutorial/tutorial-cover.png',
+  './assets/tutorial/tutorial-pointer.png',
+  './assets/tutorial/step-01-copy-prompt.png',
+  './assets/tutorial/step-02-add-clean.png',
+  './assets/tutorial/step-03-prompt-input-clean.png',
+  './assets/tutorial/step-04-copy-photo-clean.png',
+  './assets/tutorial/step-05-select-image-clean.png',
+  './assets/tutorial/step-06-save-clean.png',
+  './assets/tutorial/step-07-card-added.png',
+  './assets/css/prompt-pocket.css?v=2.0-alpha2m-v1',
+  './assets/js/prompt-pocket.js?v=2.0-alpha2m-v1'
 ];
 
 self.addEventListener('install',event=>{

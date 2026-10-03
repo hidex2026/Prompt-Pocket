@@ -66,44 +66,8 @@ const presetPrompts={
   }
 };
 
-// Recover interrupted writes before reading any app data.
-const WRITE_JOURNAL_KEY='promptPocket.pendingWrite.v1';
-const storageRecoveryIssues=[];
-class StorageSaveError extends Error{}
-function readStoredJson(key,fallback,valid){
-  const raw=localStorage.getItem(key);
-  if(raw===null)return structuredClone(fallback);
-  try{const value=JSON.parse(raw);if(!valid(value))throw new Error('invalid shape');return value}
-  catch{storageRecoveryIssues.push(key);return structuredClone(fallback)}
-}
-function writeStorageBatch(entries){
-  const previous=entries.map(([key])=>[key,localStorage.getItem(key)]);
-  localStorage.setItem(WRITE_JOURNAL_KEY,JSON.stringify(previous));
-  try{
-    entries.forEach(([key,value])=>value===null?localStorage.removeItem(key):localStorage.setItem(key,value));
-    localStorage.removeItem(WRITE_JOURNAL_KEY);
-  }catch(error){
-    try{previous.forEach(([key,value])=>value===null?localStorage.removeItem(key):localStorage.setItem(key,value));localStorage.removeItem(WRITE_JOURNAL_KEY)}catch{}
-    throw error;
-  }
-}
-try{
-  const journal=localStorage.getItem(WRITE_JOURNAL_KEY);
-  if(journal){
-    const entries=JSON.parse(journal);
-    if(!Array.isArray(entries)||!entries.every(v=>Array.isArray(v)&&typeof v[0]==='string'&&isAppStorageKey(v[0])&&(v[1]===null||typeof v[1]==='string')))throw new Error('invalid journal');
-    entries.forEach(([key,value])=>value===null?localStorage.removeItem(key):localStorage.setItem(key,value));
-    localStorage.removeItem(WRITE_JOURNAL_KEY);
-  }
-}catch{storageRecoveryIssues.push(WRITE_JOURNAL_KEY)}
-function isAppStorageKey(key){return key.startsWith('promptPocket.')||key==='promptPocketFolders.v1'||key==='promptPocketManualOrder'}
-function clearAppStorage(storage){
-  const keys=Array.from({length:storage.length},(_,i)=>storage.key(i)).filter(key=>key&&isAppStorageKey(key));
-  keys.forEach(key=>storage.removeItem(key));
-}
-const validCards=value=>Array.isArray(value)&&value.every(x=>x&&typeof x==='object'&&typeof x.name==='string'&&typeof x.prompt==='string');
-let items=readStoredJson(localStorage.getItem(KEY)!==null?KEY:LEGACY_KEY,[],validCards);
-const APP_VERSION='2.0-alpha.2n';
+let items=JSON.parse(localStorage.getItem(KEY)||localStorage.getItem(LEGACY_KEY)||'[]');
+const APP_VERSION='2.0-alpha.2m';
 const VERSION_KEY='promptPocket.lastSeenVersion';
 const DATA_VERSION_KEY='promptPocket.dataVersion';
 const DATA_SCHEMA_VERSION='2.0';
@@ -149,7 +113,7 @@ let imageData='';
 let imageBlob=null;
 let editorImageObjectUrl='';
 let undoState=null;
-let prefs=readStoredJson(PREF_KEY,{view:'card',welcomed:false,tagOrder:[]},v=>v&&typeof v==='object'&&!Array.isArray(v));
+let prefs=JSON.parse(localStorage.getItem(PREF_KEY)||'{"view":"card","welcomed":false,"tagOrder":[]}');
 prefs.tagOrder=Array.isArray(prefs.tagOrder)?prefs.tagOrder:[];
 prefs.hiddenTags=Array.isArray(prefs.hiddenTags)?prefs.hiddenTags:[];
 prefs.rememberOps=!!prefs.rememberOps;
@@ -182,52 +146,16 @@ function normalize(){items=items.map(x=>({...x,created:x.created||Date.now(),upd
 normalize();
 const FOLDER_KEY='promptPocketFolders.v1';
 let folders=[];
-folders=readStoredJson(FOLDER_KEY,[],v=>Array.isArray(v)&&v.every(f=>f&&typeof f.id==='string'&&typeof f.name==='string')).map(f=>({...f,fav:!!f.fav}));
+try{folders=JSON.parse(localStorage.getItem(FOLDER_KEY)||'[]');if(!Array.isArray(folders))folders=[];folders=folders.map(f=>({...f,fav:!!f.fav}))}catch{folders=[]}
 const openFolders=new Set(prefs.rememberOps?prefs.openFolderIds.filter(id=>folders.some(f=>f.id===id)&&items.some(x=>x.folderId===id)):[]);
-function saveFolders(){return persistAppState()}
+function saveFolders(){localStorage.setItem(FOLDER_KEY,JSON.stringify(folders))}
 function folderById(id){return folders.find(f=>f.id===id)}
 function folderCount(id){return items.filter(x=>x.folderId===id).length}
-let committedState=null;
-function captureState(){
-  return {items:structuredClone(items),folders:structuredClone(folders),prefs:structuredClone(prefs),
-    customTags:[...customTags],filterTags:[...filterTags],openFolders:[...openFolders],
-    openCards:getOpenDetailIds(),sort:$('sort').value||'manual',detailFavSort};
+function save(){
+  try{localStorage.setItem(KEY,JSON.stringify(items));return true;}
+  catch(err){console.error('Prompt Pocket save failed:',err);alert('データを保存できませんでした。\n画像データなどでブラウザの保存容量が不足している可能性があります。\n画像を小さくしてもう一度お試しください。');return false;}
 }
-function restoreState(state){
-  items=structuredClone(state.items);folders=structuredClone(state.folders);prefs=structuredClone(state.prefs);
-  customTags=new Set(state.customTags);filterTags=new Set(state.filterTags);
-  openFolders.clear();state.openFolders.forEach(id=>openFolders.add(id));
-  detailFavSort=state.detailFavSort;$('sort').value=state.sort;
-  applyPreferences();
-}
-function applyPreferences(){
-  document.body.classList.toggle('buttonGlowEnabled',!!prefs.buttonGlowEnabled);
-  document.body.dataset.cardCellSize=prefs.cardCellSize||'medium';
-  document.body.dataset.folderNameSize=prefs.folderNameSize||'medium';
-}
-function persistAppState(allowRecovery=false){
-  if(storageRecoveryIssues.length&&!allowRecovery){if(committedState)restoreState(committedState);throw new StorageSaveError('破損した元データを保護するため、保存を停止しています。バックアップの読み込み、またはデータの初期化を行ってください。')}
-  try{
-    prefs.customTags=[...customTags];
-    writeStorageBatch([[KEY,JSON.stringify(items)],[FOLDER_KEY,JSON.stringify(folders)],[PREF_KEY,JSON.stringify(prefs)]]);
-    committedState=captureState();
-    return true;
-  }catch(error){
-    if(committedState)restoreState(committedState);
-    throw new StorageSaveError('データを保存できませんでした。変更は確定していません。保存容量を確認し、バックアップを取ってから再度お試しください。');
-  }
-}
-function save(){return persistAppState()}
-function savePrefs(){return persistAppState()}
-committedState=captureState();
-function reportSaveFailure(error){
-  if(!(error instanceof StorageSaveError))return false;
-  console.error(error);alert(error.message);
-  requestAnimationFrame(()=>{render();if(committedState)restoreOpenDetails(committedState.openCards)});
-  return true;
-}
-window.addEventListener('error',event=>{if(reportSaveFailure(event.error))event.preventDefault()});
-window.addEventListener('unhandledrejection',event=>{if(reportSaveFailure(event.reason))event.preventDefault()});
+function savePrefs(){prefs.customTags=[...customTags];localStorage.setItem(PREF_KEY,JSON.stringify(prefs));}
 function rememberOpenFolderState(){
   if(!prefs.rememberOps)return;
   const next=[...openFolders].filter(id=>folders.some(f=>f.id===id)&&items.some(x=>x.folderId===id));
@@ -278,7 +206,7 @@ async function clearImageDb(){
 async function deleteImageDb(){
   try{const db=await openImageDb();db.close()}catch{}
   imageDbPromise=null;
-  await new Promise((resolve,reject)=>{if(!window.indexedDB){resolve();return}const request=indexedDB.deleteDatabase(IMAGE_DB_NAME);request.onsuccess=()=>resolve();request.onerror=()=>reject(new Error('画像データを削除できませんでした。時間をおいて再度お試しください。'));request.onblocked=()=>alert('画像データを削除するため、別のタブで開いているPrompt Pocketを閉じてください。')});
+  await new Promise(resolve=>{if(!window.indexedDB){resolve();return}const request=indexedDB.deleteDatabase(IMAGE_DB_NAME);request.onsuccess=request.onerror=request.onblocked=()=>resolve()});
   imageUrlCache.forEach(url=>URL.revokeObjectURL(url));imageUrlCache.clear();
 }
 const isDbImage=value=>typeof value==='string'&&value.startsWith('idb:');
@@ -316,7 +244,7 @@ async function moveEmbeddedImagesToDb(list){
   let changed=false;
   for(const item of list){
     if(typeof item.image!=='string'||!item.image.startsWith('data:image/'))continue;
-    try{const blob=await dataUrlToBlob(item.image);const key=crypto.randomUUID();await putImageBlob(key,blob);item.image='idb:'+key;changed=true}catch{return {changed,complete:false}}
+    try{const blob=await dataUrlToBlob(item.image);await putImageBlob(item.id,blob);item.image='idb:'+item.id;changed=true}catch{return {changed,complete:false}}
   }
   return {changed,complete:true};
 }
@@ -370,7 +298,6 @@ function upgradeItemsTo2(source,sourceFolders){
   });
 }
 function migratePre2Data(){
-  if(storageRecoveryIssues.length)return;
   const storedVersion=localStorage.getItem(DATA_VERSION_KEY)||localStorage.getItem(VERSION_KEY)||'1.0';
   if(!versionLessThan(storedVersion,DATA_SCHEMA_VERSION))return;
   const hasOldData=items.length>0||folders.length>0||localStorage.getItem(PREF_KEY)!==null;
@@ -383,12 +310,12 @@ function migratePre2Data(){
   }
   localStorage.setItem(DATA_VERSION_KEY,DATA_SCHEMA_VERSION);
 }
-try{migratePre2Data()}catch(error){reportSaveFailure(error)}
+migratePre2Data();
 
 // Ver.1.0: 見本の初期登録はウェルカム完了時だけ行う。
 // 条件は「通常の初回ウェルカム」かつ「登録0件」。ここでは追加しない。
 function toast(t){$('toast').textContent=t;$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),1600)}
-function snapshot(label){undoState={label,...captureState()}; updateUndo();}
+function snapshot(label){undoState={label,items:structuredClone(items)}; updateUndo();}
 function updateUndo(){$('undoBtn').disabled=!undoState;$('undoBtn').classList.toggle('undoReady',!!undoState);$('undoBtn').title=undoState?`${undoState.label}を元に戻す`:'戻せる操作はありません';}
 function allTags(){const tags=[...new Set([...baseTags,...(editorTagDraft?editorTagDraft.customTags:customTags),...items.flatMap(x=>x.tags||[])])].filter(t=>!(editorTagDraft?editorTagDraft.hiddenTags:(prefs.hiddenTags||[])).includes(t));const order=editorTagDraft?editorTagDraft.tagOrder:(prefs.tagOrder||[]);return [...tags].sort((a,b)=>{const ai=order.indexOf(a),bi=order.indexOf(b);if(ai<0&&bi<0)return tags.indexOf(a)-tags.indexOf(b);if(ai<0)return 1;if(bi<0)return -1;return ai-bi});}
 function syncTagOrder(){
@@ -499,7 +426,7 @@ function render(){
 }
 function initColumnResize(){
   const table=document.querySelector('.detailTable'); if(!table)return;
-  const saved=readStoredJson('promptPocket.columnWidths.v1',{},v=>v&&typeof v==='object'&&!Array.isArray(v));
+  const saved=JSON.parse(localStorage.getItem('promptPocket.columnWidths.v1')||'{}');
   const cols={name:table.querySelector('.col-name')};
   Object.entries(saved).forEach(([k,w])=>{if(cols[k]) cols[k].style.width=w+'px'});
   table.querySelectorAll('.colResizer').forEach(handle=>{
@@ -744,7 +671,7 @@ function bindFolderReorder(){
 }
 function bindFolderActions(){
   bindFolderReorder();
-  document.querySelectorAll('[data-folder-fav]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();const f=folderById(b.dataset.folderFav);if(!f)return;snapshot('フォルダのお気に入り変更');f.fav=!f.fav;saveFolders();renderKeepingDetails()});
+  document.querySelectorAll('[data-folder-fav]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();const f=folderById(b.dataset.folderFav);if(!f)return;f.fav=!f.fav;saveFolders();renderKeepingDetails()});
   document.querySelectorAll('.folderRow[data-folder]').forEach(row=>row.addEventListener('pointerdown',()=>{
     const f=folderById(row.dataset.folder);
     if(!f?.isNew)return;
@@ -794,13 +721,13 @@ function bindFolderActions(){
     if(next===null)return;
     const name=next.trim();
     if(!name||/[\\/:*?"<>|]/.test(name)){alert('このフォルダ名は使えません。');return}
-    snapshot('フォルダ名変更');f.name=name;saveFolders();render();
+    f.name=name;saveFolders();render();
   });
   document.querySelectorAll('[data-folder-delete]').forEach(b=>b.onclick=()=>{
     const f=folderById(b.dataset.folderDelete);if(!f)return;
     const n=folderCount(f.id);
-    if(!confirm(`⚠️ フォルダ「${f.name}」と中のカード${n}枚を削除します。\n\n「戻す」で直前の状態に戻せます。`))return;
-    snapshot('フォルダ削除');items=items.filter(x=>x.folderId!==f.id);
+    if(!confirm(`⚠️ フォルダ「${f.name}」と中のカード${n}枚を削除します。\n\nこの操作は元に戻せません。`))return;
+    items=items.filter(x=>x.folderId!==f.id);
     folders=folders.filter(x=>x.id!==f.id);
     openFolders.delete(f.id);
     saveFolders();save();render();toast('フォルダと中のカードを削除しました');
@@ -858,8 +785,8 @@ function ppUpdateAutoScroll(st,y){
   st.scrollFrame=requestAnimationFrame(step);
 }
 
-function ppLoadOrder(){return Array.isArray(prefs.cardOrder)?prefs.cardOrder:readStoredJson(PP_ORDER_KEY,[],Array.isArray)}
-function ppSaveOrder(ids){prefs.cardOrder=[...ids]}
+function ppLoadOrder(){try{return JSON.parse(localStorage.getItem(PP_ORDER_KEY)||'[]')}catch{return[]}}
+function ppSaveOrder(ids){localStorage.setItem(PP_ORDER_KEY,JSON.stringify(ids))}
 function ppPoint(ev){const t=ev.changedTouches?.[0]||ev.touches?.[0]||ev;return{x:t.clientX,y:t.clientY}}
 function ppRows(){return [...document.querySelectorAll('.detailTable tbody > tr[data-row]')]}
 function ppRemoveFolderExitSlot(){document.getElementById('ppFolderExitSlot')?.remove()}
@@ -1195,7 +1122,7 @@ function ppRelease(st,x,y){
   ppDnd=null;
   if(insert.kind==='folder'&&insert.folderId){
     const card=items.find(item=>item.id===st.row.dataset.row);
-    if(card){snapshot('フォルダへ移動');card.folderId=insert.folderId;card.updated=Date.now();save();openFolders.add(insert.folderId);render();toast('フォルダに入れました')}
+    if(card){card.folderId=insert.folderId;card.updated=Date.now();save();openFolders.add(insert.folderId);render();toast('フォルダに入れました')}
     return;
   }
   if(insert.kind==='folder-line'){ppCommitInFolder(st,insert);return}
@@ -1518,7 +1445,7 @@ let shortcutTimer=null,shortcutFired=false;
 async function runQuickAdd(){
   let text='';
   try{if(navigator.clipboard?.readText)text=await navigator.clipboard.readText();else throw new Error('clipboard unavailable')}
-  catch(err){await openEditor();alert('クリップボードを読み取れませんでした。プロンプト入力欄を長押しして「貼り付け」を選ぶか、直接入力してください。');return}
+  catch(err){toast('クリップボードを読み取れませんでした');return}
   if(!text.trim()){toast('クリップボードに文字がありません');return}
   openEditor();$('prompt').value=text;$('prompt').dispatchEvent(new Event('input',{bubbles:true}));toast('コピー中のプロンプトを読み込みました');
 }
@@ -1528,12 +1455,7 @@ bottomNew.onpointerdown=e=>{shortcutFired=false;clearTimeout(shortcutTimer);shor
 bottomNew.addEventListener('contextmenu',e=>e.preventDefault());
 function closeEditor(){editorTagDraft=null;imageBlob=null;if(editorImageObjectUrl){URL.revokeObjectURL(editorImageObjectUrl);editorImageObjectUrl=''}$('editor').close();document.body.classList.remove('editor-open')}
 $('editor').addEventListener('cancel',e=>{e.preventDefault();closeEditor()});
-$('cancelBtn').onclick=closeEditor;$('editorCloseBtn').onclick=closeEditor;$('search').oninput=render;$('sort').onchange=()=>{randomOrder=[];setSortMode($('sort').value)};$('clearFilters').onclick=()=>{$('search').value='';filterTags.clear();render()};$('undoBtn').onclick=()=>{
-  if(!undoState||!confirm('直前の操作を取り消して、前の状態に戻しますか？'))return;
-  const current=captureState(),target=undoState;
-  restoreState(target);save();undoState={label:'元に戻す前の状態',...current};
-  render();restoreOpenDetails(target.openCards);toast('前の状態に戻しました');
-};
+$('cancelBtn').onclick=closeEditor;$('editorCloseBtn').onclick=closeEditor;$('search').oninput=render;$('sort').onchange=()=>{randomOrder=[];setSortMode($('sort').value)};$('clearFilters').onclick=()=>{$('search').value='';filterTags.clear();render()};$('undoBtn').onclick=()=>{if(!undoState)return;if(!confirm('前の状態に戻しますか？\n\n直前の操作を取り消して、前の状態に戻します。'))return;const current=structuredClone(items);items=structuredClone(undoState.items);undoState={label:'元に戻す前の状態',items:current};save();render();toast('前の状態に戻しました')};
 $('closeAllBtn').onclick=closeAllOpenContent;
 function defaultPrefs(){return {view:'card',welcomed:false,tagOrder:[],hiddenTags:[],rememberOps:false,buttonGlowEnabled:true,doubleTapOpenEnabled:false,dragVibrationEnabled:true,cardCellSize:'medium',folderNameSize:'medium',mainActionOpenMode:'single',shortcutDelay:800,customTags:[]}}
 let dataConfirmResolve=null;
@@ -1544,7 +1466,7 @@ $('dataConfirmCancel').onclick=()=>closeDataConfirm(false);
 $('dataConfirmDialog').addEventListener('cancel',e=>{e.preventDefault();closeDataConfirm(false)});
 async function resetDataToInitial(){
   if(!await showDataConfirm('データの初期化','登録したカード、フォルダ、タグ、設定、画像を削除して初期状態に戻しますか？\n\nサイト本体のキャッシュは残ります。'))return;
-  await deleteImageDb();clearAppStorage(localStorage);storageRecoveryIssues.length=0;items=[];folders=[];undoState=null;customTags.clear();prefs=defaultPrefs();
+  localStorage.clear();await deleteImageDb();items=[];folders=[];undoState=null;customTags.clear();prefs=defaultPrefs();
   seedStarterFolders();savePrefs();localStorage.setItem(DATA_VERSION_KEY,DATA_SCHEMA_VERSION);localStorage.setItem(IMAGE_DB_MIGRATION_KEY,'done');localStorage.setItem(VERSION_KEY,APP_VERSION);
   location.reload();
 }
@@ -1556,10 +1478,10 @@ async function clearPhysicalCache(){
 async function eraseEverything(){
   if(!await showDataConfirm('すべてを削除','⚠️ Prompt Pocketのすべてを削除します。\n\nカード、フォルダ、設定、画像、キャッシュが削除されます。初期カードも作成しません。\n続けますか？'))return;
   if(!await showDataConfirm('最終確認','本当にすべてを削除しますか？\nこの操作は元に戻せません。'))return;
-  await deleteImageDb();clearAppStorage(localStorage);clearAppStorage(sessionStorage);storageRecoveryIssues.length=0;
+  localStorage.clear();sessionStorage.clear();await deleteImageDb();
   if('caches'in window){const keys=await caches.keys();await Promise.all(keys.filter(key=>key.startsWith('prompt-pocket-static-')).map(key=>caches.delete(key)))}
-  if('serviceWorker'in navigator){const registrations=await navigator.serviceWorker.getRegistrations();await Promise.all(registrations.filter(reg=>reg.scope===new URL('./',location.href).href).map(reg=>reg.unregister()))}
-  items=[];folders=[];undoState=null;customTags.clear();prefs=defaultPrefs();openFolders.clear();filterTags.clear();committedState=captureState();document.body.dataset.cardCellSize='medium';document.body.dataset.folderNameSize='medium';$('search').value='';closeOptionSections();$('optionDialog').close();render();$('eraseCompleteDialog').showModal();
+  if('serviceWorker'in navigator){const registrations=await navigator.serviceWorker.getRegistrations();await Promise.all(registrations.filter(reg=>reg.scope.startsWith(location.origin)).map(reg=>reg.unregister()))}
+  items=[];folders=[];undoState=null;customTags.clear();prefs=defaultPrefs();openFolders.clear();filterTags.clear();document.body.dataset.cardCellSize='medium';document.body.dataset.folderNameSize='medium';$('search').value='';closeOptionSections();$('optionDialog').close();render();$('eraseCompleteDialog').showModal();
 }
 $('deleteAllBtn').onclick=resetDataToInitial;
 $('deleteAllBtn').addEventListener('click',()=>document.body.classList.toggle('buttonGlowEnabled',!!prefs.buttonGlowEnabled));
@@ -1606,7 +1528,7 @@ async function pasteClipboardImage(){
       if(type){const blob=await item.getType(type);loadImageFile(blob);toast('クリップボードの画像を貼り付けました');return}
     }
     toast('クリップボードに画像がありません');
-  }catch(err){alert('画像を読み取れませんでした。画像を端末に保存してから、「画像を選択」を通常のタップで開いて選んでください。')}
+  }catch(err){toast('クリップボードの画像を読み取れませんでした')}
 }
 imageDropZone.onclick=e=>{if(imageShortcutFired){imageShortcutFired=false;e.preventDefault();return}$('image').click()};
 imageDropZone.onpointerdown=()=>{imageShortcutFired=false;clearTimeout(imageShortcutTimer);imageShortcutTimer=setTimeout(()=>{imageShortcutFired=true;pasteClipboardImage()},Number(prefs.shortcutDelay)||800)};
@@ -1615,34 +1537,7 @@ imageDropZone.addEventListener('contextmenu',e=>e.preventDefault());
 imageDropZone.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$('image').click()}};
 $('imageDropZone').ondragover=e=>{e.preventDefault();$('imageDropZone').classList.add('dragOver')};$('imageDropZone').ondragleave=()=>$('imageDropZone').classList.remove('dragOver');$('imageDropZone').ondrop=e=>{e.preventDefault();$('imageDropZone').classList.remove('dragOver');loadImageFile(e.dataTransfer.files[0])};
 $('pastePromptBtn').onclick=async()=>{const field=$('prompt');let text='';try{if(navigator.clipboard?.readText){text=await navigator.clipboard.readText()}else{throw new Error('clipboard unavailable')}}catch(err){alert('クリップボードを読み取れませんでした。\nブラウザの権限設定を確認するか、入力欄を長押しして貼り付けてください。');return}if(!text)return toast('クリップボードに文字がありません');if(field.value.trim()&&!confirm('現在のプロンプトは上書きされます。\n貼り付けますか？'))return;field.value=text;field.dispatchEvent(new Event('input',{bubbles:true}));field.focus();toast('プロンプトを貼り付けました')};
-let editorSaving=false;
-$('form').onsubmit=async e=>{
-  e.preventDefault();if(editorSaving)return;
-  const name=$('name').value.trim(),prompt=$('prompt').value.trim();if(!name||!prompt)return;
-  editorSaving=true;
-  try{
-    const id=$('editId').value||crypto.randomUUID(),old=items.find(x=>x.id===id),now=Date.now();
-    let storedImage=imageData;
-    if(imageBlob){
-      try{const imageKey=crypto.randomUUID();await putImageBlob(imageKey,imageBlob);storedImage='idb:'+imageKey}
-      catch{storedImage=await blobToDataUrl(imageBlob)}
-    }
-    const obj={...old,id,name,prompt,author:$('author').value.trim(),xhandle:$('xhandle').value.trim(),
-      source:$('source').value.trim(),memo:$('memo').value.trim(),tags:[...selectedTags],image:storedImage,
-      fav:old?.fav||false,pinned:old?.pinned||false,useCount:old?.useCount||0,lastUsed:old?.lastUsed||0,
-      created:old?.created||now,updated:now};
-    snapshot(old?'編集':'新規登録');
-    const deleted=editorTagDraft?.deletedTags||new Set();
-    const next=items.map(x=>deleted.size?{...x,tags:(x.tags||[]).filter(t=>!deleted.has(t))}:x);
-    items=old?next.map(x=>x.id===id?obj:x):[...next,obj];
-    if(editorTagDraft){
-      customTags=new Set(editorTagDraft.customTags);prefs.hiddenTags=[...editorTagDraft.hiddenTags];
-      prefs.tagOrder=[...editorTagDraft.tagOrder];filterTags=new Set([...filterTags].filter(t=>!deleted.has(t)));
-    }
-    save();closeEditor();render();toast('設定を保存しました');
-  }catch(error){if(!reportSaveFailure(error))alert('保存できませんでした。入力内容を確認してもう一度お試しください。')}
-  finally{editorSaving=false}
-};
+$('form').onsubmit=async e=>{e.preventDefault();const id=$('editId').value||crypto.randomUUID();const old=items.find(x=>x.id===id);const now=Date.now();let storedImage=imageData;if(imageBlob){try{await putImageBlob(id,imageBlob);storedImage='idb:'+id}catch{storedImage=await blobToDataUrl(imageBlob);toast('この環境では画像を従来方式で保存します')}}const obj={id,name:$('name').value.trim(),prompt:$('prompt').value.trim(),author:$('author').value.trim(),xhandle:$('xhandle').value.trim(),source:$('source').value.trim(),memo:$('memo').value.trim(),tags:[...selectedTags],image:storedImage,fav:old?.fav||false,pinned:old?.pinned||false,useCount:old?.useCount||0,lastUsed:old?.lastUsed||0,created:old?.created||now,updated:now};if(!obj.name||!obj.prompt)return;snapshot(old?'編集':'新規登録');const before=items,deleted=editorTagDraft?.deletedTags||new Set();let next=items.map(x=>deleted.size?{...x,tags:(x.tags||[]).filter(t=>!deleted.has(t))}:x);items=old?next.map(x=>x.id===id?obj:x):[...next,obj];if(!save()){items=before;return}if(editorTagDraft){customTags=new Set(editorTagDraft.customTags);prefs.hiddenTags=[...editorTagDraft.hiddenTags];prefs.tagOrder=[...editorTagDraft.tagOrder];filterTags=new Set([...filterTags].filter(t=>!deleted.has(t)));savePrefs()}editorTagDraft=null;imageBlob=null;if(editorImageObjectUrl){URL.revokeObjectURL(editorImageObjectUrl);editorImageObjectUrl=''}$('editor').close();document.body.classList.remove('editor-open');render();toast('設定を保存しました')};
 let optionPrefsDraft=null;
 const openOptions=()=>{optionPrefsDraft=structuredClone(prefs);$('rememberOps').checked=!!optionPrefsDraft.rememberOps;$('buttonGlowEnabled').checked=!!optionPrefsDraft.buttonGlowEnabled;$('doubleTapOpenEnabled').checked=!!optionPrefsDraft.doubleTapOpenEnabled;$('dragVibrationEnabled').checked=!!optionPrefsDraft.dragVibrationEnabled;$('cardCellSize').value=['small','medium','large'].includes(optionPrefsDraft.cardCellSize)?optionPrefsDraft.cardCellSize:'medium';$('folderNameSize').value=['small','medium','large'].includes(optionPrefsDraft.folderNameSize)?optionPrefsDraft.folderNameSize:'medium';$('mainActionOpenMode').value=['single','double'].includes(optionPrefsDraft.mainActionOpenMode)?optionPrefsDraft.mainActionOpenMode:'single';$('shortcutDelay').value=String(optionPrefsDraft.shortcutDelay||800);$('shortcutDelay').disabled=false;$('optionDialog').showModal()};
 function openSearchKeepingScroll(){
@@ -1685,7 +1580,7 @@ $('searchMobile').onclick=()=>toggleSearchPanel();
 $('helpMobile').onclick=()=>openMainHelp();
 
 function closeOptionSections(){document.querySelectorAll('#optionDialog details[open]').forEach(section=>{section.open=false});developerTapCount=0;clearTimeout(developerTapTimer)}
-$('optionSave').onclick=()=>{if(optionPrefsDraft){snapshot('オプション変更');prefs=structuredClone(optionPrefsDraft);if(prefs.rememberOps){prefs.view=prefs.view||'card';prefs.sort=$('sort').value;prefs.detailFavSort=detailFavSort;prefs.openFolderIds=[...openFolders];prefs.openCardIds=getOpenDetailIds()}else{delete prefs.sort;delete prefs.detailFavSort;delete prefs.openFolderIds;delete prefs.openCardIds;detailFavSort=false}savePrefs();document.body.classList.toggle('buttonGlowEnabled',!!prefs.buttonGlowEnabled);document.body.dataset.cardCellSize=prefs.cardCellSize||'medium';document.body.dataset.folderNameSize=prefs.folderNameSize||'medium'}optionPrefsDraft=null;closeOptionSections();$('optionDialog').close();toast('オプションを保存しました')};
+$('optionSave').onclick=()=>{if(optionPrefsDraft){prefs=structuredClone(optionPrefsDraft);if(prefs.rememberOps){prefs.view=prefs.view||'card';prefs.sort=$('sort').value;prefs.detailFavSort=detailFavSort;prefs.openFolderIds=[...openFolders];prefs.openCardIds=getOpenDetailIds()}else{delete prefs.sort;delete prefs.detailFavSort;delete prefs.openFolderIds;delete prefs.openCardIds;detailFavSort=false}savePrefs();document.body.classList.toggle('buttonGlowEnabled',!!prefs.buttonGlowEnabled);document.body.dataset.cardCellSize=prefs.cardCellSize||'medium';document.body.dataset.folderNameSize=prefs.folderNameSize||'medium'}optionPrefsDraft=null;closeOptionSections();$('optionDialog').close();toast('オプションを保存しました')};
 $('optionCancel').onclick=()=>{optionPrefsDraft=null;closeOptionSections();$('optionDialog').close()};
 $('optionClose').onclick=()=>$('optionCancel').click();
 $('resetDataBtn').onclick=resetDataToInitial;
@@ -1704,13 +1599,6 @@ $('optionDialog').addEventListener('cancel',e=>{e.preventDefault();$('optionCanc
 
 $('exportBtn').onclick=async()=>{
   try{
-    if(storageRecoveryIssues.length){
-      const raw={app:'Prompt Pocket',type:'storage-recovery',exportedAt:new Date().toISOString(),records:{}};
-      for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(isAppStorageKey(key))raw.records[key]=localStorage.getItem(key)}
-      const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(raw,null,2)],{type:'application/json'}));
-      a.download='prompt-pocket-recovery-'+Date.now()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
-      alert('破損した元データの保全ファイルをダウンロードします。通常のバックアップとは異なり、そのまま読み込めません。修復用として保管してください。');return;
-    }
     syncTagOrder();toast('バックアップを準備しています');
     const exportItems=[];
     for(const item of items){
@@ -1722,7 +1610,7 @@ $('exportBtn').onclick=async()=>{
       }
       exportItems.push(copy);
     }
-    const data={app:'Prompt Pocket',version:APP_VERSION,dataVersion:DATA_SCHEMA_VERSION,exportedAt:new Date().toISOString(),items:exportItems,folders,prefs,customTags:[...customTags]};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`prompt-pocket-backup-${new Date().toISOString().slice(0,10)}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast('バックアップのダウンロードを開始しました')
+    const data={app:'Prompt Pocket',version:APP_VERSION,dataVersion:DATA_SCHEMA_VERSION,exportedAt:new Date().toISOString(),items:exportItems,folders,prefs,customTags:[...customTags]};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`prompt-pocket-backup-${new Date().toISOString().slice(0,10)}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast('バックアップを保存しました')
   }catch{
     alert('画像を含むバックアップを作成できませんでした。\n時間をおいて、もう一度お試しください。');
   }
@@ -1733,11 +1621,10 @@ $('importFile').onchange=async e=>{
   if(!f)return;
   try{
     const data=JSON.parse(await f.text());
-    const restored=Array.isArray(data)?data:data?.items;
-    if(!validCards(restored))throw new Error();
-    const ok=confirm(`⚠️ データを読み込みますか？\n\n現在保存されている${items.length}件のデータは削除され、読み込んだ${restored.length}件のデータに置き換わります。\n「戻す」で読み込み前の状態に戻せます。`);
+    const restored=Array.isArray(data)?data:data.items;
+    if(!Array.isArray(restored))throw new Error();
+    const ok=confirm(`⚠️ データを読み込みますか？\n\n現在保存されている${items.length}件のデータは削除され、読み込んだ${restored.length}件のデータに置き換わります。\nこの操作は元に戻せません。`);
     if(!ok)return;
-    const previousState=captureState();
     const incomingVersion=Array.isArray(data)?'1.0':String(data.dataVersion||data.version||'1.0');
     const needsMigration=versionLessThan(incomingVersion,DATA_SCHEMA_VERSION);
     if(needsMigration)alert('読み込むデータのバージョンは2.0より古いため、データを2.0用にアップデートします。');
@@ -1763,14 +1650,13 @@ $('importFile').onchange=async e=>{
     if(prefs.rememberOps&&Array.isArray(prefs.openFolderIds))prefs.openFolderIds.filter(id=>folders.some(f=>f.id===id)&&items.some(x=>x.folderId===id)).forEach(id=>openFolders.add(id));
     customTags=new Set(Array.isArray(data.customTags)?data.customTags:[]);
     prefs.customTags=[...customTags];
-    persistAppState(true);storageRecoveryIssues.length=0;
-    undoState={label:'データの読み込み',...previousState};applyPreferences();
+    undoState=null;
+    save();saveFolders();savePrefs();document.body.dataset.cardCellSize=prefs.cardCellSize||'medium';document.body.dataset.folderNameSize=prefs.folderNameSize||'medium';
     localStorage.setItem(DATA_VERSION_KEY,DATA_SCHEMA_VERSION);
     closeOptionSections();$('optionDialog').close();render();
     toast(needsMigration?'バージョン1.xxのデータを2.0用に移行しました。':'データを復元しました');
-  }catch(error){
-    if(committedState)restoreState(committedState);
-    if(!reportSaveFailure(error))alert('このデータファイルは読み込めませんでした。元のデータは維持しています。');
+  }catch{
+    alert('このデータファイルは読み込めませんでした。');
   }finally{
     e.target.value='';
   }
@@ -1926,14 +1812,12 @@ async function showTutorial(){
         const scale=Math.min(media.clientWidth/img.naturalWidth,media.clientHeight/img.naturalHeight);
         const w=img.naturalWidth*scale,h=img.naturalHeight*scale;
         const ox=(media.clientWidth-w)/2,oy=(media.clientHeight-h)/2;
-        const targets={1:[.20,.40],2:[.70,.67],3:[.60,.23],4:[.51,.90],5:[.72,.16],6:[.46,.78],8:[.86,.42]};
+        const targets={1:[.20,.40],2:[.70,.67],3:[.60,.23],4:[.51,.90],5:[.72,.16],6:[.46,.78],8:[.92,.68]};
         const pointer=media.querySelector('.tutorialPointer'),target=targets[tutorialStep];
         if(pointer&&target){
-          const pointerSize=Math.min(64,media.clientWidth*.16);
-          pointer.style.setProperty('width',pointerSize+'px','important');pointer.style.setProperty('height',pointerSize+'px','important');
           // The fingertip is at 23% x / 20% y in the shared transparent icon.
-          pointer.style.left=(ox+w*target[0]-pointerSize*.23)+'px';
-          pointer.style.top=(oy+h*target[1]-pointerSize*.20)+'px';
+          pointer.style.left=(ox+w*target[0]-64*.23)+'px';
+          pointer.style.top=(oy+h*target[1]-64*.20)+'px';
           pointer.style.bottom='auto';
         }
         const start=media.querySelector('.selectionStart'),end=media.querySelector('.selectionEnd');
@@ -1991,7 +1875,7 @@ const debugSamples=[
 ];
 function addDebugLoadData(folderTotal,cardTotal){
   if(!confirm(`負荷テスト用のフォルダ${folderTotal}個とカード${cardTotal}枚を追加しますか？\n通常のデータには影響しません。`))return;
-  snapshot('負荷テスト追加');const now=Date.now(),batch=crypto.randomUUID(),testFolders=[];
+  const now=Date.now(),batch=crypto.randomUUID(),testFolders=[];
   for(let i=0;i<folderTotal;i++){
     const folder={id:`dev-folder-${batch}-${i}`,name:`負荷テスト ${i+1}`,created:now+i,isNew:false,devTest:true,devBatch:batch};
     folders.push(folder);testFolders.push(folder);
@@ -2115,13 +1999,9 @@ function versionLessThan(a,b){
   }
   return false;
 }
-if(!storageRecoveryIssues.length){
-  try{save();localStorage.setItem(VERSION_KEY,APP_VERSION)}catch(error){reportSaveFailure(error)}
-}
-render();
-document.querySelector('.appVersion').textContent='Prompt Pocket '+document.querySelector('.headerVersion').textContent;
-if(storageRecoveryIssues.length)setTimeout(()=>alert('保存データの一部を読み込めませんでした。元データを保護するため保存を停止しています。オプションからバックアップを読み込むか、データを初期化してください。'),100);
-else migrateStoredImages().catch(reportSaveFailure);
+localStorage.setItem(VERSION_KEY,APP_VERSION);
+save();render();
+migrateStoredImages().catch(()=>{});
 
 /* X / Discord 内蔵ブラウザだけで、通常ブラウザへの切り替えを案内する。 */
 (()=>{
@@ -2168,7 +2048,7 @@ document.addEventListener('dragstart', function(e){
      else if(folders.some(f=>f.name===name))msg='同じ名前のフォルダがあります。';
      if(msg){err.textContent=msg;input.classList.add('folderInputError');input.focus();return}
       const folder={id:'folder-'+crypto.randomUUID(),name,created:Date.now(),isNew:true,fav:false};
-      snapshot('フォルダ作成');folders.unshift(folder);
+      folders.unshift(folder);
       if($('sort').value==='manual'){
         const key='folder:'+folder.id;
         prefs.manualOrder=[key,...(Array.isArray(prefs.manualOrder)?prefs.manualOrder:[]).filter(x=>x!==key)];
