@@ -1,19 +1,20 @@
 const CACHE_PREFIX='prompt-pocket-static-';
-const CACHE_NAME=CACHE_PREFIX+'2-0-alpha2c-v1';
+const CACHE_NAME=CACHE_PREFIX+'2-0-alpha2e-v1';
 const APP_SHELL=[
   './',
   './index.html',
   './tutorial.html',
   './assets/tutorial/tutorial-cover.png',
-  './assets/tutorial/step-01-copy-prompt.jpg',
-  './assets/tutorial/step-02-add.png',
-  './assets/tutorial/step-03-prompt-input.png',
-  './assets/tutorial/step-04-copy-photo.png',
-  './assets/tutorial/step-05-select-image.png',
-  './assets/tutorial/step-06-save.png',
+  './assets/tutorial/tutorial-pointer.png',
+  './assets/tutorial/step-01-copy-prompt.png',
+  './assets/tutorial/step-02-add-clean.png',
+  './assets/tutorial/step-03-prompt-input-clean.png',
+  './assets/tutorial/step-04-copy-photo-clean.png',
+  './assets/tutorial/step-05-select-image-clean.png',
+  './assets/tutorial/step-06-save-clean.png',
   './assets/tutorial/step-07-card-added.png',
-  './assets/css/prompt-pocket.css?v=2.0-alpha2c-v1',
-  './assets/js/prompt-pocket.js?v=2.0-alpha2c-v1'
+  './assets/css/prompt-pocket.css?v=2.0-alpha2e-v1',
+  './assets/js/prompt-pocket.js?v=2.0-alpha2e-v1'
 ];
 
 self.addEventListener('install',event=>{
