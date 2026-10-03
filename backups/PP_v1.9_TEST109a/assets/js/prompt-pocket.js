@@ -66,11 +66,13 @@ const presetPrompts={
   }
 };
 
+const isFreshInstall=localStorage.getItem(KEY)===null&&localStorage.getItem(LEGACY_KEY)===null;
 let items=JSON.parse(localStorage.getItem(KEY)||localStorage.getItem(LEGACY_KEY)||'[]');
-const APP_VERSION='2.0-alpha.1';
+const APP_VERSION='1.16';
 const VERSION_KEY='promptPocket.lastSeenVersion';
 const DATA_VERSION_KEY='promptPocket.dataVersion';
 const DATA_SCHEMA_VERSION='2.0';
+const UPDATE_116_NOTICE_KEY='promptPocket.updateNotice.1.16.final';
 const VERSION_HISTORY={
     '1.73':['初回の外部ブラウザ案内を、わかりやすい歓迎画面に変更','現在のバージョン表示とバージョン記録を追加','アップデート内容を更新時に一度だけ表示'],
     '1.74':['X内ブラウザ案内を矢印中心の表示に変更','ブラウザバック後に下部メニューが消える問題を修正','＋追加の長押しショートカットを追加'],
@@ -1766,40 +1768,8 @@ $('welcomeStart').onclick=()=>{
   prefs.welcomed=true;savePrefs();$('welcomeDialog').close();
   welcomeIsDebug=false;
   // ダイアログを閉じた後のDOM状態で再描画し、初回からカードを確実に表示する。
-  requestAnimationFrame(()=>{render();showTutorial();});
-};
-let tutorialLoaded=false;
-async function showTutorial(){
-  const dialog=$('tutorialDialog');
-  if(!tutorialLoaded){
-    try{
-      const response=await fetch('tutorial.html',{cache:'no-store'});
-      if(!response.ok)throw new Error(`tutorial.html ${response.status}`);
-      $('tutorialContent').innerHTML=await response.text();
-      tutorialLoaded=true;
-      let step=0;
-      const steps=[...$('tutorialContent').querySelectorAll('.tutorialStep')];
-      const back=$('tutorialContent').querySelector('.tutorialBack');
-      const next=$('tutorialContent').querySelector('.tutorialNext');
-      const close=()=>dialog.close();
-      const renderStep=()=>{
-        steps.forEach((node,index)=>{node.hidden=index!==step});
-        back.hidden=step===0;
-        next.textContent=step===steps.length-1?'閉じる':'次へ';
-      };
-      $('tutorialContent').querySelector('.tutorialClose').onclick=close;
-      back.onclick=()=>{if(step>0){step--;renderStep()}};
-      next.onclick=()=>{if(step<steps.length-1){step++;renderStep()}else close()};
-      renderStep();
-    }catch(error){
-      console.warn('チュートリアルの読み込みに失敗しました',error);
-      $('tutorialContent').innerHTML='<div class="welcomePanel"><h2>チュートリアル</h2><p>詳しい使い方はヘルプをご覧ください。</p><button class="primary wide" type="button" id="tutorialFallbackClose">閉じる</button></div>';
-      $('tutorialContent').querySelector('#tutorialFallbackClose').onclick=()=>dialog.close();
-      tutorialLoaded=true;
-    }
-  }
-  if(!dialog.open)dialog.showModal();
-}
+  requestAnimationFrame(()=>{render();$('sampleGuideDialog').showModal();});
+};$('sampleGuideClose').onclick=()=>$('sampleGuideDialog').close();
 let developerTapCount=0,developerTapTimer=null;
 $('developerSummary').addEventListener('click',e=>{
   if($('developerOptions').open)return;
@@ -1945,9 +1915,48 @@ function versionLessThan(a,b){
   }
   return false;
 }
-localStorage.setItem(VERSION_KEY,APP_VERSION);
+function handleVersionNotice(){
+  // 新規利用者にはアップデート通知を出さない。
+  if(isFreshInstall){
+    localStorage.setItem(VERSION_KEY,APP_VERSION);
+    localStorage.setItem(UPDATE_116_NOTICE_KEY,'seen');
+    return;
+  }
+
+  // 1.16の案内を一度閉じていれば、以後は表示しない。
+  if(localStorage.getItem(UPDATE_116_NOTICE_KEY)==='seen')return;
+
+  // 既存ユーザーで「1.16更新案内」をまだ見ていなければ表示する。
+  // テスト版1.16を一度開いて VERSION_KEY が1.16になっていても、
+  // 正式版の更新案内は専用キーで一度だけ表示する。
+  $('updateVersionText').textContent='Ver.1.16';
+  $('updateList').innerHTML=[
+    'UIの変更',
+    'スクロール機能の強化',
+    '細かい修正'
+  ].map(x=>`<div>・${esc(x)}</div>`).join('');
+
+  const show=()=>{
+    if(window.__ppExternalGuideActive||$('externalBrowserGuide')?.open||$('welcomeDialog')?.open){
+      setTimeout(show,350);return;
+    }
+    $('updateDialog').showModal();
+  };
+  setTimeout(show,300);
+
+  $('updateClose').onclick=()=>{
+    localStorage.setItem(UPDATE_116_NOTICE_KEY,'seen');
+    localStorage.setItem(VERSION_KEY,APP_VERSION);
+    $('updateDialog').close();
+  };
+}
 save();render();
 migrateStoredImages().catch(()=>{});
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',handleVersionNotice,{once:true});
+}else{
+  handleVersionNotice();
+}
 
 /* X / Discord 内蔵ブラウザだけで、通常ブラウザへの切り替えを案内する。 */
 (()=>{

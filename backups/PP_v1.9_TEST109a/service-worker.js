@@ -1,11 +1,10 @@
 const CACHE_PREFIX='prompt-pocket-static-';
-const CACHE_NAME=CACHE_PREFIX+'2-0-alpha1-v1';
+const CACHE_NAME=CACHE_PREFIX+'test109a-v1';
 const APP_SHELL=[
   './',
   './index.html',
-  './tutorial.html',
-  './assets/css/prompt-pocket.css?v=2.0-alpha1',
-  './assets/js/prompt-pocket.js?v=2.0-alpha1'
+  './assets/css/prompt-pocket.css?v=test109a',
+  './assets/js/prompt-pocket.js?v=test109a'
 ];
 
 self.addEventListener('install',event=>{
