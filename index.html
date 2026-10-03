@@ -15,7 +15,7 @@
 -->
 
 
-  <link rel="stylesheet" href="assets/css/prompt-pocket.css?v=2.0-alpha2-v2">
+  <link rel="stylesheet" href="assets/css/prompt-pocket.css?v=2.0-alpha2-v3">
 </head>
 <body>
 <header class="topbar">
@@ -364,6 +364,24 @@
   <div id="tutorialContent"><p>チュートリアルを読み込んでいます…</p></div>
 </dialog>
 
+<dialog id="tutorialExitConfirmDialog">
+  <div class="welcomePanel helpPanel">
+    <h2>チュートリアルを終了しますか？</h2>
+    <p>いつでもヘルプから、もう一度確認できます。</p>
+    <div class="sampleActions"><button id="tutorialExitCancel" class="ghost" type="button">戻る</button><button id="tutorialExitOk" class="primary" type="button">終了する</button></div>
+  </div>
+</dialog>
+
+<dialog id="tutorialSampleDialog">
+  <div class="welcomePanel sampleGuidePanel">
+    <div class="welcomeIcon">📁</div>
+    <h2>見本を追加しました</h2>
+    <p>サンプルフォルダー及び、サンプルカードを追加しました。</p>
+    <p>実際に触ってみましょう。不必要なら削除してかまいません。</p>
+    <button id="tutorialSampleClose" class="primary wide" type="button">はじめる</button>
+  </div>
+</dialog>
+
 <div id="toast"></div>
 <dialog id="externalBrowserGuide">
   <div class="externalGuidePanel">
@@ -374,7 +392,7 @@
   </div>
 </dialog>
 
-  <script defer src="assets/js/prompt-pocket.js?v=2.0-alpha2"></script>
+  <script defer src="assets/js/prompt-pocket.js?v=2.0-alpha2-v3"></script>
   <script>
     if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){
       const hadServiceWorker=navigator.serviceWorker.controller!==null;

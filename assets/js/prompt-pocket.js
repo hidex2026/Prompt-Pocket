@@ -1758,17 +1758,32 @@ $('migrationClose').onclick=closeMigrationHelp;
 $('migrationDialog').addEventListener('cancel',e=>{e.preventDefault();closeMigrationHelp()});
 
 let welcomeIsDebug=false;
+let tutorialShouldSeed=false;
 $('welcomeStart').onclick=()=>{
-  // Ver.1.0: 通常の初回ウェルカム + 登録0件のときだけ見本を1件登録する。
-  // デバッグ強制ウェルカムや既存データがある場合は絶対に初期化しない。
+  // 見本はチュートリアル終了時にだけ追加する。
   const shouldSeed=!welcomeIsDebug&&!prefs.welcomed&&items.length===0;
-  if(shouldSeed)seedStarterFolders();
+  tutorialShouldSeed=shouldSeed;
   prefs.welcomed=true;savePrefs();$('welcomeDialog').close();
   welcomeIsDebug=false;
-  // ダイアログを閉じた後のDOM状態で再描画し、初回からカードを確実に表示する。
-  requestAnimationFrame(()=>{render();showTutorial();});
+  requestAnimationFrame(()=>showTutorial());
 };
-let tutorialLoaded=false;
+let tutorialLoaded=false,tutorialStep=0;
+const requestTutorialExit=()=>{
+  const confirmDialog=$('tutorialExitConfirmDialog');
+  if(!confirmDialog.open)confirmDialog.showModal();
+};
+const finishTutorial=()=>{
+  $('tutorialExitConfirmDialog').close();
+  $('tutorialDialog').close();
+  if(tutorialShouldSeed&&items.length===0){
+    seedStarterFolders();render();
+    $('tutorialSampleDialog').showModal();
+  }
+  tutorialShouldSeed=false;
+};
+$('tutorialExitCancel').onclick=()=>$('tutorialExitConfirmDialog').close();
+$('tutorialExitOk').onclick=finishTutorial;
+$('tutorialSampleClose').onclick=()=>$('tutorialSampleDialog').close();
 async function showTutorial(){
   const dialog=$('tutorialDialog');
   if(!tutorialLoaded){
@@ -1777,27 +1792,30 @@ async function showTutorial(){
       if(!response.ok)throw new Error(`tutorial.html ${response.status}`);
       $('tutorialContent').innerHTML=await response.text();
       tutorialLoaded=true;
-      let step=0;
       const steps=[...$('tutorialContent').querySelectorAll('.tutorialStep')];
       const back=$('tutorialContent').querySelector('.tutorialBack');
       const next=$('tutorialContent').querySelector('.tutorialNext');
-      const close=()=>dialog.close();
       const renderStep=()=>{
-        steps.forEach((node,index)=>{node.hidden=index!==step});
-        back.hidden=step===0;
-        next.textContent=step===steps.length-1?'閉じる':'次へ';
+        const isLast=tutorialStep===steps.length-1;
+        steps.forEach((node,index)=>{node.hidden=index!==tutorialStep});
+        back.hidden=tutorialStep===0;
+        next.hidden=isLast;
+        $('tutorialContent').querySelector('.tutorialClose').textContent=isLast?'キャンセル':'閉じる';
       };
-      $('tutorialContent').querySelector('.tutorialClose').onclick=close;
-      back.onclick=()=>{if(step>0){step--;renderStep()}};
-      next.onclick=()=>{if(step<steps.length-1){step++;renderStep()}else close()};
-      renderStep();
+      $('tutorialContent').querySelector('.tutorialClose').onclick=requestTutorialExit;
+      back.onclick=()=>{if(tutorialStep>0){tutorialStep--;renderStep()}};
+      next.onclick=()=>{if(tutorialStep<steps.length-1){tutorialStep++;renderStep()}};
+      dialog.addEventListener('cancel',event=>{event.preventDefault();requestTutorialExit()});
+      dialog.__renderTutorialStep=renderStep;
     }catch(error){
       console.warn('チュートリアルの読み込みに失敗しました',error);
       $('tutorialContent').innerHTML='<div class="welcomePanel"><h2>チュートリアル</h2><p>詳しい使い方はヘルプをご覧ください。</p><button class="primary wide" type="button" id="tutorialFallbackClose">閉じる</button></div>';
-      $('tutorialContent').querySelector('#tutorialFallbackClose').onclick=()=>dialog.close();
+      $('tutorialContent').querySelector('#tutorialFallbackClose').onclick=requestTutorialExit;
       tutorialLoaded=true;
     }
   }
+  tutorialStep=0;
+  dialog.__renderTutorialStep?.();
   if(!dialog.open)dialog.showModal();
 }
 let developerTapCount=0,developerTapTimer=null;
