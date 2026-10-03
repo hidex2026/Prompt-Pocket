@@ -103,7 +103,7 @@ function clearAppStorage(storage){
 }
 const validCards=value=>Array.isArray(value)&&value.every(x=>x&&typeof x==='object'&&typeof x.name==='string'&&typeof x.prompt==='string');
 let items=readStoredJson(localStorage.getItem(KEY)!==null?KEY:LEGACY_KEY,[],validCards);
-const APP_VERSION='2.0-alpha.2p';
+const APP_VERSION='2.0-alpha.2o';
 const VERSION_KEY='promptPocket.lastSeenVersion';
 const DATA_VERSION_KEY='promptPocket.dataVersion';
 const DATA_SCHEMA_VERSION='2.0';
@@ -1892,23 +1892,12 @@ const toggleSearchPanel=()=>{
 $('searchToggleBtn').onclick=()=>toggleSearchPanel();
 const closeSearchPanel=()=>{$('searchPanel').classList.add('hidden');$('searchPanel').classList.remove('searchRevealed');$('search').value='';filterTags.clear();render()};
 $('closeSearch').onclick=()=>closeSearchPanel();
-function showHelpSection(section,title){
-  ['simpleHelp','detailHelp','usefulHelp'].forEach(id=>$(id).classList.toggle('hidden',id!==section));
-  $('helpDialog').querySelector('.detailBackBottom').classList.toggle('hidden',section==='simpleHelp');
-  $('helpTitle').textContent=title;
-  $('helpDialog').scrollTop=0;
-}
-const openMainHelp=()=>{showHelpSection('simpleHelp','Prompt Pocketの使い方');if(!$('helpDialog').open)$('helpDialog').showModal()};
-$('helpBtn').onclick=openMainHelp;
+const openMainHelp=()=>{$('simpleHelp').classList.remove('hidden');$('detailHelp').classList.add('hidden');$('usefulHelp').classList.add('hidden');$('helpTitle').textContent='Help';$('helpDialog').showModal()};
+$('helpBtn').onclick=()=>openMainHelp();
 $('helpClose').onclick=()=>$('helpDialog').close();
-$('usefulHelpBtn').onclick=()=>showHelpSection('usefulHelp','便利機能');
-$('moreHelpBtn').onclick=()=>showHelpSection('detailHelp','バックアップについて');
-$('backSimpleHelp').onclick=()=>showHelpSection('simpleHelp','Prompt Pocketの使い方');
-$('tutorialHelpBtn').onclick=()=>{
-  tutorialShouldSeed=false;
-  $('helpDialog').close();
-  showTutorial();
-};
+$('usefulHelpBtn').onclick=()=>{$('simpleHelp').classList.add('hidden');$('detailHelp').classList.add('hidden');$('usefulHelp').classList.remove('hidden');$('helpTitle').textContent='便利機能'};
+$('moreHelpBtn').onclick=()=>{$('simpleHelp').classList.add('hidden');$('usefulHelp').classList.add('hidden');$('detailHelp').classList.remove('hidden');$('helpTitle').textContent='詳しい使い方'};
+$('backSimpleHelp').onclick=()=>{$('detailHelp').classList.add('hidden');$('usefulHelp').classList.add('hidden');$('simpleHelp').classList.remove('hidden');$('helpTitle').textContent='Help'};
 $('migrationHelpBtn').onclick=()=>{$('optionDialog').close();$('migrationDialog').showModal()};
 const closeMigrationHelp=()=>{$('migrationDialog').close();$('optionDialog').showModal()};
 $('migrationClose').onclick=closeMigrationHelp;

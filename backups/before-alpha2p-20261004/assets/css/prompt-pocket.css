@@ -2389,10 +2389,3 @@ body.buttonGlowEnabled .detailTable.detailTable tbody>tr.folderRow:active{
 @media(max-width:560px){#tutorialDialog{width:calc(100vw - 16px);height:calc(66dvh);min-height:500px;max-height:calc(100dvh - 16px);border-radius:18px}.tutorialPanel{padding:14px;grid-template-rows:28px 8px minmax(0,1fr) 52px;gap:10px}.tutorialActions{height:52px;gap:6px}}
 @media(max-height:480px){#tutorialDialog{min-height:0;height:calc(100dvh - 16px)}.tutorialPanel{padding:10px;gap:6px}.tutorialTitle{font-size:20px}.tutorialStep{gap:6px;grid-template-rows:minmax(0,1fr) 72px}.tutorialMessage{height:72px;font-size:14px}}
 @media(max-width:360px){.tutorialTitle{font-size:20px}.tutorialMessage{font-size:14px}}
-#helpDialog{width:min(540px,calc(100vw - 24px));height:fit-content;max-height:calc(100dvh - 24px);overflow:auto}
-#helpDialog .helpPanel{width:100%!important;box-sizing:border-box;padding:18px}
-#helpDialog .dialogHead{margin-bottom:14px}
-#helpDialog #helpTitle{font-size:22px;text-align:left}
-#helpDialog .helpTopActions{grid-template-columns:1fr;gap:10px;margin:0}
-#helpDialog .helpTopActions button,#helpDialog .helpTopActions a{display:flex;align-items:center;justify-content:center;box-sizing:border-box;min-height:48px;border:2px solid #87a7b9;border-radius:12px;background:#e4f1f8;color:#234b65;font:inherit;font-weight:700;text-decoration:none}
-#helpDialog .detailBackBottom:not(.hidden) #backSimpleHelp{display:inline-block!important}

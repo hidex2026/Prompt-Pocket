@@ -92,6 +92,21 @@ const server=http.createServer((req,res)=>{
     assert.equal(await page.evaluate(()=>items[0].id),'c1');assert.equal(await page.evaluate(()=>folders[0].id),'f1');console.log('PASS successful import can undo');
     await page.evaluate(()=>{localStorage.setItem('otherApp.data','keep');sessionStorage.setItem('otherApp.data','keep');clearAppStorage(localStorage);clearAppStorage(sessionStorage)});
     assert.equal(await page.evaluate(()=>localStorage.getItem('otherApp.data')),'keep');assert.equal(await page.evaluate(()=>sessionStorage.getItem('otherApp.data')),'keep');console.log('PASS scoped clearing');
+    await page.evaluate(()=>openMainHelp());
+    assert.deepEqual(await page.locator('#simpleHelp .helpTopActions>*').allTextContents(),['チュートリアルを表示','便利機能','バックアップについて','もっと詳しく']);
+    assert.equal(await page.locator('#simpleHelp .welcomeSteps').count(),0);
+    assert.ok(await page.locator('#helpDialog').evaluate(el=>el.getBoundingClientRect().height<380),'help menu should be compact');await page.screenshot({path:path.join(__dirname,'help-menu-mobile.png')});
+    await page.locator('#usefulHelpBtn').click();assert.equal(await page.locator('#usefulHelp').isVisible(),true);await page.locator('#backSimpleHelp').click();
+    await page.locator('#moreHelpBtn').click();assert.equal(await page.locator('#helpTitle').innerText(),'バックアップについて');await page.locator('#backSimpleHelp').click();
+    const popupPromise=page.waitForEvent('popup');await page.locator('#detailedManualLink').click();const manual=await popupPromise;await manual.waitForLoadState();
+    assert.equal(await manual.title(),'Prompt Pocketの使い方');
+    for(const href of ['#basics','#cards','#folders','#moving']){await manual.locator('nav a[href="'+href+'"]').click();assert.equal(await manual.evaluate(()=>location.hash),href)}
+    await manual.close();console.log('PASS help menu, submenu back links and external HTML anchors');
+    await page.evaluate(()=>{items=[];folders=[];save();tutorialShouldSeed=true});
+    await page.locator('#tutorialHelpBtn').click();await page.waitForSelector('#tutorialDialog[open]');
+    await page.locator('.tutorialClose').click();await page.locator('#tutorialExitOk').click();
+    assert.equal(await page.evaluate(()=>items.length),0);assert.equal(await page.evaluate(()=>folders.length),0);
+    assert.equal(await page.locator('#tutorialSampleDialog').evaluate(el=>el.open),false);console.log('PASS help tutorial does not seed samples even when empty');
     await page.evaluate(()=>showTutorial());await page.waitForSelector('.tutorialPanel');
     const layouts=[];
     for(let i=0;i<9;i++){
