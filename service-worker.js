@@ -5,6 +5,10 @@ const APP_SHELL=[
   './index.html',
   './tutorial.html',
   './assets/tutorial/tutorial-cover.png',
+  './assets/tutorial/photo-copy.png',
+  './assets/tutorial/image-select.png',
+  './assets/tutorial/card-view.png',
+  './assets/tutorial/save-settings.png',
   './assets/css/prompt-pocket.css?v=2.0-alpha1',
   './assets/js/prompt-pocket.js?v=2.0-alpha1'
 ];
