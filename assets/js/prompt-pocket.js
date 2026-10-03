@@ -67,7 +67,7 @@ const presetPrompts={
 };
 
 let items=JSON.parse(localStorage.getItem(KEY)||localStorage.getItem(LEGACY_KEY)||'[]');
-const APP_VERSION='2.0-alpha.2i';
+const APP_VERSION='2.0-alpha.2k';
 const VERSION_KEY='promptPocket.lastSeenVersion';
 const DATA_VERSION_KEY='promptPocket.dataVersion';
 const DATA_SCHEMA_VERSION='2.0';
@@ -679,7 +679,15 @@ function bindFolderActions(){
   },{once:true}));
   document.querySelectorAll('[data-folder-remove]').forEach(b=>b.onclick=()=>{
     const x=items.find(i=>i.id===b.dataset.folderRemove);if(!x)return;
-    delete x.folderId;x.updated=Date.now();save();render();toast('フォルダから出しました');
+    const folderKey='folder:'+x.folderId;
+    const order=[...document.querySelectorAll('.detailTable tbody > tr.folderRow, .detailTable tbody > tr.unifiedRow:not(.folderChildRow)')]
+      .map(row=>row.dataset.folder?'folder:'+row.dataset.folder:row.dataset.row).filter(Boolean).filter(id=>id!==x.id);
+    const at=order.indexOf(folderKey);if(at<0)return;
+    snapshot('フォルダから出す');
+    delete x.folderId;x.updated=Date.now();
+    order.splice(at+1,0,x.id);
+    prefs.manualOrder=order;prefs.sort='manual';savePrefs();$('sort').value='manual';
+    save();render();toast('フォルダから出しました');
   });
   document.querySelectorAll('[data-folder-menu-toggle]').forEach(b=>b.onclick=e=>{
     e.stopPropagation();
@@ -1429,7 +1437,7 @@ function updatePreview(source=''){
   $('imagePreview').classList.toggle('hidden',!imageData);
   $('imagePreview').innerHTML=src?`<img src="${esc(src)}" alt="">`:(imageData?'<span>画像を読み込み中…</span>':'');
 }
-function deleteItem(id){const x=items.find(i=>i.id===id);if(!x)return;if(confirm(`「${x.name}」を削除しますか？\nこの操作は「戻す」で復元できます。`)){snapshot('削除');items=items.filter(i=>i.id!==id);save();render();toast('削除しました')}}
+async function deleteItem(id){const x=items.find(i=>i.id===id);if(!x)return;if(await showDataConfirm(`「${x.name}」の削除`,'このカードを削除しますか？')){if(!items.some(i=>i.id===id))return;snapshot('削除');items=items.filter(i=>i.id!==id);save();render();toast('削除しました')}}
 function duplicateItem(id){const x=items.find(i=>i.id===id);if(!x)return;snapshot('複製');const now=Date.now();const copy={...structuredClone(x),id:crypto.randomUUID(),name:`${x.name} - コピー`,fav:false,pinned:false,created:now,updated:now};items.push(copy);save();render();toast('複製しました');openEditor(copy);}
 $('newBtn').onclick=()=>openEditor();
 const bottomNew=$('bottomNew');
