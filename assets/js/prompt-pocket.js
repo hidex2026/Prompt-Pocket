@@ -67,7 +67,7 @@ const presetPrompts={
 };
 
 let items=JSON.parse(localStorage.getItem(KEY)||localStorage.getItem(LEGACY_KEY)||'[]');
-const APP_VERSION='2.0-alpha.2b';
+const APP_VERSION='2.0-alpha.2c';
 const VERSION_KEY='promptPocket.lastSeenVersion';
 const DATA_VERSION_KEY='promptPocket.dataVersion';
 const DATA_SCHEMA_VERSION='2.0';
@@ -1768,6 +1768,7 @@ $('welcomeStart').onclick=()=>{
   requestAnimationFrame(()=>showTutorial());
 };
 let tutorialLoaded=false,tutorialStep=0;
+const tutorialTitles=['チュートリアル','①プロンプトのコピー','②プロンプトの貼り付け','③プロンプト名入力','④画像のコピー','⑤画像の貼り付け','⑥設定を保存','⑦カードの確認','詳しい説明'];
 const requestTutorialExit=()=>{
   const confirmDialog=$('tutorialExitConfirmDialog');
   if(!confirmDialog.open)confirmDialog.showModal();
@@ -1800,6 +1801,7 @@ async function showTutorial(){
         const isLast=tutorialStep===steps.length-1;
         steps.forEach((node,index)=>{node.hidden=index!==tutorialStep});
         tabs.forEach((tab,index)=>tab.classList.toggle('active',index===tutorialStep));
+        $('tutorialContent').querySelector('.tutorialTitle').textContent=tutorialTitles[tutorialStep]||'チュートリアル';
         back.classList.toggle('tutorialActionPlaceholder',tutorialStep===0);
         next.classList.toggle('tutorialActionPlaceholder',isLast);
         back.disabled=tutorialStep===0;
