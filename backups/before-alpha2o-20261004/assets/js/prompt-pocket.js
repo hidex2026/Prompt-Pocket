@@ -103,7 +103,7 @@ function clearAppStorage(storage){
 }
 const validCards=value=>Array.isArray(value)&&value.every(x=>x&&typeof x==='object'&&typeof x.name==='string'&&typeof x.prompt==='string');
 let items=readStoredJson(localStorage.getItem(KEY)!==null?KEY:LEGACY_KEY,[],validCards);
-const APP_VERSION='2.0-alpha.2o';
+const APP_VERSION='2.0-alpha.2n';
 const VERSION_KEY='promptPocket.lastSeenVersion';
 const DATA_VERSION_KEY='promptPocket.dataVersion';
 const DATA_SCHEMA_VERSION='2.0';
@@ -796,11 +796,10 @@ function bindFolderActions(){
     if(!name||/[\\/:*?"<>|]/.test(name)){alert('このフォルダ名は使えません。');return}
     snapshot('フォルダ名変更');f.name=name;saveFolders();render();
   });
-  document.querySelectorAll('[data-folder-delete]').forEach(b=>b.onclick=async()=>{
+  document.querySelectorAll('[data-folder-delete]').forEach(b=>b.onclick=()=>{
     const f=folderById(b.dataset.folderDelete);if(!f)return;
     const n=folderCount(f.id);
-    if(!await showDataConfirm(`「${f.name}」の削除`,`このフォルダと中のカード${n}枚を削除しますか？\n\n「戻す」で直前の状態に戻せます。`))return;
-    if(!folderById(f.id))return;
+    if(!confirm(`⚠️ フォルダ「${f.name}」と中のカード${n}枚を削除します。\n\n「戻す」で直前の状態に戻せます。`))return;
     snapshot('フォルダ削除');items=items.filter(x=>x.folderId!==f.id);
     folders=folders.filter(x=>x.id!==f.id);
     openFolders.delete(f.id);
@@ -1492,27 +1491,17 @@ document.addEventListener('click',e=>{
   if(!e.target.closest('.detailMenuWrap'))document.querySelectorAll('.detailPopupMenu').forEach(m=>m.classList.add('hidden'));
   if(!e.target.closest('.folderPopupPortal,[data-folder-menu-toggle]'))document.querySelector('.folderPopupPortal')?.remove();
 });
-let editorBaseline='',editorImageRevision=0,editorSession=0,editorClosePending=false;
-function editorDraftState(){
-  return JSON.stringify({
-    fields:[...$('form').querySelectorAll('input:not([type="file"]),textarea,select')].map(field=>[field.id,field.type==='checkbox'?field.checked:field.value]),
-    tags:[...selectedTags].sort(),image:imageData,imageRevision:editorImageRevision,
-    customTags:[...(editorTagDraft?.customTags||[])].sort(),hiddenTags:editorTagDraft?.hiddenTags||[],
-    tagOrder:editorTagDraft?.tagOrder||[],deletedTags:[...(editorTagDraft?.deletedTags||[])].sort()
-  });
-}
 async function openEditor(x=null){
-  const session=++editorSession;editorImageRevision=0;
   $('form').reset();editorTagDraft={customTags:new Set(customTags),hiddenTags:[...(prefs.hiddenTags||[])],tagOrder:[...(prefs.tagOrder||[])],deletedTags:new Set()};selectedTags=new Set(x?.tags||[]);activeTagForManage='';
   imageData=x?.image||'';imageBlob=null;
   if(editorImageObjectUrl){URL.revokeObjectURL(editorImageObjectUrl);editorImageObjectUrl=''}
   $('editId').value=x?.id||'';$('dialogTitle').textContent=x?'プロンプトを編集':'プロンプトを登録';['name','prompt','author','xhandle','source','memo'].forEach(k=>$(k).value=x?.[k]||'');
-  updatePreview();renderTagChoices();editorBaseline=editorDraftState();document.body.classList.add('editor-open');$('editor').showModal();
+  updatePreview();renderTagChoices();document.body.classList.add('editor-open');$('editor').showModal();
   if(isDbImage(imageData)){
     const editingId=x?.id||'';
     try{
       const blob=await getImageBlob(imageDbKey(imageData));
-      if(blob&&$('editor').open&&editorSession===session&&$('editId').value===editingId&&editorImageRevision===0){imageBlob=blob;editorImageObjectUrl=URL.createObjectURL(blob);updatePreview(editorImageObjectUrl)}
+      if(blob&&$('editor').open&&$('editId').value===editingId){imageBlob=blob;editorImageObjectUrl=URL.createObjectURL(blob);updatePreview(editorImageObjectUrl)}
     }catch{toast('画像を読み込めませんでした')}
   }
 }
@@ -1537,15 +1526,7 @@ bottomNew.onclick=e=>{if(shortcutFired){shortcutFired=false;e.preventDefault();r
 bottomNew.onpointerdown=e=>{shortcutFired=false;clearTimeout(shortcutTimer);shortcutTimer=setTimeout(()=>{shortcutFired=true;runQuickAdd()},Number(prefs.shortcutDelay)||800)};
 ['pointerup','pointercancel','pointerleave'].forEach(ev=>bottomNew.addEventListener(ev,()=>clearTimeout(shortcutTimer)));
 bottomNew.addEventListener('contextmenu',e=>e.preventDefault());
-function finishCloseEditor(){editorSession++;editorBaseline='';editorTagDraft=null;imageBlob=null;if(editorImageObjectUrl){URL.revokeObjectURL(editorImageObjectUrl);editorImageObjectUrl=''}$('editor').close();document.body.classList.remove('editor-open')}
-async function closeEditor(){
-  if(!$('editor').open||editorClosePending||editorSaving)return;
-  editorClosePending=true;
-  try{
-    if(editorDraftState()!==editorBaseline&&!await showDataConfirm('編集中の変更','変更を保存せずに閉じますか？'))return;
-    finishCloseEditor();
-  }finally{editorClosePending=false}
-}
+function closeEditor(){editorTagDraft=null;imageBlob=null;if(editorImageObjectUrl){URL.revokeObjectURL(editorImageObjectUrl);editorImageObjectUrl=''}$('editor').close();document.body.classList.remove('editor-open')}
 $('editor').addEventListener('cancel',e=>{e.preventDefault();closeEditor()});
 $('cancelBtn').onclick=closeEditor;$('editorCloseBtn').onclick=closeEditor;$('search').oninput=render;$('sort').onchange=()=>{randomOrder=[];setSortMode($('sort').value)};$('clearFilters').onclick=()=>{$('search').value='';filterTags.clear();render()};$('undoBtn').onclick=()=>{
   if(!undoState||!confirm('直前の操作を取り消して、前の状態に戻しますか？'))return;
@@ -1590,13 +1571,10 @@ $('deleteTagBtn').onclick=()=>{const tag=activeTagForManage;if(!tag)return;const
 このタグを削除しますか？`))return;if(!editorTagDraft)return;editorTagDraft.deletedTags.add(tag);selectedTags.delete(tag);editorTagDraft.customTags.delete(tag);if(!editorTagDraft.hiddenTags.includes(tag))editorTagDraft.hiddenTags.push(tag);editorTagDraft.tagOrder=editorTagDraft.tagOrder.filter(t=>t!==tag);activeTagForManage='';renderTagChoices();toast('「設定を保存する」で削除が確定します')};
 function loadImageFile(f){
   if(!f||!f.type.startsWith('image/')){if(f)alert('画像ファイルを選んでください。');return}
-  const session=editorSession;editorImageRevision++;
   const r=new FileReader();
   r.onload=()=>{
-    if(session!==editorSession||!$('editor').open)return;
     const img=new Image();
     img.onload=()=>{
-      if(session!==editorSession||!$('editor').open)return;
       const MAX=800;
       let w=img.naturalWidth,h=img.naturalHeight;
       const scale=Math.min(1,MAX/Math.max(w,h));
@@ -1604,7 +1582,6 @@ function loadImageFile(f){
       const c=document.createElement('canvas');c.width=w;c.height=h;
       c.getContext('2d').drawImage(img,0,0,w,h);
       c.toBlob(blob=>{
-        if(session!==editorSession||!$('editor').open)return;
         if(!blob){imageData=c.toDataURL('image/jpeg',0.70);imageBlob=null;updatePreview();return}
         imageBlob=blob;imageData='pending';
         if(editorImageObjectUrl)URL.revokeObjectURL(editorImageObjectUrl);
@@ -1662,7 +1639,7 @@ $('form').onsubmit=async e=>{
       customTags=new Set(editorTagDraft.customTags);prefs.hiddenTags=[...editorTagDraft.hiddenTags];
       prefs.tagOrder=[...editorTagDraft.tagOrder];filterTags=new Set([...filterTags].filter(t=>!deleted.has(t)));
     }
-    save();finishCloseEditor();render();toast('設定を保存しました');
+    save();closeEditor();render();toast('設定を保存しました');
   }catch(error){if(!reportSaveFailure(error))alert('保存できませんでした。入力内容を確認してもう一度お試しください。')}
   finally{editorSaving=false}
 };
@@ -1745,12 +1722,11 @@ $('exportBtn').onclick=async()=>{
       }
       exportItems.push(copy);
     }
-    const data={app:'Prompt Pocket',version:APP_VERSION,dataVersion:DATA_SCHEMA_VERSION,exportedAt:new Date().toISOString(),items:exportItems,folders,prefs,customTags:[...customTags]};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`prompt-pocket-backup-${new Date().toISOString().slice(0,10)}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast('バックアップのダウンロードを開始しました');$('backupNoticeDialog').showModal()
+    const data={app:'Prompt Pocket',version:APP_VERSION,dataVersion:DATA_SCHEMA_VERSION,exportedAt:new Date().toISOString(),items:exportItems,folders,prefs,customTags:[...customTags]};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`prompt-pocket-backup-${new Date().toISOString().slice(0,10)}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast('バックアップのダウンロードを開始しました')
   }catch{
     alert('画像を含むバックアップを作成できませんでした。\n時間をおいて、もう一度お試しください。');
   }
 };
-$('backupNoticeOk').onclick=()=>$('backupNoticeDialog').close();
 $('importBtn').onclick=()=>$('importFile').click();
 $('importFile').onchange=async e=>{
   const f=e.target.files[0];

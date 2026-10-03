@@ -944,7 +944,7 @@ main{padding-top:6px}
 .optionAddBadge{display:inline-block;margin:0;padding:0 1px;border-radius:3px;background:#f5a623;color:#3f2900;font-weight:900}
 .detailCloseBtn{position:absolute;top:10px;right:10px;z-index:6;width:40px;height:40px;padding:0;border:1px solid #ccc7bd;border-radius:10px;background:#fff;color:#333;font-size:25px;line-height:1;cursor:pointer;box-shadow:0 2px 7px rgba(0,0,0,.12);opacity:1}
 .detailCloseBtn:hover,.detailCloseBtn:focus-visible{background:#fff;border-color:#aaa49a;opacity:1}
-#bottomNew{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:manipulation;border:2px solid #c99a2b!important}
+#bottomNew{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:manipulation}
 
 /* v1.76: make rarely-used / destructive options visually distinct */
 .optionOther{border:1px solid #e3b65b!important;background:#fff8e8!important;border-radius:16px;overflow:hidden}
@@ -1387,8 +1387,6 @@ body.buttonGlowEnabled button:not(:disabled):active{
 .sampleConfirmDialog{border:0;padding:0;background:transparent}
 .sampleConfirmPanel{width:min(420px,calc(100vw - 32px));box-sizing:border-box;padding:20px;border-radius:18px;background:#fff;box-shadow:0 18px 55px #0003}
 .sampleConfirmPanel h2{margin:0 0 10px}.sampleConfirmPanel p{line-height:1.65;margin:0}
-#backupNoticeDialog .sampleActions{grid-template-columns:1fr}
-#backupNoticeDialog p+p{margin-top:12px}
 .dataConfirmMessage{white-space:pre-line}
 #sampleDialog>.samplePanel>.sampleActions{grid-template-columns:1fr}
 #sampleExecute{width:100%;min-height:52px;font-size:16px}

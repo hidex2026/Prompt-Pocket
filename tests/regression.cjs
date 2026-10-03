@@ -19,7 +19,7 @@ const server=http.createServer((req,res)=>{
   const browser=await chromium.launch({headless:true,executablePath:'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'});
   try{
     const context=await browser.newContext({viewport:{width:390,height:844},serviceWorkers:'block'});
-    const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('dialog',dialog=>dialog.accept());
+    const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('dialog',dialog=>dialog.accept().catch(()=>{}));
     await page.addInitScript(()=>{
       localStorage.setItem('promptPocket.v2',JSON.stringify([{id:'c1',name:'テストカード',prompt:'テスト本文',folderId:'f1',image:'',tags:[],created:1}]));
       localStorage.setItem('promptPocketFolders.v1',JSON.stringify([{id:'f1',name:'テストフォルダ',created:1}]));
@@ -29,6 +29,26 @@ const server=http.createServer((req,res)=>{
     });
     await page.goto(url);await page.waitForSelector('[data-row="c1"]');
     assert.deepEqual(errors,[],'startup errors');console.log('PASS startup');
+    assert.match(await page.locator('label:has(#name)').innerText(),/プロンプト名/);
+    assert.equal(await page.locator('#bottomNew').evaluate(el=>getComputedStyle(el).borderTopWidth),'2px');console.log('PASS label and add-button border');
+    await page.evaluate(()=>openEditor(items[0]));await page.locator('#cancelBtn').click();
+    assert.equal(await page.locator('#editor').evaluate(el=>el.open),false);assert.equal(await page.locator('#dataConfirmDialog').evaluate(el=>el.open),false);console.log('PASS unchanged editor closes without confirmation');
+    await page.evaluate(()=>openEditor(items[0]));await page.locator('#name').fill('未保存');await page.locator('#cancelBtn').click();
+    await page.waitForSelector('#dataConfirmDialog[open]');assert.match(await page.locator('#dataConfirmMessage').innerText(),/変更を保存せず/);
+    await page.locator('#dataConfirmCancel').click();assert.equal(await page.locator('#name').inputValue(),'未保存');
+    assert.equal(await page.locator('#editor').evaluate(el=>el.open),true);
+    await page.locator('#editorCloseBtn').click();await page.locator('#dataConfirmOk').click();
+    assert.equal(await page.locator('#editor').evaluate(el=>el.open),false);assert.equal(await page.evaluate(()=>items[0].name),'テストカード');console.log('PASS edited draft cancel and X confirmation');
+    await page.evaluate(()=>openEditor(items[0]));await page.locator('#name').fill('変更');await page.locator('#name').fill('テストカード');await page.locator('#cancelBtn').click();
+    assert.equal(await page.locator('#editor').evaluate(el=>el.open),false);console.log('PASS reverted draft closes without confirmation');
+    await page.evaluate(async()=>{await openEditor(items[0]);selectedTags.add('テストタグ');$('editorCloseBtn').click()});await page.waitForSelector('#dataConfirmDialog[open]');await page.locator('#dataConfirmOk').click();console.log('PASS tag-only change prompts');
+    await page.evaluate(async()=>{await openEditor(items[0]);const canvas=document.createElement('canvas');canvas.width=2;canvas.height=2;const blob=await new Promise(resolve=>canvas.toBlob(resolve));loadImageFile(blob)});
+    await page.waitForFunction(()=>imageData==='pending');await page.locator('#cancelBtn').click();await page.waitForSelector('#dataConfirmDialog[open]');await page.locator('#dataConfirmOk').click();console.log('PASS image-only change prompts');
+    await page.evaluate(()=>document.querySelector('[data-folder-delete]').click());await page.waitForSelector('#dataConfirmDialog[open]');
+    assert.deepEqual(await page.locator('#dataConfirmDialog .sampleActions button').allTextContents(),['OK','キャンセル']);
+    await page.locator('#dataConfirmCancel').click();assert.equal(await page.evaluate(()=>folders.length),1);
+    await page.evaluate(()=>document.querySelector('[data-folder-delete]').click());await page.locator('#dataConfirmOk').click();
+    await page.waitForFunction(()=>folders.length===0);await page.evaluate(()=>$('undoBtn').click());assert.equal(await page.evaluate(()=>folders.length),1);console.log('PASS folder delete ordered buttons, cancel, delete, undo');
     await page.evaluate(async()=>{await openEditor(items[0]);$('name').value='編集後';await $('form').onsubmit({preventDefault(){}})});
     assert.equal(await page.evaluate(()=>items[0].folderId),'f1');console.log('PASS edit preserves folder');
     await page.evaluate(()=>{snapshot('フォルダ変更');folders[0].name='変更';prefs.manualOrder=['c1'];openFolders.clear();save()});
@@ -60,6 +80,10 @@ const server=http.createServer((req,res)=>{
     });
     assert.equal(await page.evaluate(()=>items[0].id),'c1');
     assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem(KEY))[0].id),'c1');console.log('PASS failed import preserves original');
+    const download=page.waitForEvent('download');await page.evaluate(()=>$('exportBtn').click());
+    assert.match((await download).suggestedFilename(),/prompt-pocket-backup/);await page.waitForSelector('#backupNoticeDialog[open]');
+    assert.match(await page.locator('#backupNoticeDialog').innerText(),/別の端末やクラウド/);await page.locator('#backupNoticeOk').click();
+    assert.equal(await page.locator('#backupNoticeDialog').evaluate(el=>el.open),false);console.log('PASS backup download and storage notice');
     await page.evaluate(async()=>{
       const backup={items:[{id:'imported',name:'復元カード',prompt:'本文',tags:[],image:''}],folders:[],dataVersion:'2.0'};
       await $('importFile').onchange({target:{files:[{text:async()=>JSON.stringify(backup)}],value:'test'}});
@@ -93,7 +117,7 @@ const server=http.createServer((req,res)=>{
     assert.equal(await page.evaluate(()=>localStorage.getItem('otherApp.data')),'keep');
     assert.equal(await page.evaluate(()=>sessionStorage.getItem('otherApp.data')),'keep');console.log('PASS full erase scoped to this app');
     assert.deepEqual(errors,[],'unexpected page errors');await context.close();
-    const recovery=await browser.newContext({serviceWorkers:'block'});const broken=await recovery.newPage();broken.on('dialog',d=>d.accept());
+    const recovery=await browser.newContext({serviceWorkers:'block'});const broken=await recovery.newPage();broken.on('dialog',d=>d.accept().catch(()=>{}));
     await broken.addInitScript(()=>{localStorage.setItem('promptPocket.v2','{broken');localStorage.setItem('promptPocket.prefs.v1',JSON.stringify({welcomed:true,tagOrder:[]}));localStorage.setItem('promptPocket.dataVersion','2.0')});
     await broken.goto(url);await broken.waitForSelector('.headerVersion');
     assert.equal(await broken.evaluate(()=>localStorage.getItem('promptPocket.v2')),'{broken');
