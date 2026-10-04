@@ -100,7 +100,19 @@ const server=http.createServer((req,res)=>{
     await page.locator('#moreHelpBtn').click();assert.equal(await page.locator('#helpTitle').innerText(),'バックアップについて');await page.locator('#backSimpleHelp').click();
     const popupPromise=page.waitForEvent('popup');await page.locator('#detailedManualLink').click();const manual=await popupPromise;await manual.waitForLoadState();
     assert.equal(await manual.title(),'Prompt Pocketの使い方');
-    for(const href of ['#basics','#cards','#folders','#moving']){await manual.locator('nav a[href="'+href+'"]').click();assert.equal(await manual.evaluate(()=>location.hash),href)}
+    for(const href of ['#basics','#cards','#folders','#moving','#favorites','#backup','#settings','#trouble']){await manual.locator('nav a[href="'+href+'"]').click();assert.equal(await manual.evaluate(()=>location.hash),href)}
+    await manual.evaluate(()=>document.querySelectorAll('img').forEach(img=>img.loading='eager'));
+    await manual.waitForFunction(()=>[...document.images].every(img=>img.complete&&img.naturalWidth>0));
+    assert.equal(await manual.locator('.shot').count(),4);
+    assert.match(await manual.locator('#backup').innerText(),/追加ではなく、現在のデータの置き換え/);
+    assert.match(await manual.locator('#favorites').innerText(),/フォルダ内のカードには☆・★の操作を表示しません/);
+    for(const width of [320,390,1280]){
+      await manual.setViewportSize({width,height:844});
+      assert.ok(await manual.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'manual fits viewport');
+      await manual.locator('#basics').screenshot({path:path.join(__dirname,'manual-basics-'+width+'.png')});
+    }
+    await manual.locator('#moving').screenshot({path:path.join(__dirname,'manual-moving.png')});
+    await manual.locator('#backup').screenshot({path:path.join(__dirname,'manual-backup.png')});
     await manual.close();console.log('PASS help menu, submenu back links and external HTML anchors');
     await page.evaluate(()=>{items=[];folders=[];save();tutorialShouldSeed=true});
     await page.locator('#tutorialHelpBtn').click();await page.waitForSelector('#tutorialDialog[open]');

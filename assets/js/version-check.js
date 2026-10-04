@@ -1,6 +1,6 @@
-/* PP_RELEASE:2.0-alpha.3 */
+/* PP_RELEASE:2.0-alpha.3a */
 (()=>{
-  const release='2.0-alpha.3',main=document.querySelector('meta[name="pp-release"]')?.content;
+  const release='2.0-alpha.3a',main=document.querySelector('meta[name="pp-release"]')?.content;
   const dialog=document.getElementById('versionUpdateDialog'),message=document.getElementById('versionUpdateMessage');
   const reloadButton=document.getElementById('versionReload'),later=document.getElementById('versionLater');
   let target=main,busy=false,blocked=false;

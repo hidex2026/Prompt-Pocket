@@ -11,7 +11,7 @@ const caches={
 async function fetchMock(request){
   if(offline)throw new Error('offline');const url=new URL(typeof request==='string'?request:request.url);
   const pathname=url.pathname.slice('/pocket/'.length)||'index.html';let text=fs.readFileSync(path.join(root,pathname));
-  if(broken&&pathname==='tutorial.html')text=Buffer.from(text.toString().replace('PP_RELEASE:2.0-alpha.3','PP_RELEASE:2.1'));
+  if(broken&&pathname==='tutorial.html')text=Buffer.from(text.toString().replace('PP_RELEASE:2.0-alpha.3a','PP_RELEASE:2.1'));
   return new Response(text);
 }
 vm.runInNewContext(fs.readFileSync(path.join(root,'service-worker.js'),'utf8'),{
@@ -25,11 +25,11 @@ async function get(file,options={}){let response;handlers.fetch({request:new Req
   await install();let done;handlers.activate({waitUntil(p){done=p}});await done;assert.ok(claimed);
   offline=true;
   assert.match(await (await get('index.html')).text(),/pp-release/);
-  assert.match(await (await get('tutorial.html?v=2.0-alpha.3')).text(),/PP_RELEASE:2.0-alpha.3/);
+  assert.match(await (await get('tutorial.html?v=2.0-alpha.3a')).text(),/PP_RELEASE:2.0-alpha.3a/);
   assert.match(await (await get('manual.html')).text(),/Prompt Pocketの使い方/);
   assert.match(await (await get('index.html')).text(),/pp-release/,'manual did not replace main cache');
   await assert.rejects(get('version.json'),/offline/);
   offline=false;broken=true;assert.match(await (await get('tutorial.html',{cache:'no-store'})).text(),/PP_RELEASE:2.1/);
-  assert.match(await (await get('tutorial.html')).text(),/PP_RELEASE:2.0-alpha.3/,'fresh response cannot contaminate installed cache');
+  assert.match(await (await get('tutorial.html')).text(),/PP_RELEASE:2.0-alpha.3a/,'fresh response cannot contaminate installed cache');
   console.log('PASS SW atomic install, offline coherent shell/tutorial/manual, bypass and navigation isolation');
 })().catch(e=>{console.error(e);process.exitCode=1});

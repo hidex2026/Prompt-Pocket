@@ -1,19 +1,19 @@
-/* PP_RELEASE:2.0-alpha.3 */
-const RELEASE='2.0-alpha.3',CACHE_PREFIX='prompt-pocket-static-';
-const CACHE_NAME=CACHE_PREFIX+'2-0-alpha3-v1';
-const APP_SHELL=['./','./index.html','./tutorial.html','./manual.html',
+/* PP_RELEASE:2.0-alpha.3a */
+const RELEASE='2.0-alpha.3a',CACHE_PREFIX='prompt-pocket-static-';
+const CACHE_NAME=CACHE_PREFIX+'2-0-alpha3a-v1';
+const APP_SHELL=['./','./index.html','./tutorial.html','./manual.html','./assets/help/main-screen.png',
   './assets/tutorial/tutorial-cover.webp','./assets/tutorial/tutorial-pointer.webp',
   './assets/tutorial/step-01-copy-prompt.webp','./assets/tutorial/step-02-add-clean.webp',
   './assets/tutorial/step-03-prompt-input-clean.webp','./assets/tutorial/step-04-copy-photo-clean.webp',
   './assets/tutorial/step-05-select-image-clean.webp','./assets/tutorial/step-06-save-clean.webp','./assets/tutorial/step-07-card-added.webp',
-  './assets/css/prompt-pocket.css?v=2.0-alpha3-v1',
-  './assets/js/version-check.js?v=2.0-alpha3-v1','./assets/js/prompt-pocket.js?v=2.0-alpha3-v1'];
+  './assets/css/prompt-pocket.css?v=2.0-alpha3a-v1',
+  './assets/js/version-check.js?v=2.0-alpha3a-v1','./assets/js/prompt-pocket.js?v=2.0-alpha3a-v1'];
 self.addEventListener('install',event=>event.waitUntil((async()=>{
   // Validate every text component before installing the offline shell.
   const files=await Promise.all(APP_SHELL.map(async path=>{
     const response=await fetch(new Request(new URL(path,self.registration.scope),{cache:'no-store'}));
     if(!response.ok)throw new Error('Incomplete release: '+path);
-    if(!/\.webp(?:\?|$)/.test(path)){
+    if(!/\.(?:webp|png)(?:\?|$)/.test(path)){
       const text=await response.clone().text();
       if(text.match(/PP_RELEASE:([^\s*<>]+)/)?.[1]!==RELEASE)throw new Error('Release mismatch: '+path);
     }

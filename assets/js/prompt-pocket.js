@@ -1,5 +1,5 @@
-/* PP_RELEASE:2.0-alpha.3 */
-if(window.ppVersion&&(!window.ppVersion.assert('2.0-alpha.3')||window.ppVersion.blocked))throw new Error('Prompt Pocket release mismatch: initialization stopped.');
+/* PP_RELEASE:2.0-alpha.3a */
+if(window.ppVersion&&(!window.ppVersion.assert('2.0-alpha.3a')||window.ppVersion.blocked))throw new Error('Prompt Pocket release mismatch: initialization stopped.');
 const KEY='promptPocket.v2';
 const LEGACY_KEY='promptPocket.v1';
 const PREF_KEY='promptPocket.prefs.v1';
@@ -105,7 +105,7 @@ function clearAppStorage(storage){
 }
 const validCards=value=>Array.isArray(value)&&value.every(x=>x&&typeof x==='object'&&typeof x.name==='string'&&typeof x.prompt==='string');
 let items=readStoredJson(localStorage.getItem(KEY)!==null?KEY:LEGACY_KEY,[],validCards);
-const APP_VERSION='2.0-alpha.3';
+const APP_VERSION='2.0-alpha.3a';
 const VERSION_KEY='promptPocket.lastSeenVersion';
 const DATA_VERSION_KEY='promptPocket.dataVersion';
 const DATA_SCHEMA_VERSION='2.0';
@@ -1594,7 +1594,7 @@ $('deleteTagBtn').onclick=()=>{const tag=activeTagForManage;if(!tag)return;const
 削除すると、これらのプロンプトからこのタグだけが削除されます。
 プロンプト本体は削除されません。
 
-このタグを削除しますか？`))return;if(!editorTagDraft)return;editorTagDraft.deletedTags.add(tag);selectedTags.delete(tag);editorTagDraft.customTags.delete(tag);if(!editorTagDraft.hiddenTags.includes(tag))editorTagDraft.hiddenTags.push(tag);editorTagDraft.tagOrder=editorTagDraft.tagOrder.filter(t=>t!==tag);activeTagForManage='';renderTagChoices();toast('「設定を保存する」で削除が確定します')};
+このタグを削除しますか？`))return;if(!editorTagDraft)return;editorTagDraft.deletedTags.add(tag);selectedTags.delete(tag);editorTagDraft.customTags.delete(tag);if(!editorTagDraft.hiddenTags.includes(tag))editorTagDraft.hiddenTags.push(tag);editorTagDraft.tagOrder=editorTagDraft.tagOrder.filter(t=>t!==tag);activeTagForManage='';renderTagChoices();toast('「設定を保存」で削除が確定します')};
 function loadImageFile(f){
   if(!f||!f.type.startsWith('image/')){if(f)alert('画像ファイルを選んでください。');return}
   const session=editorSession;editorImageRevision++;
