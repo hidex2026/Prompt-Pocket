@@ -2427,7 +2427,7 @@ body[data-main-screen-color="multicolor"],#optionDialog[data-preview-color="mult
   --screen-bg:#fff7df;--screen-header:#d9eaf8;--screen-band:#f9dedf;
   --screen-card:#fffefa;--screen-table:#e4effa;--screen-text:#3d4353;
   --screen-border:#bdcce0;--screen-button:#fce7e8;--screen-hover:#e9f1fc;
-  --screen-accent:#fac8b9;--screen-accent-border:#b96b59;--screen-accent-text:#673d33;--screen-loose-card:#e4effa;
+  --screen-accent:#ffe08c;--screen-accent-border:#b58c31;--screen-accent-text:#57410c;--screen-loose-card:#e4effa;
 }
 /* Preview is scoped to the option dialog; unsaved colors never change the main screen. */
 #optionDialog[data-preview-color]:not([data-preview-color="default"]){background:var(--screen-bg)!important;color:var(--screen-text)}
@@ -2450,7 +2450,8 @@ body[data-main-screen-color]:not([data-main-screen-color="default"]) #cards .det
 body[data-main-screen-color]:not([data-main-screen-color="default"]) #cards .card{background:var(--screen-card);border-color:var(--screen-border)}
 body[data-main-screen-color]:not([data-main-screen-color="default"]) #cards .detailTable th{background:var(--screen-table)!important;color:var(--screen-text);border-color:var(--screen-border)}
 body[data-main-screen-color]:not([data-main-screen-color="default"]) #cards .detailTable tr:not(.folderRow):not(.folderFrameEnd)>td{background:var(--screen-card)!important}
-body[data-main-screen-color]:not([data-main-screen-color="default"]) #cards .detailTable tr[data-row]:not(.folderRow):not(.folderChildRow)>td{background:var(--screen-loose-card)!important}
+body[data-main-screen-color]:not([data-main-screen-color="default"]) #cards .detailTable.detailTable tr.folderChildRow>td,
+body[data-main-screen-color]:not([data-main-screen-color="default"]) #cards .detailTable.detailTable tr.folderChildDetail>td{background:var(--screen-loose-card)!important}
 body[data-main-screen-color]:not([data-main-screen-color="default"]) #cards .rowName{color:var(--screen-text)!important}
 body[data-main-screen-color]:not([data-main-screen-color="default"]) #cards .tableActions button:not(.dangerMini){background:var(--screen-button);color:var(--screen-text);border-color:var(--screen-border)}
 @media(hover:hover){body[data-main-screen-color]:not([data-main-screen-color="default"]) #cards .detailTable tr[data-row]:not(.folderRow):hover>td{background:var(--screen-hover)!important}}
@@ -2463,6 +2464,12 @@ body[data-main-screen-color="red"]{--folder-raised-top:#ffdbbf;--folder-raised-b
 body[data-main-screen-color="pastel"]{--folder-raised-top:#c7ead6;--folder-raised-bottom:#86bf9f;--folder-raised-edge:#568568;--folder-raised-text:#264934}
 body[data-main-screen-color="yellow"]{--folder-raised-top:#ffe694;--folder-raised-bottom:#dcb24e;--folder-raised-edge:#967024;--folder-raised-text:#4a350b}
 body[data-main-screen-color="multicolor"]{--folder-raised-top:#ffdbbf;--folder-raised-bottom:#e5a787;--folder-raised-edge:#aa6347;--folder-raised-text:#593323}
+/* Toy-box pastel: mix mint, blue, pink and yellow without changing other themes. */
+body[data-main-screen-color="multicolor"]:not([data-main-screen-color="default"]) #createFolderBtn{background:#a8dbc0!important;border-color:#568568!important;color:#264934!important}
+body[data-main-screen-color="multicolor"] .folderRow:is([data-folder-tone="0"],[data-folder-tone="4"]){--folder-raised-top:#c7ead6;--folder-raised-bottom:#86bf9f;--folder-raised-edge:#568568;--folder-raised-text:#264934}
+body[data-main-screen-color="multicolor"] .folderRow:is([data-folder-tone="1"],[data-folder-tone="5"]){--folder-raised-top:#c2dff5;--folder-raised-bottom:#85b7da;--folder-raised-edge:#527fa3;--folder-raised-text:#203f58}
+body[data-main-screen-color="multicolor"] .folderRow[data-folder-tone="2"]{--folder-raised-top:#fbd4de;--folder-raised-bottom:#e8a3b7;--folder-raised-edge:#a96579;--folder-raised-text:#5c3040}
+body[data-main-screen-color="multicolor"] .folderRow[data-folder-tone="3"]{--folder-raised-top:#ffe694;--folder-raised-bottom:#dcb24e;--folder-raised-edge:#967024;--folder-raised-text:#4a350b}
 body #cards .detailTable.detailTable .folderRow:not(.folderDropTarget)>td{
   background:linear-gradient(180deg,var(--folder-raised-top) 0%,var(--folder-raised-bottom) 100%)!important;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.8),inset 0 -1px 0 var(--folder-raised-edge)!important;
