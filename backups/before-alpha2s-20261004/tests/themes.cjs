@@ -24,12 +24,10 @@ const server=http.createServer((req,res)=>{
     const bg=()=>page.locator('body').evaluate(e=>getComputedStyle(e).backgroundColor);
     const original=await bg();
     assert.equal(await page.locator('body').getAttribute('data-main-screen-color'),'default');
-    for(const [theme,color] of [['aqua','rgb(234, 243, 250)'],['red','rgb(255, 241, 240)'],['pastel','rgb(237, 247, 240)'],['yellow','rgb(255, 248, 223)'],['multicolor','rgb(255, 247, 223)']]){
+    for(const [theme,color] of [['aqua','rgb(234, 243, 250)'],['red','rgb(255, 241, 240)'],['pastel','rgb(237, 247, 240)']]){
       await page.evaluate(()=>openOptions());await page.locator('.optionMainScreenFold summary').click();
-      assert.equal(await page.locator('#mainScreenColor option').count(),6);
+      assert.equal(await page.locator('#mainScreenColor option').count(),4);
       const before=await bg();await page.locator('#mainScreenColor').selectOption(theme);assert.equal(await bg(),before);
-      assert.equal(await page.locator('#optionDialog').evaluate(e=>getComputedStyle(e).backgroundColor),color);
-      await page.screenshot({path:path.join(__dirname,'theme-preview-'+theme+'.png')});
       await page.locator('#optionCancel').click();assert.equal(await bg(),before);
       await page.evaluate(()=>openOptions());await page.locator('.optionMainScreenFold summary').click();await page.locator('#mainScreenColor').selectOption(theme);await page.locator('#optionSave').click();
       assert.equal(await bg(),color);assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('promptPocket.prefs.v1')).mainScreenColor),theme);
@@ -37,20 +35,11 @@ const server=http.createServer((req,res)=>{
       await page.evaluate(()=>openOptions());assert.equal(await page.locator('#mainScreenColor').inputValue(),theme);await page.locator('#optionCancel').click();
       await page.screenshot({path:path.join(__dirname,'theme-'+theme+'.png')});console.log('PASS '+theme+' save, cancel, reload');
     }
-    for(const close of ['#optionClose','Escape']){
-      await page.evaluate(()=>openOptions());await page.locator('.optionMainScreenFold summary').click();await page.locator('#mainScreenColor').selectOption('yellow');
-      if(close==='Escape')await page.keyboard.press('Escape');else await page.locator(close).click();
-      assert.equal(await page.locator('body').getAttribute('data-main-screen-color'),'multicolor');
-      await page.evaluate(()=>openOptions());assert.equal(await page.locator('#mainScreenColor').inputValue(),'multicolor');await page.locator('#optionCancel').click();
-    }
-    await page.evaluate(()=>openOptions());await page.locator('.optionMainScreenFold summary').click();await page.locator('#mainScreenColor').selectOption('default');
-    assert.equal(await page.locator('#optionDialog').evaluate(e=>getComputedStyle(e).backgroundColor),'rgb(255, 255, 255)');
-    await page.locator('#optionSave').click();assert.equal(await bg(),original);console.log('PASS preview background, X/Escape cancel and default restoration');
     await page.evaluate(()=>{prefs.mainScreenColor='invalid';applyPreferences()});assert.equal(await bg(),original);
     await page.evaluate(()=>{prefs.mainScreenColor='aqua';applyPreferences();snapshot('theme-test');prefs.mainScreenColor='red';savePrefs();applyPreferences()});
     await page.locator('#undoBtn').click();assert.equal(await page.locator('body').getAttribute('data-main-screen-color'),'aqua');
     await page.setViewportSize({width:1280,height:800});await page.screenshot({path:path.join(__dirname,'theme-desktop.png')});
-    assert.deepEqual(errors,[]);assert.match(await page.title(),/ALPHA2s/);assert.equal(await page.locator('#mainScreenColor option[value="pastel"]').textContent(),'ミントグリーン');console.log('PASS invalid value fallback, undo, desktop, version, renamed label');
+    assert.deepEqual(errors,[]);assert.match(await page.title(),/ALPHA2r/);assert.equal(await page.locator('#mainScreenColor option[value="pastel"]').textContent(),'ミントグリーン');console.log('PASS invalid value fallback, undo, desktop, version, renamed label');
     await ctx.close();
   }finally{await browser.close();await new Promise(r=>server.close(r))}
 })().catch(e=>{console.error(e);process.exitCode=1;server.close()});

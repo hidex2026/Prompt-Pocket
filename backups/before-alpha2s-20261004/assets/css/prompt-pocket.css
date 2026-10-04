@@ -2399,43 +2399,24 @@ body.buttonGlowEnabled .detailTable.detailTable tbody>tr.folderRow:active{
 
 /* ALPHA2q: Main-screen palettes only. Default keeps the existing styles;
    modal dialogs, warning colors, folder frames and drag indicators stay intact. */
-body[data-main-screen-color="aqua"],#optionDialog[data-preview-color="aqua"]{
+body[data-main-screen-color="aqua"]{
   --screen-bg:#eaf3fa;--screen-header:#cfe5f3;--screen-band:#e9e4f4;
   --screen-card:#fffef8;--screen-table:#e7f1f8;--screen-text:#293544;
   --screen-border:#b9cfdf;--screen-button:#f3f8fc;--screen-hover:#deedf8;
   --screen-accent:#ffe59a;--screen-accent-border:#c99a2b;--screen-accent-text:#594600;
 }
-body[data-main-screen-color="red"],#optionDialog[data-preview-color="red"]{
+body[data-main-screen-color="red"]{
   --screen-bg:#fff1f0;--screen-header:#f8d8d9;--screen-band:#f7e4e1;
   --screen-card:#fffefa;--screen-table:#fbe5e6;--screen-text:#493438;
   --screen-border:#dbb7bb;--screen-button:#fff5f3;--screen-hover:#fce4e1;
   --screen-accent:#fac8b9;--screen-accent-border:#b96b59;--screen-accent-text:#673d33;
 }
-body[data-main-screen-color="pastel"],#optionDialog[data-preview-color="pastel"]{
+body[data-main-screen-color="pastel"]{
   --screen-bg:#edf7f0;--screen-header:#d8eee3;--screen-band:#e9e3f5;
   --screen-card:#fffef8;--screen-table:#e9e4f4;--screen-text:#35463f;
   --screen-border:#b8d3c7;--screen-button:#f6f3fc;--screen-hover:#e1f0e7;
   --screen-accent:#ffe7a6;--screen-accent-border:#c7a04a;--screen-accent-text:#5c490c;
 }
-body[data-main-screen-color="yellow"],#optionDialog[data-preview-color="yellow"]{
-  --screen-bg:#fff8df;--screen-header:#f6e7aa;--screen-band:#fff0c6;
-  --screen-card:#fffef8;--screen-table:#fff1c2;--screen-text:#4c4230;
-  --screen-border:#dbc68e;--screen-button:#fffaeb;--screen-hover:#fff0bd;
-  --screen-accent:#ffdf83;--screen-accent-border:#b8902b;--screen-accent-text:#58430b;
-}
-body[data-main-screen-color="multicolor"],#optionDialog[data-preview-color="multicolor"]{
-  --screen-bg:#fff7df;--screen-header:#d9eaf8;--screen-band:#f9dedf;
-  --screen-card:#fffefa;--screen-table:#e4effa;--screen-text:#3d4353;
-  --screen-border:#bdcce0;--screen-button:#fce7e8;--screen-hover:#e9f1fc;
-  --screen-accent:#ffe39b;--screen-accent-border:#c29b3c;--screen-accent-text:#594710;
-}
-/* Preview is scoped to the option dialog; unsaved colors never change the main screen. */
-#optionDialog[data-preview-color]:not([data-preview-color="default"]){background:var(--screen-bg)!important;color:var(--screen-text)}
-#optionDialog[data-preview-color]:not([data-preview-color="default"]) .dialogHead{background:var(--screen-header);border-radius:12px;padding:10px}
-#optionDialog[data-preview-color]:not([data-preview-color="default"]) .optionMainScreenFold>summary{background:var(--screen-band)!important;color:var(--screen-text)}
-#optionDialog[data-preview-color]:not([data-preview-color="default"]) .optionChoiceRow{background:var(--screen-card)!important;border-color:var(--screen-border)!important}
-#optionDialog[data-preview-color]:not([data-preview-color="default"]) .optionFixedActions{background:var(--screen-bg)!important}
-#optionDialog[data-preview-color]:not([data-preview-color="default"]) #optionSave{background:var(--screen-accent)!important;color:var(--screen-accent-text)!important;border:2px solid var(--screen-accent-border)!important}
 body[data-main-screen-color]:not([data-main-screen-color="default"]){background:var(--screen-bg);color:var(--screen-text);min-height:100dvh}
 body[data-main-screen-color]:not([data-main-screen-color="default"]) .topbar{background:var(--screen-header)!important;border-color:var(--screen-border)}
 body[data-main-screen-color]:not([data-main-screen-color="default"]) .headerVersion{color:var(--screen-text);opacity:.6}
