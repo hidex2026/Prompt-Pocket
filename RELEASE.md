@@ -1,18 +1,27 @@
 # バージョン整合性の更新手順
 
-更新時には必ず以下を同じリリース番号に揃える。
+バージョンの元データは `version.json`。通常は次のコマンドで本体・分離ファイル・画面表示・キャッシュ名を一括更新する。
 
-- index.html の PP_RELEASE コメント・pp-release meta・画面表示・CSS/JSのURL
-- assets/js/prompt-pocket.js の PP_RELEASE・起動時照合値・APP_VERSION
-- assets/js/version-check.js の PP_RELEASE・release
-- assets/css/prompt-pocket.css の PP_RELEASE・--pp-release
-- tutorial.html と manual.html の PP_RELEASE
-- version.json の version・displayVersion
-- service-worker.js の PP_RELEASE・RELEASE・CACHE_NAME・APP_SHELL 内のURL
+```
+node scripts/release.cjs 2.0-alpha.3e
+node scripts/release.cjs --check
+```
 
-新しく分離するHTML/JS/CSSにも `PP_RELEASE` マーカーを付け、読み込む前に本体と照合する。更新前のバックアップを残す。
+一括反映対象は index.html、prompt-pocket.js、version-check.js、session-gate.js、CSS、tutorial.html、manual.html、service-worker.js。
+新しい分離ファイルにも PP_RELEASE マーカーを付け、scripts/release.cjs の対象に追加する。
 
-公開時は全ファイルを同じ公開単位で配信し、version.jsonだけ先行して公開しない。更新ボタンでは構成ファイルの番号が揃ったことを確認してから、本体キャッシュと本アプリのService Workerだけを更新する。localStorageやIndexedDBの登録データは消さない。
+更新前のバックアップを残す。公開は全ファイルを同じ単位で行い、version.json だけ先行公開しない。
+更新時には全テキストファイルのリリース番号を確認してから、本体キャッシュと本アプリのService Workerを更新する。
+登録したカード・画像・設定は消さない。
 
-確認: node tests/regression.cjs / node tests/themes.cjs / node tests/versions.cjs / node tests/worker.cjs
-バージョン変更時はテーマテストの表示名確認と、versions.cjsの現在版フィクスチャも更新する。
+通常の検証:
+```
+node tests/regression.cjs
+node tests/themes.cjs
+node tests/versions.cjs
+node tests/worker.cjs
+node tests/interaction.cjs
+node tests/release.cjs
+```
+
+スマートフォン実機では、スクロールと長押し、タップ移動、クリップボード画像貼り付けも確認する。

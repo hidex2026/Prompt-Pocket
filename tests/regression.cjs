@@ -28,6 +28,15 @@ const server=http.createServer((req,res)=>{
       localStorage.setItem('promptPocket.starterSamples.current.v4','done');
     });
     await page.goto(url);await page.waitForSelector('[data-row="c1"]');
+    await page.evaluate(()=>{
+      window.testUndo=async()=>{const pending=$('undoBtn').onclick();$('dataConfirmOk').click();await pending};
+      window.testImport=async backup=>{
+        const pending=$('importFile').onchange({target:{files:[{text:async()=>JSON.stringify(backup)}],value:'test'}});
+        await new Promise(resolve=>{const timer=setInterval(()=>{if($('dataConfirmDialog').open){clearInterval(timer);$('dataConfirmOk').click();resolve()}},5)});
+        await pending;
+      };
+      new MutationObserver(()=>{if($('appNoticeDialog').open)$('appNoticeOk').click()}).observe($('appNoticeDialog'),{attributes:true,attributeFilter:['open']});
+    });
     assert.deepEqual(errors,[],'startup errors');console.log('PASS startup');
     assert.match(await page.locator('label:has(#name)').innerText(),/プロンプト名/);
     assert.equal(await page.locator('#bottomNew').evaluate(el=>getComputedStyle(el).borderTopWidth),'2px');console.log('PASS label and add-button border');
@@ -48,18 +57,18 @@ const server=http.createServer((req,res)=>{
     assert.deepEqual(await page.locator('#dataConfirmDialog .sampleActions button').allTextContents(),['OK','キャンセル']);
     await page.locator('#dataConfirmCancel').click();assert.equal(await page.evaluate(()=>folders.length),1);
     await page.evaluate(()=>document.querySelector('[data-folder-delete]').click());await page.locator('#dataConfirmOk').click();
-    await page.waitForFunction(()=>folders.length===0);await page.evaluate(()=>$('undoBtn').click());assert.equal(await page.evaluate(()=>folders.length),1);console.log('PASS folder delete ordered buttons, cancel, delete, undo');
+    await page.waitForFunction(()=>folders.length===0);await page.evaluate(()=>testUndo());assert.equal(await page.evaluate(()=>folders.length),1);console.log('PASS folder delete ordered buttons, cancel, delete, undo');
     await page.evaluate(async()=>{await openEditor(items[0]);$('name').value='編集後';await $('form').onsubmit({preventDefault(){}})});
     assert.equal(await page.evaluate(()=>items[0].folderId),'f1');console.log('PASS edit preserves folder');
     await page.evaluate(()=>{snapshot('フォルダ変更');folders[0].name='変更';prefs.manualOrder=['c1'];openFolders.clear();save()});
-    await page.evaluate(()=>$('undoBtn').click());
+    await page.evaluate(()=>testUndo());
     assert.equal(await page.evaluate(()=>folders[0].name),'テストフォルダ');
     assert.deepEqual(await page.evaluate(()=>prefs.manualOrder),['folder:f1']);console.log('PASS full undo');
     await page.evaluate(async()=>{
       await openEditor(items[0]);imageBlob=new Blob(['old-image'],{type:'image/png'});await $('form').onsubmit({preventDefault(){}});
       window.oldImage=items[0].image;
       await openEditor(items[0]);imageBlob=new Blob(['new-image'],{type:'image/png'});await $('form').onsubmit({preventDefault(){}});
-      $('undoBtn').click();
+      testUndo();
     });
     assert.equal(await page.evaluate(()=>items[0].image===window.oldImage),true);
     assert.equal(await page.evaluate(async()=>await (await getImageBlob(imageDbKey(items[0].image))).text()),'old-image');console.log('PASS image undo');
@@ -76,7 +85,7 @@ const server=http.createServer((req,res)=>{
       const original=Storage.prototype.setItem;let failed=false;
       Storage.prototype.setItem=function(k,v){if(k===PREF_KEY&&!failed){failed=true;throw new DOMException('test quota','QuotaExceededError')}return original.call(this,k,v)};
       const backup={items:[{id:'imported',name:'復元カード',prompt:'本文',tags:[],image:''}],folders:[],dataVersion:'2.0'};
-      try{await $('importFile').onchange({target:{files:[{text:async()=>JSON.stringify(backup)}],value:'test'}})}finally{Storage.prototype.setItem=original}
+      try{await testImport(backup)}finally{Storage.prototype.setItem=original}
     });
     assert.equal(await page.evaluate(()=>items[0].id),'c1');
     assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem(KEY))[0].id),'c1');console.log('PASS failed import preserves original');
@@ -86,8 +95,8 @@ const server=http.createServer((req,res)=>{
     assert.equal(await page.locator('#backupNoticeDialog').evaluate(el=>el.open),false);console.log('PASS backup download and storage notice');
     await page.evaluate(async()=>{
       const backup={items:[{id:'imported',name:'復元カード',prompt:'本文',tags:[],image:''}],folders:[],dataVersion:'2.0'};
-      await $('importFile').onchange({target:{files:[{text:async()=>JSON.stringify(backup)}],value:'test'}});
-      $('undoBtn').click();
+      await testImport(backup);
+      testUndo();
     });
     assert.equal(await page.evaluate(()=>items[0].id),'c1');assert.equal(await page.evaluate(()=>folders[0].id),'f1');console.log('PASS successful import can undo');
     await page.evaluate(()=>{localStorage.setItem('otherApp.data','keep');sessionStorage.setItem('otherApp.data','keep');clearAppStorage(localStorage);clearAppStorage(sessionStorage)});
@@ -106,7 +115,14 @@ const server=http.createServer((req,res)=>{
     assert.equal(await manual.locator('.shot').count(),4);
     assert.match(await manual.locator('#backup').innerText(),/追加ではなく、現在のデータの置き換え/);
     assert.match(await manual.locator('#favorites').innerText(),/フォルダ内のカードには☆・★の操作を表示しません/);
-    for(const width of [320,390,1280]){
+    assert.match(await manual.locator('#cards').innerText(),/Prompt Pocketの編集画面に戻り、［画像を選択］を長押し/);
+    assert.match(await manual.locator('#moving').innerText(),/黒い線を待ったりする必要はありません/);
+    assert.match(await manual.locator('#settings').innerText(),/［すべてを削除する］/);
+    assert.equal(await manual.locator('footer a[href="./index.html"]').count(),0,'help must not open a second editor');
+    assert.match(await manual.locator('footer').innerText(),/説明のタブを閉じて/);
+    const backupHeadings=await manual.locator('#backup h3').allTextContents();
+    assert.ok(backupHeadings.indexOf('バックアップを保存する')<backupHeadings.indexOf('最後に書き出した日時を確認する'));
+    for(const width of [320,390,600,768,1280]){
       await manual.setViewportSize({width,height:844});
       assert.ok(await manual.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'manual fits viewport');
       await manual.locator('#basics').screenshot({path:path.join(__dirname,'manual-basics-'+width+'.png')});
@@ -146,12 +162,15 @@ const server=http.createServer((req,res)=>{
     assert.deepEqual(errors,[],'unexpected page errors');await context.close();
     const recovery=await browser.newContext({serviceWorkers:'block'});const broken=await recovery.newPage();broken.on('dialog',d=>d.accept().catch(()=>{}));
     await broken.addInitScript(()=>{localStorage.setItem('promptPocket.v2','{broken');localStorage.setItem('promptPocket.prefs.v1',JSON.stringify({welcomed:true,tagOrder:[]}));localStorage.setItem('promptPocket.dataVersion','2.0')});
-    await broken.goto(url);await broken.waitForSelector('.headerVersion');
+    await broken.goto(url);await broken.waitForFunction(()=>window.ppSession?.ready);
     assert.equal(await broken.evaluate(()=>localStorage.getItem('promptPocket.v2')),'{broken');
     assert.equal(await broken.evaluate(()=>{try{save();return false}catch(e){return e instanceof StorageSaveError}}),true);console.log('PASS corrupted storage preserved, writes blocked');
     await broken.evaluate(async()=>{
+      if($('appNoticeDialog').open)$('appNoticeOk').click();
       const data={items:[{id:'recovered',name:'復旧',prompt:'本文'}],dataVersion:'2.0'};
-      await $('importFile').onchange({target:{files:[{text:async()=>JSON.stringify(data)}],value:'test'}});
+      const pending=$('importFile').onchange({target:{files:[{text:async()=>JSON.stringify(data)}],value:'test'}});
+      await new Promise(resolve=>{const timer=setInterval(()=>{if($('dataConfirmDialog').open){clearInterval(timer);$('dataConfirmOk').click();resolve()}},5)});
+      await pending;
     });
     assert.equal(await broken.evaluate(()=>JSON.parse(localStorage.getItem(KEY))[0].id),'recovered');console.log('PASS corrupt state can recover from backup');
     await recovery.close();
