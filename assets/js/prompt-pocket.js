@@ -1,3 +1,5 @@
+/* PP_RELEASE:2.0-alpha.3 */
+if(window.ppVersion&&(!window.ppVersion.assert('2.0-alpha.3')||window.ppVersion.blocked))throw new Error('Prompt Pocket release mismatch: initialization stopped.');
 const KEY='promptPocket.v2';
 const LEGACY_KEY='promptPocket.v1';
 const PREF_KEY='promptPocket.prefs.v1';
@@ -103,7 +105,7 @@ function clearAppStorage(storage){
 }
 const validCards=value=>Array.isArray(value)&&value.every(x=>x&&typeof x==='object'&&typeof x.name==='string'&&typeof x.prompt==='string');
 let items=readStoredJson(localStorage.getItem(KEY)!==null?KEY:LEGACY_KEY,[],validCards);
-const APP_VERSION='2.0-alpha.2y';
+const APP_VERSION='2.0-alpha.3';
 const VERSION_KEY='promptPocket.lastSeenVersion';
 const DATA_VERSION_KEY='promptPocket.dataVersion';
 const DATA_SCHEMA_VERSION='2.0';
@@ -1955,9 +1957,12 @@ async function showTutorial(){
   const dialog=$('tutorialDialog');
   if(!tutorialLoaded){
     try{
-      const response=await fetch('tutorial.html',{cache:'no-store'});
+      const response=await fetch('tutorial.html?v='+encodeURIComponent(APP_VERSION));
       if(!response.ok)throw new Error(`tutorial.html ${response.status}`);
-      $('tutorialContent').innerHTML=await response.text();
+      const content=await response.text();
+      const connectedVersion=content.match(/PP_RELEASE:([^\s*<>]+)/)?.[1];
+      if(!window.ppVersion.assert(connectedVersion))return;
+      $('tutorialContent').innerHTML=content;
       tutorialLoaded=true;
       const steps=[...$('tutorialContent').querySelectorAll('.tutorialStep')];
       const tabs=[...$('tutorialContent').querySelectorAll('.tutorialTab')];

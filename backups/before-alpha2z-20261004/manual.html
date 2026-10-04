@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Prompt Pocketの使い方</title>
+  <style>
+    *{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:20px}body{margin:0;background:#fffaf0;color:#252525;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.8}main{max-width:850px;margin:auto;padding:24px 18px 48px}h1{font-size:clamp(24px,5vw,36px);line-height:1.4;margin:0 0 20px}h2{font-size:23px;line-height:1.5;margin:0 0 16px}h3{font-size:18px;margin:20px 0 8px}p{margin:10px 0}nav{display:grid;gap:10px;margin-bottom:28px;padding:18px;border:2px solid #dcc58e;border-radius:14px;background:#fff1c7}a{color:#195e8b;text-underline-offset:3px}nav a{font-weight:700}section{margin:0 0 22px;padding:20px;border:1px solid #ded8c8;border-radius:14px;background:#fff}li{margin:8px 0}.note{padding:12px;border-left:4px solid #6b98b6;background:#eef6fb}.controls{display:grid;grid-template-columns:max-content 1fr;gap:12px 18px}.controls dt{font-weight:700}.controls dd{margin:0}.return{display:inline-block;border:2px solid #6b98b6;border-radius:10px;padding:8px 14px;text-decoration:none;font-weight:700;background:#e4f1f8}footer{margin-top:28px}@media(max-width:480px){section{padding:16px}.controls{grid-template-columns:1fr;gap:4px}.controls dd{margin-bottom:12px}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+  </style>
+</head>
+<body>
+<main>
+  <h1>Prompt Pocketの使い方</h1>
+  <nav aria-label="目次">
+    <a href="#basics">■ 基本操作</a>
+    <a href="#cards">■ プロンプトカードの作り方</a>
+    <a href="#folders">■ フォルダ機能</a>
+    <a href="#moving">■ カードおよび、フォルダの移動方法</a>
+  </nav>
+  <section id="basics">
+    <h2>■ 基本操作</h2>
+    <p>このアプリでは、プロンプトを登録したものを「プロンプトカード」（以下、カード）と呼びます。</p>
+    <dl class="controls">
+      <dt>［＋追加］</dt><dd>カードの登録画面を開きます。長押しすると、コピーしたプロンプトを貼り付けて開きます。</dd>
+      <dt>［📋 コピー］</dt><dd>カードのプロンプト本文をコピーします。</dd>
+      <dt>カード名</dt><dd>タップするとカードの詳細が表示されます。</dd>
+      <dt>［⋯］</dt><dd>カードの編集・複製・削除などを選べます。</dd>
+      <dt>［🔍検索］</dt><dd>名前・作者・タグ・プロンプトなどからカードを探します。</dd>
+      <dt>［↶ 戻す］</dt><dd>直前の編集・移動・通常の削除などを元に戻します。</dd>
+      <dt>［⚙ オプション］</dt><dd>表示や操作の設定、バックアップなどを行います。</dd>
+      <dt>［📖ヘルプ］</dt><dd>チュートリアルや説明を開きます。</dd>
+    </dl>
+    <p class="note">［＋追加］・［検索］・［ヘルプ］は、オプションで選んだシングルタップまたはダブルタップで開きます。</p>
+  </section>
+  <section id="cards">
+    <h2>■ プロンプトカードの作り方</h2>
+    <p>登録方法は2種類あります。ここでの「モード」は登録方法の呼び方で、切り替える設定はありません。</p>
+    <h3>半自動モード</h3>
+    <ol>
+      <li>Xなどの公開ページから、保存したいプロンプトの文字をコピーします。</li>
+      <li>Prompt Pocketの一番下の［＋追加］を長押しします。</li>
+      <li>編集画面にプロンプトが貼り付けられます。プロンプト名を入力し、必要なら本文を編集します。</li>
+      <li>参考画像を付ける場合は公開ページで画像をコピーし、編集画面の［画像を選択］を長押しします。</li>
+      <li>必要な詳細設定を行い、［設定を保存する］を押します。</li>
+    </ol>
+    <h3>マニュアルモード</h3>
+    <ol>
+      <li>［＋追加］を、設定した開き方で操作します。</li>
+      <li>プロンプト名を入力し、プロンプト欄に本文を直接入力するか、貼り付けます。</li>
+      <li>画像を付ける場合は［画像を選択］を通常のタップで開き、端末内の画像を選びます。画像は任意です。</li>
+      <li>必要な詳細設定を行い、［設定を保存する］を押します。</li>
+    </ol>
+    <p class="note">長押しやクリップボードの読み取りが使えなくても、マニュアルモードで登録できます。登録後はカード右端の［⋯］から「編集」を選んで変更できます。</p>
+  </section>
+  <section id="folders">
+    <h2>■ フォルダ機能</h2>
+    <p>フォルダとは、カードをまとめて整理するための入れ物です。</p>
+    <ol><li>メイン画面の［フォルダの作成］を押します。</li><li>フォルダ名を入力して作成します。</li><li>カードを移動して、用途別にまとめます。</li></ol>
+    <p>フォルダ名をタップすると、中のカードを開いたり閉じたりできます。フォルダ右端の［⋯］では、名前の変更や削除ができます。</p>
+    <p class="note">フォルダを削除すると、中のカードも削除されます。確認画面の内容をよく確認してください。</p>
+  </section>
+  <section id="moving">
+    <h2>■ カードおよび、フォルダの移動方法</h2>
+    <p>押したまま動かし、目的の位置で離す操作を「ドラッグ＆ドロップ（D&amp;D）」と呼びます。</p>
+    <h3>並び順を変える</h3>
+    <p>スマートフォンではカードやフォルダを長押しし、パソコンではマウスの左ボタンで押したまま動かします。カードの名前やその右側の空白部分を使い、画像やコピーボタンは避けてください。</p>
+    <p>指やマウスを離さずに上下へ動かすと、移動先を示す黒い線が表示されます。その位置で離すと、黒い線の場所に移動します。</p>
+    <h3>フォルダに入れる・外へ出す</h3>
+    <p>カードを移動先のフォルダに重ね、移動先の表示を確認して離すと、そのフォルダに入ります。開いているフォルダの中でもカードを並べ替えられます。</p>
+    <p>フォルダの外へ出す場合は、ドラッグ中に表示される［フォルダの外へ移動］を使います。カードの［⋯］から［フォルダから出す］を選ぶ方法もあり、この場合は元のフォルダの下に表示されます。</p>
+    <p class="note">移動を間違えた場合は、直後に［↶ 戻す］で元に戻せます。</p>
+  </section>
+  <footer><a class="return" href="./index.html">Prompt Pocketに戻る</a> <a href="#">ページの先頭へ</a></footer>
+</main>
+</body>
+</html>

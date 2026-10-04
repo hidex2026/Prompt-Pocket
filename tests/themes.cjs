@@ -28,6 +28,13 @@ const server=http.createServer((req,res)=>{
     const bg=()=>page.locator('body').evaluate(e=>getComputedStyle(e).backgroundColor);
     const original=await bg();
     await page.evaluate(()=>openOptions());
+    const optionLayout=await page.evaluate(()=>{
+      const dialog=document.querySelector('#optionDialog'),actions=dialog.querySelector('.optionFixedActions'),version=dialog.querySelector('.appVersion');
+      return {gap:actions.getBoundingClientRect().top-version.getBoundingClientRect().bottom,visible:actions.getBoundingClientRect().bottom<=innerHeight,position:getComputedStyle(actions).position};
+    });
+    assert.ok(optionLayout.gap<=16,'no empty spacer below version');assert.ok(optionLayout.visible);assert.equal(optionLayout.position,'sticky');
+    await page.screenshot({path:path.join(__dirname,'options-compact.png')});
+    assert.equal(await page.locator('#toast').evaluate(e=>getComputedStyle(e).color),'rgb(255, 255, 255)');
     const headingColor=await page.locator('.optionMainScreenFold summary').evaluate(e=>getComputedStyle(e).backgroundColor);
     await page.locator('#optionCancel').click();
     const looseColors={aqua:'rgb(228, 240, 250)',red:'rgb(252, 228, 229)',pastel:'rgb(226, 241, 231)',yellow:'rgb(255, 241, 199)',multicolor:'rgb(228, 239, 250)'};
@@ -85,7 +92,10 @@ const server=http.createServer((req,res)=>{
     await page.evaluate(()=>{prefs.mainScreenColor='aqua';applyPreferences();snapshot('theme-test');prefs.mainScreenColor='red';savePrefs();applyPreferences()});
     await page.locator('#undoBtn').click();assert.equal(await page.locator('body').getAttribute('data-main-screen-color'),'aqua');
     await page.setViewportSize({width:1280,height:800});await page.screenshot({path:path.join(__dirname,'theme-desktop.png')});
-    assert.deepEqual(errors,[]);assert.match(await page.title(),/ALPHA2y/);assert.equal(await page.locator('#mainScreenColor option[value="pastel"]').textContent(),'ミントグリーン');console.log('PASS invalid value fallback, undo, desktop, version, renamed label');
+    await page.evaluate(()=>openOptions());await page.locator('.optionMainScreenFold summary').click();
+    await page.locator('#optionDialog').evaluate(e=>{e.scrollTop=e.scrollHeight});
+    assert.ok(await page.locator('#optionSave').isVisible());await page.locator('#optionCancel').click();
+    assert.deepEqual(errors,[]);assert.match(await page.title(),/ALPHA3/);assert.equal(await page.locator('#mainScreenColor option[value="pastel"]').textContent(),'ミントグリーン');console.log('PASS invalid value fallback, undo, desktop, version, renamed label');
     await ctx.close();
   }finally{await browser.close();await new Promise(r=>server.close(r))}
 })().catch(e=>{console.error(e);process.exitCode=1;server.close()});

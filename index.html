@@ -1,10 +1,12 @@
 <!doctype html>
+<!-- PP_RELEASE:2.0-alpha.3 -->
 <html lang="ja">
 <head>
   <meta charset="utf-8">
+  <meta name="pp-release" content="2.0-alpha.3">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#ffffff">
-  <title>Prompt Pocket PP_v2.0_ALPHA2y</title>
+  <title>Prompt Pocket PP_v2.0_ALPHA3</title>
   <!--
   Prompt Pocket ver.1.9 / FOLDER TEST1
   Folder feature baseline:
@@ -15,12 +17,12 @@
 -->
 
 
-  <link rel="stylesheet" href="assets/css/prompt-pocket.css?v=2.0-alpha2y-v1">
+  <link rel="stylesheet" href="assets/css/prompt-pocket.css?v=2.0-alpha3-v1">
 </head>
 <body>
 <header class="topbar">
   <div>
-    <div class="titleLine"><h1>Prompt Pocket</h1><span class="headerVersion">PP_v2.0_ALPHA2y</span></div>
+    <div class="titleLine"><h1>Prompt Pocket</h1><span class="headerVersion">PP_v2.0_ALPHA3</span></div>
   </div>
   <div class="topActions">
     <button id="newBtn" class="primary">＋ 新規登録</button>
@@ -250,7 +252,7 @@
         <p class="noteText">負荷テスト用データには専用の印を付け、通常のカードやフォルダとは分けて削除できます。</p>
       </section></details>
     </div>
-    <div class="appVersion">Prompt Pocket PP_v2.0_ALPHA2y</div>
+    <div class="appVersion">Prompt Pocket PP_v2.0_ALPHA3</div>
     <div class="optionFixedActions"><button type="button" id="optionSave" class="primary">保存する</button><button type="button" id="optionCancel" class="ghost">キャンセル</button></div>
   </div>
 </dialog>
@@ -382,16 +384,8 @@
   </div>
 </dialog>
 
-  <script defer src="assets/js/prompt-pocket.js?v=2.0-alpha2y-v1"></script>
-  <script>
-    if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){
-      const hadServiceWorker=navigator.serviceWorker.controller!==null;
-      let reloadingForUpdate=false;
-      if(hadServiceWorker)navigator.serviceWorker.addEventListener('controllerchange',()=>{
-        if(reloadingForUpdate)return;reloadingForUpdate=true;location.reload();
-      });
-      window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js',{scope:'./'}).catch(()=>{}));
-    }
-  </script>
+  <dialog id="versionUpdateDialog"><div class="managePanel"><h2>バージョンの更新</h2><p id="versionUpdateMessage"></p><div class="manageActions"><button id="versionReload" class="primary" type="button">再読み込み</button><button id="versionLater" class="ghost" type="button">あとで</button></div></div></dialog>
+  <script defer src="assets/js/version-check.js?v=2.0-alpha3-v1"></script>
+  <script defer src="assets/js/prompt-pocket.js?v=2.0-alpha3-v1"></script>
 </body>
 </html>
