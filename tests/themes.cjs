@@ -31,6 +31,8 @@ const server=http.createServer((req,res)=>{
     const headingColor=await page.locator('.optionMainScreenFold summary').evaluate(e=>getComputedStyle(e).backgroundColor);
     await page.locator('#optionCancel').click();
     const looseColors={aqua:'rgb(228, 240, 250)',red:'rgb(252, 228, 229)',pastel:'rgb(226, 241, 231)',yellow:'rgb(255, 241, 199)',multicolor:'rgb(228, 239, 250)'};
+    const accentColors={aqua:'rgb(168, 207, 238)',red:'rgb(250, 200, 185)',pastel:'rgb(168, 219, 192)',yellow:'rgb(255, 223, 131)',multicolor:'rgb(250, 200, 185)'};
+    const folderBottomColors={aqua:'rgb(133, 183, 218)',red:'rgb(229, 167, 135)',pastel:'rgb(134, 191, 159)',yellow:'rgb(220, 178, 78)',multicolor:'rgb(229, 167, 135)'};
     assert.equal(await page.locator('body').getAttribute('data-main-screen-color'),'default');
     for(const [theme,color] of [['aqua','rgb(234, 243, 250)'],['red','rgb(255, 241, 240)'],['pastel','rgb(237, 247, 240)'],['yellow','rgb(255, 248, 223)'],['multicolor','rgb(255, 247, 223)']]){
       await page.evaluate(()=>openOptions());await page.locator('.optionMainScreenFold summary').click();
@@ -44,15 +46,15 @@ const server=http.createServer((req,res)=>{
       assert.equal(await bg(),color);assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('promptPocket.prefs.v1')).mainScreenColor),theme);
       await page.reload();await page.waitForSelector('[data-row="c1"]');assert.equal(await bg(),color);
       assert.equal(await page.locator('[data-row="c1"] td').first().evaluate(e=>getComputedStyle(e).backgroundColor),looseColors[theme]);
-      if(['aqua','pastel','multicolor'].includes(theme)){
-        assert.equal(await page.locator('#bottomNew').evaluate(e=>getComputedStyle(e).backgroundColor),'rgb(250, 200, 185)');
-        assert.equal(await page.locator('#createFolderBtn').evaluate(e=>getComputedStyle(e).backgroundColor),'rgb(250, 200, 185)');
-      }
+      assert.equal(await page.locator('#bottomNew').evaluate(e=>getComputedStyle(e).backgroundColor),accentColors[theme]);
+      assert.equal(await page.locator('#createFolderBtn').evaluate(e=>getComputedStyle(e).backgroundColor),accentColors[theme]);
       await page.evaluate(()=>openOptions());assert.equal(await page.locator('#mainScreenColor').inputValue(),theme);await page.locator('#optionCancel').click();
       await page.screenshot({path:path.join(__dirname,'theme-'+theme+'.png')});console.log('PASS '+theme+' save, cancel, reload');
       const folder=page.locator('.folderRow').first();
       const raised=await folder.locator('td').first().evaluate(e=>{const s=getComputedStyle(e);return {image:s.backgroundImage,shadow:s.boxShadow}});
       assert.match(raised.image,/linear-gradient/);assert.match(raised.shadow,/inset/);
+      assert.ok(raised.image.includes(folderBottomColors[theme]),'folder gradient follows theme');
+      assert.equal(await folder.locator('td').last().evaluate(e=>getComputedStyle(e).boxShadow),raised.shadow,'same shadow across cells, no side seams');
       await page.evaluate(()=>{openFolders.add('f1');render()});
       const openCell=page.locator('.folderRow.folderOpen td').first();
       assert.equal(await openCell.evaluate(e=>getComputedStyle(e).borderLeftWidth),'2px');
@@ -74,7 +76,7 @@ const server=http.createServer((req,res)=>{
     await page.evaluate(()=>{prefs.mainScreenColor='aqua';applyPreferences();snapshot('theme-test');prefs.mainScreenColor='red';savePrefs();applyPreferences()});
     await page.locator('#undoBtn').click();assert.equal(await page.locator('body').getAttribute('data-main-screen-color'),'aqua');
     await page.setViewportSize({width:1280,height:800});await page.screenshot({path:path.join(__dirname,'theme-desktop.png')});
-    assert.deepEqual(errors,[]);assert.match(await page.title(),/ALPHA2v/);assert.equal(await page.locator('#mainScreenColor option[value="pastel"]').textContent(),'ミントグリーン');console.log('PASS invalid value fallback, undo, desktop, version, renamed label');
+    assert.deepEqual(errors,[]);assert.match(await page.title(),/ALPHA2w/);assert.equal(await page.locator('#mainScreenColor option[value="pastel"]').textContent(),'ミントグリーン');console.log('PASS invalid value fallback, undo, desktop, version, renamed label');
     await ctx.close();
   }finally{await browser.close();await new Promise(r=>server.close(r))}
 })().catch(e=>{console.error(e);process.exitCode=1;server.close()});

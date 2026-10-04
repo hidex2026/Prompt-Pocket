@@ -2403,7 +2403,7 @@ body[data-main-screen-color="aqua"],#optionDialog[data-preview-color="aqua"]{
   --screen-bg:#eaf3fa;--screen-header:#cfe5f3;--screen-band:#e9e4f4;
   --screen-card:#fffef8;--screen-table:#e7f1f8;--screen-text:#293544;
   --screen-border:#b9cfdf;--screen-button:#f3f8fc;--screen-hover:#deedf8;
-  --screen-accent:#fac8b9;--screen-accent-border:#b96b59;--screen-accent-text:#673d33;--screen-loose-card:#e4f0fa;
+  --screen-accent:#a8cfee;--screen-accent-border:#527fa3;--screen-accent-text:#203f58;--screen-loose-card:#e4f0fa;
 }
 body[data-main-screen-color="red"],#optionDialog[data-preview-color="red"]{
   --screen-bg:#fff1f0;--screen-header:#f8d8d9;--screen-band:#f7e4e1;
@@ -2415,7 +2415,7 @@ body[data-main-screen-color="pastel"],#optionDialog[data-preview-color="pastel"]
   --screen-bg:#edf7f0;--screen-header:#d8eee3;--screen-band:#e9e3f5;
   --screen-card:#fffef8;--screen-table:#e9e4f4;--screen-text:#35463f;
   --screen-border:#b8d3c7;--screen-button:#f6f3fc;--screen-hover:#e1f0e7;
-  --screen-accent:#fac8b9;--screen-accent-border:#b96b59;--screen-accent-text:#673d33;--screen-loose-card:#e2f1e7;
+  --screen-accent:#a8dbc0;--screen-accent-border:#568568;--screen-accent-text:#264934;--screen-loose-card:#e2f1e7;
 }
 body[data-main-screen-color="yellow"],#optionDialog[data-preview-color="yellow"]{
   --screen-bg:#fff8df;--screen-header:#f6e7aa;--screen-band:#fff0c6;
@@ -2458,9 +2458,9 @@ body[data-main-screen-color]:not([data-main-screen-color="default"]) #cards .tab
 /* ALPHA2t: Raised folder headers. Inset edges do not change cell dimensions
    or the separate blue open-folder enclosure. D&D target styles take priority. */
 body{--folder-raised-top:#fff0bb;--folder-raised-bottom:#e5c16a;--folder-raised-edge:#a67c28;--folder-raised-text:#4d390d}
-body[data-main-screen-color="aqua"]{--folder-raised-top:#ffdbbf;--folder-raised-bottom:#e5a787;--folder-raised-edge:#aa6347;--folder-raised-text:#593323}
+body[data-main-screen-color="aqua"]{--folder-raised-top:#c2dff5;--folder-raised-bottom:#85b7da;--folder-raised-edge:#527fa3;--folder-raised-text:#203f58}
 body[data-main-screen-color="red"]{--folder-raised-top:#ffdbbf;--folder-raised-bottom:#e5a787;--folder-raised-edge:#aa6347;--folder-raised-text:#593323}
-body[data-main-screen-color="pastel"]{--folder-raised-top:#ffdbbf;--folder-raised-bottom:#e5a787;--folder-raised-edge:#aa6347;--folder-raised-text:#593323}
+body[data-main-screen-color="pastel"]{--folder-raised-top:#c7ead6;--folder-raised-bottom:#86bf9f;--folder-raised-edge:#568568;--folder-raised-text:#264934}
 body[data-main-screen-color="yellow"]{--folder-raised-top:#ffe694;--folder-raised-bottom:#dcb24e;--folder-raised-edge:#967024;--folder-raised-text:#4a350b}
 body[data-main-screen-color="multicolor"]{--folder-raised-top:#ffdbbf;--folder-raised-bottom:#e5a787;--folder-raised-edge:#aa6347;--folder-raised-text:#593323}
 body #cards .detailTable.detailTable .folderRow:not(.folderDropTarget)>td{
