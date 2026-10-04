@@ -1,5 +1,7 @@
-/* PP_RELEASE:2.0-alpha.3a */
+/* PP_RELEASE:2.0-alpha.3b */
 /* Help diagrams are explanatory images, not interactive controls. */
+#versionUpdateVersions{font-weight:800;color:#245d87;overflow-wrap:anywhere}
+#versionEdit[hidden]{display:none}
 .helpOperationDiagram{pointer-events:none;border:2px solid #b3cbdc;border-radius:12px;padding:14px;background:#fff;margin:14px 0}
 .helpOperationDiagram>div{padding:10px;border:1px solid #d5dfe7;border-radius:8px}
 .helpOperationDiagram .helpMovingCard{background:#dff0e6;border:2px solid #8ac6a3;margin:10px 0}
@@ -7,7 +9,7 @@
 .helpOperationDiagram p{color:#1765a8;font-weight:700;font-size:14px;margin:6px 0 12px}
 .helpColumns{display:grid;grid-template-columns:1fr 100px;background:#edf5fb}
 .helpColumns span{padding:8px}.helpColumns span+span{border-left:4px solid #267bc1}
-*{box-sizing:border-box} :root{--pp-release:"2.0-alpha.3a";font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;color:#171717;background:#f6f5f2}
+*{box-sizing:border-box} :root{--pp-release:"2.0-alpha.3b";font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;color:#171717;background:#f6f5f2}
 body{margin:0;padding-bottom:84px}.topbar{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:rgba(246,245,242,.92);backdrop-filter:blur(12px);border-bottom:1px solid #ddd}
 h1,h2,h3,p{margin-top:0}.topbar h1{font-size:22px;margin:2px 0}.titleLine{display:flex;align-items:center;gap:8px}.headerOptionBtn{margin-left:12px;min-width:70px;padding:4px 7px;border:0;border-radius:12px;background:transparent;color:#222;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1.1}.headerOptionIcon{font-size:25px;line-height:1}.headerOptionLabel{font-size:11px;font-weight:750;white-space:nowrap}.headerOptionBtn:hover{background:#e9e7e1}.eyebrow{font-size:10px;letter-spacing:.18em;color:#777;font-weight:800}
 button,input,textarea,select{font:inherit}.primary,.ghost,.danger,.iconBtn{border:0;border-radius:14px;padding:11px 14px;font-weight:750;cursor:pointer}

@@ -1,0 +1,391 @@
+<!doctype html>
+<!-- PP_RELEASE:2.0-alpha.3a -->
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="pp-release" content="2.0-alpha.3a">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <title>Prompt Pocket PP_v2.0_ALPHA3a</title>
+  <!--
+  Prompt Pocket ver.1.9 / FOLDER TEST1
+  Folder feature baseline:
+  - folders group cards
+  - folder name is user-defined
+  - cards will be movable into folders by drag & drop
+  - one-level folders only for the first implementation
+-->
+
+
+  <link rel="stylesheet" href="assets/css/prompt-pocket.css?v=2.0-alpha3a-v1">
+</head>
+<body>
+<header class="topbar">
+  <div>
+    <div class="titleLine"><h1>Prompt Pocket</h1><span class="headerVersion">PP_v2.0_ALPHA3a</span></div>
+  </div>
+  <div class="topActions">
+    <button id="newBtn" class="primary">＋ 新規登録</button>
+    <button id="deleteAllBtn" class="dangerStrong">🗑 すべて削除</button>
+  </div>
+</header>
+
+<main>
+  <section class="hero compactHero">
+    <div class="quickMenu">
+      <button id="searchToggleBtn" class="ghost">🔍 検索</button>
+      <button id="helpBtn" class="ghost">📖 ヘルプ</button>
+    </div>
+    <div id="searchPanel" class="searchPanel hidden">
+      <div class="searchrow">
+        <input id="search" type="search" placeholder="名前・作者・タグ・プロンプトを検索">
+        <button id="clearFilters" class="ghost">クリア</button>
+        <button id="closeSearch" class="ghost" aria-label="検索を閉じる">×</button>
+      </div>
+      <div id="filterTags" class="chips"></div>
+    </div>
+  </section>
+
+  <div class="stickyViewBar">
+    <div class="viewCountRow"><strong id="count" class="cardCountDisplay">カード総数：0枚</strong><button id="closeAllBtn" class="ghost toolbarClose" type="button" disabled>📁 閉じる</button><button id="undoBtn" class="ghost toolbarUndo" type="button" disabled>↶ 戻す</button><button id="viewOptionBtn" class="viewOptionBtn" type="button" aria-label="オプション"><span class="viewOptionGear">⚙</span><span class="viewOptionLabel">オプション</span></button></div>
+  </div>
+
+  <section class="toolbar sortToolbar">
+    <div class="toolbarRight folderToolbarRight">
+      <select id="sort">
+        <option value="manual">自由な並び順</option>
+        <option value="foldersFirst">フォルダを先頭</option>
+        <option value="createdDesc">新しい順</option>
+        <option value="nameAsc">名前順</option>
+        <option value="fav">お気に入り優先</option>
+      </select>
+      <button id="createFolderBtn" class="ghost" type="button">フォルダの作成</button>
+    </div>
+  </section>
+
+  <section id="cards" class="grid"></section>
+
+  <section id="empty" class="empty hidden">
+    <div class="emptyIcon">✦</div>
+    <h3>最初のプロンプトを保存してみよう</h3>
+    <p>「＋ 新規登録」から、画像用でも動画用でも気軽に登録できます。</p>
+  </section>
+</main>
+
+<nav class="bottomnav">
+  <button id="searchMobile">🔍<span>検索</span></button>
+  <button id="bottomNew">＋<span>追加</span></button>
+  <button id="helpMobile">📖<span>ヘルプ</span></button>
+</nav>
+
+<div id="cardJumpNav" class="cardJumpNav hidden" aria-label="カード高速移動">
+  <button type="button" id="jumpTopBtn" title="一番上へ">↑ <span>TOP</span></button>
+  <button type="button" id="jumpMidBtn" title="だいたい真ん中へ">↕ <span>MID</span></button>
+  <button type="button" id="jumpEndBtn" title="一番下へ">↓ <span>END</span></button>
+</div>
+
+<dialog id="editor">
+  <form id="form" method="dialog">
+    <div class="dialogHead editorHead">
+      <div>
+        <div class="eyebrow">PROMPT CARD</div>
+        <h2 id="dialogTitle">プロンプトを登録</h2>
+      </div>
+      <button type="button" id="editorCloseBtn" class="editorCloseBtn" aria-label="編集画面を閉じる">×</button>
+    </div>
+
+    <input type="hidden" id="editId">
+
+    <label>プロンプト名
+      <input id="name" required maxlength="80" placeholder="例：雨上がりの猫耳少女">
+    </label>
+
+    <label class="promptField"><span class="promptLabelRow"><span>プロンプト</span><button type="button" id="pastePromptBtn" class="ghost pastePromptBtn">📋 貼り付け</button></span>
+      <textarea id="prompt" required rows="6" placeholder="ここにプロンプトを入力"></textarea>
+      <span class="directInputHint">貼り付けだけでなく、直接入力・編集もできます。</span>
+    </label>
+
+    <label>サムネイル・参考画像 <span class="optional">任意</span></label>
+    <div id="imageDropZone" class="imageDropZone" tabindex="0">
+      <strong>🖼️ 画像を選択</strong>
+      <span>または、ここに画像をドロップ</span>
+      <input id="image" type="file" accept="image/*" hidden>
+    </div>
+    <div id="imagePreview" class="preview hidden"></div>
+
+    <details class="advanced">
+      <summary>⚙ 詳細設定</summary>
+      <div class="two">
+        <label>作者名
+          <input id="author" maxlength="80" placeholder="例：YuzuFox">
+        </label>
+        <label>X アカウント
+          <input id="xhandle" maxlength="100" placeholder="@username">
+        </label>
+      </div>
+      <label>元ポスト / 出典URL
+        <input id="source" type="url" placeholder="https://x.com/...">
+      </label>
+      <fieldset>
+        <legend>タグ</legend>
+        <p class="fieldHint">クリックで使用するタグを選択。タグはドラッグ＆ドロップで並び替えできます。</p>
+        <div id="tagChoices" class="chips selectable tagDnD"></div>
+        <div class="tagAddRow">
+          <input id="customTag" placeholder="ここに入力">
+          <button type="button" id="addTagBtn" class="ghost">＋追加</button>
+          <button type="button" id="deleteTagBtn" class="danger" disabled>－削除</button>
+        </div>
+        <p class="fieldHint">削除したいタグを最後にクリックして「－削除」。プロンプト本体は削除されません。</p>
+      </fieldset>
+      <label>メモ
+        <textarea id="memo" rows="6" placeholder="ライティングが参考になる、など"></textarea>
+      </label>
+    </details>
+
+    <div class="actions editorActions">
+      <button type="submit" class="primary saveAction">設定を保存</button>
+      <button type="button" id="cancelBtn" class="ghost">キャンセル</button>
+    </div>
+  </form>
+</dialog>
+
+
+
+
+<dialog id="folderCreateDialog" class="folderCreateDialog">
+  <form class="folderCreatePanel" id="folderCreateForm">
+    <h2>フォルダの作成</h2>
+    <input id="folderNameInput" type="text" maxlength="30" autocomplete="off">
+    <div id="folderNameError" class="folderNameError"></div>
+    <div class="folderCreateActions">
+      <button id="folderCreateOk" class="primary" type="submit">ＯＫ</button>
+      <button id="folderCreateCancel" class="ghost" type="button">キャンセル</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="folderMoveDialog" class="folderMoveDialog">
+  <div class="folderMovePanel">
+    <h2>フォルダへ移動</h2>
+    <p id="folderMoveCardName"></p>
+    <div id="folderMoveList" class="folderMoveList"></div>
+    <button id="folderMoveCancel" class="ghost folderMoveCancel" type="button">キャンセル</button>
+  </div>
+</dialog>
+
+<dialog id="emptyFolderDialog">
+  <div class="welcomePanel">
+    <h2 id="emptyFolderTitle"></h2>
+    <p>このフォルダーにカードがありません</p>
+    <button type="button" id="emptyFolderClose" class="primary wide">OK</button>
+  </div>
+</dialog>
+
+<dialog id="sampleDialog" class="sampleDialog">
+  <div class="samplePanel">
+    <div class="dialogHead sampleHead">
+      <div><h2>サンプルの追加</h2><p class="sampleSub">サンプルプロンプトを追加します。</p></div>
+      <button id="sampleClose" class="ghost" type="button" aria-label="閉じる">×</button>
+    </div>
+    <div class="sampleGenrePicker">
+      <label for="sampleCategory">ジャンル</label>
+      <select id="sampleCategory">
+        <option value="practical">実用</option>
+        <option value="style">スタイル</option>
+        <option value="arrange">アレンジ</option>
+        <option value="game">ゲーム</option>
+        <option value="other">その他</option>
+      </select>
+    </div>
+    <div id="sampleList" class="sampleList"></div>
+    <div class="sampleActions">
+      <button id="sampleExecute" class="primary" type="button">選択した項目を追加する</button>
+    </div>
+  </div>
+</dialog>
+
+<dialog id="sampleConfirmDialog" class="sampleConfirmDialog">
+  <div class="sampleConfirmPanel">
+    <h2>サンプルの追加</h2>
+    <p id="sampleConfirmMessage"></p>
+    <div class="sampleActions"><button id="sampleConfirmYes" class="primary" type="button">はい</button><button id="sampleConfirmNo" class="ghost" type="button">いいえ</button></div>
+  </div>
+</dialog>
+
+<dialog id="optionDialog">
+  <div class="managePanel">
+    <div class="dialogHead"><div><div class="eyebrow">OPTIONS</div><h2>オプション</h2></div><button id="optionClose" class="iconBtn" type="button" aria-label="変更を保存せず閉じる">×</button></div>
+    <div class="manageGrid">
+      <details class="optionOther optionOperationFold">
+        <summary>⚙ メイン画面の設定1</summary>
+        <section>
+        <label class="rememberOption"><input id="rememberOps" type="checkbox"> <span><b>操作状態を記憶する</b><small>登録したカードとフォルダは常に保存されます。ONにすると、並び順・フォルダの開閉・開いているカード・★お気に入り優先などの表示状態も次回起動時に引き継ぎます。</small></span></label>
+        <label class="rememberOption"><input id="buttonGlowEnabled" type="checkbox"> <span><b>タップ時に周囲を光らせる</b><small>ボタンやセルをタップしたときに周囲を光らせ、操作を視覚的に分かりやすくします。</small></span></label>
+        <label class="rememberOption"><input id="doubleTapOpenEnabled" type="checkbox"> <span><b>フォルダ、カードはダブルタップで開く</b><small>誤って開くのを防ぐため、一覧のフォルダとプロンプトカードをダブルタップで開きます。長押しの移動操作は変わりません。</small></span></label>
+        <label class="rememberOption"><input id="dragVibrationEnabled" type="checkbox"> <span><b>カード・フォルダの移動開始時に振動する</b><small>ドラッグ操作の開始を短い振動で知らせます。対応端末でのみ動作します。</small></span></label>
+      </section>
+      </details>
+      <details class="optionOther optionMainScreenFold"><summary>🖥 メイン画面の設定2</summary><section>
+        <div class="shortcutRow optionChoiceRow"><span><b id="mainScreenColorLabel">メイン画面の色</b><small>メイン画面の背景色を変更できます</small></span><select id="mainScreenColor" class="wideOptionSelect" aria-labelledby="mainScreenColorLabel"><option value="default">デフォルト</option><option value="aqua">アクアブルー</option><option value="red">ライトレッド</option><option value="pastel">ミントグリーン</option><option value="yellow">クリームイエロー</option><option value="multicolor">パステル</option></select></div>
+        <div class="shortcutRow optionChoiceRow"><span><b id="cardCellSizeLabel">カードセルの大きさ</b><small>一覧に表示するプロンプトカードとフォルダの高さを変更します。</small></span><select id="cardCellSize" class="wideOptionSelect" aria-labelledby="cardCellSizeLabel"><option value="small">小</option><option value="medium">中</option><option value="large">大</option></select></div>
+        <div class="shortcutRow optionChoiceRow"><span><b id="folderNameSizeLabel">フォルダ名の大きさ</b><small>一覧に表示するフォルダ名の文字サイズを変更します。</small></span><select id="folderNameSize" class="wideOptionSelect" aria-labelledby="folderNameSizeLabel"><option value="small">小（15px）</option><option value="medium">中（18px）</option><option value="large">大（20px）</option></select></div>
+        <div class="shortcutRow optionChoiceRow"><span><b>メイン画面での［＋追加］・［🔍検索］・［📖ヘルプ］の開き方</b><small>誤タッチを防ぐために、各ボタンの開き方を選べます。</small></span><select id="mainActionOpenMode"><option value="single">シングルタップ</option><option value="double">ダブルタップ</option></select></div>
+        <div class="shortcutRow optionChoiceRow"><span><b>長押しの時間</b><small>［＋追加］やカード・フォルダのドラッグを開始するまでの時間を設定します。</small></span><select id="shortcutDelay"><option value="500">0.5秒</option><option value="800">0.8秒</option><option value="1000">1.0秒</option></select></div>
+      </section></details>
+      <details class="optionOther"><summary>📚 その他の設定</summary><section><p class="optionDevelopmentWarning">この設定はまだ開発途中です。</p><div class="manageActions"><button id="sampleBtn" class="ghost wide" type="button">📚 サンプルを追加</button></div></section></details>
+      <details class="optionOther optionDataFold"><summary>📦 データの保存・復元</summary><section><p>バックアップは通常、端末のダウンロードフォルダに保存されます。機種変更時はファイルを新しい端末へ移し、「データを読み込む」から選択してください。</p><div class="manageActions"><button id="exportBtn" class="primary">📤 データを書き出す</button><button id="importBtn" class="ghost">📥 データを読み込む</button><input id="importFile" type="file" accept="application/json,.json" hidden></div><button id="migrationHelpBtn" class="textButton" type="button">機種変更の方法を見る</button></section></details>
+      <details class="optionOther optionDeleteFold"><summary>⚠ データの削除</summary><section class="optionActionList">
+        <div class="optionActionItem"><button id="resetDataBtn" class="dangerStrong wide" type="button">データの初期化</button><small>すべての登録データと設定を削除し、Prompt Pocketを初期状態に戻します。初期カードとサンプルフォルダは再作成されます。</small></div>
+        <div class="optionActionItem"><button id="clearCacheBtn" class="dangerStrong wide" type="button">キャッシュの削除</button><small>表示やデータの読み込みがおかしくなったときに、保存されているキャッシュを削除して新しく読み込み直します。登録したカードやフォルダは削除されません。</small></div>
+        <div class="optionActionItem dangerOptionItem"><button id="eraseEverythingBtn" class="dangerStrong wide" type="button">すべてを削除する</button><small>すべての登録データ、設定、画像、キャッシュを削除し、初期カードも作成しません。Prompt Pocketを使用しなくなるときのアンインストール用です。</small></div>
+      </section></details>
+      <details id="developerOptions" class="optionOther optionDeveloperFold"><summary id="developerSummary">🛠 開発者向け機能</summary><section>
+        <p class="developerWarning">⚠ 開発者向けのテスト機能です。使用すると大量のテストデータが作成されるなど、不具合が起きる可能性があります。通常は操作しないでください。</p>
+        <p class="optionLead">大量のカードを登録した状態で、表示や操作の負荷を確認します。</p>
+        <div class="debugActions">
+          <button id="debugAdd50" class="ghost wide" type="button">フォルダ5個とカード50枚を追加</button>
+          <button id="debugAdd100" class="ghost wide" type="button">フォルダ10個とカード100枚を追加</button>
+          <button id="debugRemoveLoad" class="ghost wide" type="button">負荷テスト用データを削除</button>
+          <button id="debugLowerVersion" class="ghost wide" type="button">バージョンを下げる</button>
+          <button id="debugShowWelcome" class="ghost wide" type="button">ウェルカムを表示</button>
+        </div>
+        <p class="noteText">負荷テスト用データには専用の印を付け、通常のカードやフォルダとは分けて削除できます。</p>
+      </section></details>
+    </div>
+    <div class="appVersion">Prompt Pocket PP_v2.0_ALPHA3a</div>
+    <div class="optionFixedActions"><button type="button" id="optionSave" class="primary">保存する</button><button type="button" id="optionCancel" class="ghost">キャンセル</button></div>
+  </div>
+</dialog>
+
+<dialog id="helpDialog">
+  <div class="welcomePanel helpPanel">
+    <div class="dialogHead"><h2 id="helpTitle">Prompt Pocketの使い方</h2><button id="helpClose" class="iconBtn" type="button">×</button></div>
+    <div id="simpleHelp" class="simpleHelp">
+      <div class="helpTopActions">
+        <button id="tutorialHelpBtn" class="ghost" type="button">チュートリアルを表示</button>
+        <button id="usefulHelpBtn" class="ghost" type="button">便利機能</button>
+        <button id="moreHelpBtn" class="ghost" type="button">バックアップについて</button>
+        <a id="detailedManualLink" class="ghost" href="manual.html" target="_blank" rel="noopener">もっと詳しく</a>
+      </div>
+    </div>
+    <div id="detailHelp" class="detailHelp detailManual hidden">
+      <div class="detailHelpCard"><h3>バックアップを書き出す</h3><p>⚙ オプションの「データの保存・復元」から「データを書き出す」を押します。カード・画像・フォルダ・設定を含むバックアップファイルをダウンロードします。</p></div>
+      <div class="detailHelpCard"><h3>ファイルを保管する</h3><p>通常はダウンロードフォルダに入りますが、保存先はブラウザの設定によって異なります。大切なファイルは、ご自身で別の端末やクラウドにも保管してください。</p></div>
+      <div class="detailHelpCard"><h3>機種変更・データの復元</h3><p>バックアップファイルを新しい端末へ移し、Prompt Pocketのオプションから「データを読み込む」で選択します。現在のデータは読み込んだ内容に置き換わるため、読み込み前にもバックアップを取っておきましょう。</p></div>
+      <div class="detailHelpCard"><h3>通常のデータの保存場所</h3><p>登録データは、Prompt Pocketを開いているブラウザ内に保存されます。バックアップは別に書き出して保管する必要があります。</p></div>
+    </div>
+
+    <div id="usefulHelp" class="detailManual hidden">
+      <div class="usefulHelpCard">
+        <h3>↕ 登録したプロンプトの並び替え</h3>
+        <p>メイン画面に並んでいるプロンプトは、好きな位置へかんたんに並び替えられます。スマホとPCでは操作方法が少し違います。</p>
+        <div class="usefulSteps">
+          <div class="usefulStep"><b>📱 スマホ</b>一覧表示で、移動したい<strong>プロンプト名の右側にある空白部分</strong>、または<strong>「⋯」</strong>を長押しします。そのまま指を離さず、移動したい場所まで動かします。</div>
+          <div class="usefulStep"><b>🖥️ PC</b>一覧表示で、移動したい<strong>プロンプト名の右側にある空白部分</strong>、または<strong>「⋯」</strong>をドラッグします。<strong>マウスの左ボタンを押したまま</strong>移動したい場所まで動かし、目的の位置でボタンを離します。</div>
+          <div class="usefulStep"><b>📍 移動先を決める</b>押したまま上下に動かすと、挿入位置を示す<strong>黒い線</strong>が表示されます。目的の位置に線が出たら、指またはマウスを離します。</div>
+        </div>
+        <div class="helpOperationDiagram" role="img" aria-label="カードを押したまま動かし、黒い挿入線の位置で離す説明図"><div>カードA</div><div class="helpMovingCard">移動中のカード → 押したまま動かす</div><hr><p>この黒い線の位置に挿入されます</p><div>カードB</div></div>
+        <div class="dndBlueNote"><b>黒い線が挿入位置の目印です</b><br>フォルダに入れるときは、フォルダが移動先として強調されたことを確認して離します。</div>
+      </div>
+    
+  <div class="usefulHelpCard">
+    <h3>↔ 表示する列の幅を調整する（PC版のみ）</h3>
+    <p>PC版では、一覧表示の「名前」と「操作」の間にある境界線を左右にドラッグして、表示する幅を自由に調整できます。</p>
+    <div class="helpOperationDiagram" role="img" aria-label="名前と操作の境界線を左右にドラッグする説明図"><p>← 境界線を動かす →</p><div class="helpColumns"><span>名前</span><span>操作</span></div></div>
+    <div class="dndBlueNote"><b>PC向けの機能です</b><br>境界線でマウスが左右の矢印になったらドラッグします。スマートフォンの狭い画面では使いません。</div>
+  </div>
+</div>
+
+  <div class="detailBackBottom hidden"><button id="backSimpleHelp" class="textButton" type="button">← 戻る</button></div>
+</div>
+</dialog>
+
+<dialog id="migrationDialog">
+  <div class="welcomePanel helpPanel">
+    <div class="dialogHead"><div><div class="eyebrow">MOVE DATA</div><h2>機種変更の方法</h2></div><button id="migrationClose" class="iconBtn" type="button">×</button></div>
+    <div class="welcomeSteps">
+      <div><b>① 古いスマホ</b><span>「データを書き出す」でバックアップを保存</span></div>
+      <div><b>② 新しいスマホへ</b><span>保存したバックアップファイルを新しいスマホへ移す</span></div>
+      <div><b>③ 新しいスマホ</b><span>Prompt Pocketで「データを読み込む」を選ぶ</span></div>
+    </div>
+    <p class="noteText">読み込みを実行すると、新しいスマホ側に現在あるPrompt Pocketのデータは、読み込んだ内容に置き換わります。</p>
+  </div>
+</dialog>
+
+<dialog id="backupNoticeDialog" class="sampleConfirmDialog" aria-labelledby="backupNoticeTitle">
+  <div class="sampleConfirmPanel">
+    <h2 id="backupNoticeTitle">バックアップの保管について</h2>
+    <p>バックアップのダウンロードを開始しました。通常はダウンロードフォルダに入ります。保存先はブラウザの設定によって異なります。</p>
+    <p>機種変更に備え、別の端末やクラウドにも保管してください。</p>
+    <div class="sampleActions"><button id="backupNoticeOk" class="primary" type="button">OK</button></div>
+  </div>
+</dialog>
+<dialog id="dataConfirmDialog" class="sampleConfirmDialog">
+  <div class="sampleConfirmPanel">
+    <h2 id="dataConfirmTitle">確認</h2>
+    <p id="dataConfirmMessage" class="dataConfirmMessage"></p>
+    <div class="sampleActions"><button id="dataConfirmOk" class="dangerStrong" type="button">OK</button><button id="dataConfirmCancel" class="ghost" type="button">キャンセル</button></div>
+  </div>
+</dialog>
+
+<dialog id="welcomeDialog">
+  <div class="welcomePanel firstWelcome introWelcome">
+    <h2>Prompt Pocket</h2>
+    <p class="welcomeCatch">気に入ったプロンプトを、あなたのポケットに。</p>
+    <div class="welcomeCopy welcomeCopyGreen">
+      <p>Webで見つけた、いいなと思ったプロンプト。</p>
+      <p>あなた自身が作った、お気に入りのプロンプト。</p>
+      <p>Prompt Pocketなら、それらをひとつにまとめて、かんたんに整理できます。</p>
+      <strong>保存して、見つけて、すぐコピー。</strong>
+    </div>
+    <p class="welcomeHelpNote">🔖 このサイトをブックマークに追加して、いつでもすぐに開けるようにしましょう。</p>
+    <button id="welcomeStart" class="primary wide">はじめる</button>
+  </div>
+</dialog>
+
+<dialog id="eraseCompleteDialog">
+  <div class="welcomePanel helpPanel">
+    <div class="welcomeIcon">🧹</div>
+    <h2>すべて削除しました</h2>
+    <p>Prompt Pocketのデータとキャッシュを削除しました。このページを閉じて、必要に応じてホーム画面のアイコンやアプリを削除してください。</p>
+    <button id="eraseCompleteClose" class="primary wide" type="button">閉じる</button>
+  </div>
+</dialog>
+
+<dialog id="tutorialDialog" aria-label="チュートリアル">
+  <div id="tutorialContent"><p>チュートリアルを読み込んでいます…</p></div>
+</dialog>
+
+<dialog id="tutorialExitConfirmDialog">
+  <div class="welcomePanel helpPanel">
+    <h2>チュートリアルを終了しますか？</h2>
+    <p>いつでもヘルプから、もう一度確認できます。</p>
+    <div class="sampleActions"><button id="tutorialExitCancel" class="ghost" type="button">戻る</button><button id="tutorialExitOk" class="primary" type="button">終了する</button></div>
+  </div>
+</dialog>
+
+<dialog id="tutorialSampleDialog">
+  <div class="welcomePanel sampleGuidePanel">
+    <div class="welcomeIcon">📁</div>
+    <h2>見本を追加しました</h2>
+    <p>サンプルフォルダー及び、サンプルカードを追加しました。</p>
+    <p>実際に触ってみましょう。不必要なら削除してかまいません。</p>
+    <button id="tutorialSampleClose" class="primary wide" type="button">はじめる</button>
+  </div>
+</dialog>
+
+<div id="toast"></div>
+<dialog id="externalBrowserGuide">
+  <div class="externalGuidePanel">
+    <div class="externalGuideIcon">📖</div>
+    <h2>Prompt Pocket へようこそ！</h2>
+    <p class="externalGuideLead">右上のメニューから<br><strong>「ブラウザで開く」または「Chromeで開く」</strong>を選んでね！</p>
+    <div class="externalTapCue" aria-hidden="true"><div class="cueArrow">👇</div></div>
+  </div>
+</dialog>
+
+  <dialog id="versionUpdateDialog"><div class="managePanel"><h2>バージョンの更新</h2><p id="versionUpdateMessage"></p><div class="manageActions"><button id="versionReload" class="primary" type="button">再読み込み</button><button id="versionLater" class="ghost" type="button">あとで</button></div></div></dialog>
+  <script defer src="assets/js/version-check.js?v=2.0-alpha3a-v1"></script>
+  <script defer src="assets/js/prompt-pocket.js?v=2.0-alpha3a-v1"></script>
+</body>
+</html>

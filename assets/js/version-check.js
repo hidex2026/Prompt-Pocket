@@ -1,16 +1,19 @@
-/* PP_RELEASE:2.0-alpha.3a */
+/* PP_RELEASE:2.0-alpha.3b */
 (()=>{
-  const release='2.0-alpha.3a',main=document.querySelector('meta[name="pp-release"]')?.content;
+  const release='2.0-alpha.3b',main=document.querySelector('meta[name="pp-release"]')?.content;
   const dialog=document.getElementById('versionUpdateDialog'),message=document.getElementById('versionUpdateMessage');
-  const reloadButton=document.getElementById('versionReload'),later=document.getElementById('versionLater');
+  const reloadButton=document.getElementById('versionReload'),editButton=document.getElementById('versionEdit');
+  const versions=document.getElementById('versionUpdateVersions');
   let target=main,busy=false,blocked=false;
   const dirty=()=>{try{return document.getElementById('editor').open&&(editorSaving||editorDraftState()!==editorBaseline)}catch{return false}};
-  const label=v=>/^\d+(\.\d+)+$/.test(v)?'Ver.'+v:String(v||'最新版').replace(/^2\.0-alpha\.2([a-z]+)$/,'PP_v2.0_ALPHA2$1');
+  const label=v=>String(v||'最新版').replace(/^(\d+\.\d+)-alpha\.(\d+[a-z]*)$/,'Ver.$1 Alpha$2').replace(/^(\d+(?:\.\d+)+)$/,'Ver.$1');
   const order=v=>{const m=String(v).match(/^(\d+)\.(\d+)(?:-alpha\.(\d+)([a-z]*))?$/);return m?[Number(m[1]),Number(m[2]),m[3]?0:1,Number(m[3]||0),[...(m[4]||'')].reduce((n,c)=>n*26+c.charCodeAt(0)-96,0)]:[0]};
   const newer=(a,b)=>{const x=order(a),y=order(b);for(let i=0;i<Math.max(x.length,y.length);i++){if((x[i]||0)!==(y[i]||0))return (x[i]||0)>(y[i]||0)?a:b}return a};
   function mismatch(version){
     target=newer(main,version||main);
-    message.textContent=`新しいバージョンが公開されているか、読み込んだファイルのバージョンが一致していません。再読み込みを行い、画面のバージョン表示が ${label(target)} になっていることを確認してください。`;
+    message.textContent='新しいバージョンに更新します。';
+    versions.textContent=`${label(main)} → ${label(target)}`;
+    editButton.hidden=!dirty();
     if(!dialog.open)dialog.showModal();
   }
   function assertVersion(version){if(version&&version===main)return true;blocked=true;mismatch(version);return false}
@@ -24,7 +27,7 @@
   }
   async function reloadLatest(){
     if(busy)return;
-    if(dirty()){message.textContent='編集中の変更があります。先に編集画面で保存してください。保存後、もう一度「再読み込み」を押してください。';return}
+    if(dirty()){message.textContent='編集中の変更があります。先に編集画面で保存してください。保存後、もう一度「更新する」を押してください。';editButton.hidden=false;return}
     busy=true;reloadButton.disabled=true;
     try{
       const latest=await (await fresh('version.json')).json();
@@ -53,7 +56,9 @@
     finally{busy=false;reloadButton.disabled=false}
   }
   window.ppVersion={assert:assertVersion,mismatch,checkLatest,reloadLatest,get blocked(){return blocked}};
-  reloadButton.onclick=reloadLatest;later.onclick=()=>dialog.close();
+  reloadButton.onclick=reloadLatest;
+  editButton.onclick=()=>{if(!busy&&dirty())dialog.close()};
+  dialog.addEventListener('cancel',event=>event.preventDefault());
   if(assertVersion(release)){
     const css=getComputedStyle(document.documentElement).getPropertyValue('--pp-release').trim().replaceAll('"','');assertVersion(css);
   }

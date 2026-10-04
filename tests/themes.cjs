@@ -95,7 +95,7 @@ const server=http.createServer((req,res)=>{
     await page.evaluate(()=>openOptions());await page.locator('.optionMainScreenFold summary').click();
     await page.locator('#optionDialog').evaluate(e=>{e.scrollTop=e.scrollHeight});
     assert.ok(await page.locator('#optionSave').isVisible());await page.locator('#optionCancel').click();
-    assert.deepEqual(errors,[]);assert.match(await page.title(),/ALPHA3a/);assert.equal(await page.locator('#mainScreenColor option[value="pastel"]').textContent(),'ミントグリーン');console.log('PASS invalid value fallback, undo, desktop, version, renamed label');
+    assert.deepEqual(errors,[]);assert.match(await page.title(),/ALPHA3b/);assert.equal(await page.locator('#mainScreenColor option[value="pastel"]').textContent(),'ミントグリーン');console.log('PASS invalid value fallback, undo, desktop, version, renamed label');
     await ctx.close();
   }finally{await browser.close();await new Promise(r=>server.close(r))}
 })().catch(e=>{console.error(e);process.exitCode=1;server.close()});
