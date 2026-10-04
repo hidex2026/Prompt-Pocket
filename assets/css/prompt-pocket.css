@@ -2403,39 +2403,35 @@ body[data-main-screen-color="aqua"],#optionDialog[data-preview-color="aqua"]{
   --screen-bg:#eaf3fa;--screen-header:#cfe5f3;--screen-band:#e9e4f4;
   --screen-card:#fffef8;--screen-table:#e7f1f8;--screen-text:#293544;
   --screen-border:#b9cfdf;--screen-button:#f3f8fc;--screen-hover:#deedf8;
-  --screen-accent:#ffe59a;--screen-accent-border:#c99a2b;--screen-accent-text:#594600;
+  --screen-accent:#fac8b9;--screen-accent-border:#b96b59;--screen-accent-text:#673d33;--screen-loose-card:#e4f0fa;
 }
 body[data-main-screen-color="red"],#optionDialog[data-preview-color="red"]{
   --screen-bg:#fff1f0;--screen-header:#f8d8d9;--screen-band:#f7e4e1;
   --screen-card:#fffefa;--screen-table:#fbe5e6;--screen-text:#493438;
   --screen-border:#dbb7bb;--screen-button:#fff5f3;--screen-hover:#fce4e1;
-  --screen-accent:#fac8b9;--screen-accent-border:#b96b59;--screen-accent-text:#673d33;
+  --screen-accent:#fac8b9;--screen-accent-border:#b96b59;--screen-accent-text:#673d33;--screen-loose-card:#fce4e5;
 }
 body[data-main-screen-color="pastel"],#optionDialog[data-preview-color="pastel"]{
   --screen-bg:#edf7f0;--screen-header:#d8eee3;--screen-band:#e9e3f5;
   --screen-card:#fffef8;--screen-table:#e9e4f4;--screen-text:#35463f;
   --screen-border:#b8d3c7;--screen-button:#f6f3fc;--screen-hover:#e1f0e7;
-  --screen-accent:#ffe7a6;--screen-accent-border:#c7a04a;--screen-accent-text:#5c490c;
+  --screen-accent:#fac8b9;--screen-accent-border:#b96b59;--screen-accent-text:#673d33;--screen-loose-card:#e2f1e7;
 }
 body[data-main-screen-color="yellow"],#optionDialog[data-preview-color="yellow"]{
   --screen-bg:#fff8df;--screen-header:#f6e7aa;--screen-band:#fff0c6;
   --screen-card:#fffef8;--screen-table:#fff1c2;--screen-text:#4c4230;
   --screen-border:#dbc68e;--screen-button:#fffaeb;--screen-hover:#fff0bd;
-  --screen-accent:#ffdf83;--screen-accent-border:#b8902b;--screen-accent-text:#58430b;
+  --screen-accent:#ffdf83;--screen-accent-border:#b8902b;--screen-accent-text:#58430b;--screen-loose-card:#fff1c7;
 }
 body[data-main-screen-color="multicolor"],#optionDialog[data-preview-color="multicolor"]{
   --screen-bg:#fff7df;--screen-header:#d9eaf8;--screen-band:#f9dedf;
   --screen-card:#fffefa;--screen-table:#e4effa;--screen-text:#3d4353;
   --screen-border:#bdcce0;--screen-button:#fce7e8;--screen-hover:#e9f1fc;
-  --screen-accent:#ffe39b;--screen-accent-border:#c29b3c;--screen-accent-text:#594710;
+  --screen-accent:#fac8b9;--screen-accent-border:#b96b59;--screen-accent-text:#673d33;--screen-loose-card:#e4effa;
 }
 /* Preview is scoped to the option dialog; unsaved colors never change the main screen. */
 #optionDialog[data-preview-color]:not([data-preview-color="default"]){background:var(--screen-bg)!important;color:var(--screen-text)}
-#optionDialog[data-preview-color]:not([data-preview-color="default"]) .dialogHead{background:var(--screen-header);border-radius:12px;padding:10px}
-#optionDialog[data-preview-color]:not([data-preview-color="default"]) .optionMainScreenFold>summary{background:var(--screen-band)!important;color:var(--screen-text)}
-#optionDialog[data-preview-color]:not([data-preview-color="default"]) .optionChoiceRow{background:var(--screen-card)!important;border-color:var(--screen-border)!important}
 #optionDialog[data-preview-color]:not([data-preview-color="default"]) .optionFixedActions{background:var(--screen-bg)!important}
-#optionDialog[data-preview-color]:not([data-preview-color="default"]) #optionSave{background:var(--screen-accent)!important;color:var(--screen-accent-text)!important;border:2px solid var(--screen-accent-border)!important}
 body[data-main-screen-color]:not([data-main-screen-color="default"]){background:var(--screen-bg);color:var(--screen-text);min-height:100dvh}
 body[data-main-screen-color]:not([data-main-screen-color="default"]) .topbar{background:var(--screen-header)!important;border-color:var(--screen-border)}
 body[data-main-screen-color]:not([data-main-screen-color="default"]) .headerVersion{color:var(--screen-text);opacity:.6}
@@ -2454,6 +2450,7 @@ body[data-main-screen-color]:not([data-main-screen-color="default"]) #cards .det
 body[data-main-screen-color]:not([data-main-screen-color="default"]) #cards .card{background:var(--screen-card);border-color:var(--screen-border)}
 body[data-main-screen-color]:not([data-main-screen-color="default"]) #cards .detailTable th{background:var(--screen-table)!important;color:var(--screen-text);border-color:var(--screen-border)}
 body[data-main-screen-color]:not([data-main-screen-color="default"]) #cards .detailTable tr:not(.folderRow):not(.folderFrameEnd)>td{background:var(--screen-card)!important}
+body[data-main-screen-color]:not([data-main-screen-color="default"]) #cards .detailTable tr[data-row]:not(.folderRow):not(.folderChildRow)>td{background:var(--screen-loose-card)!important}
 body[data-main-screen-color]:not([data-main-screen-color="default"]) #cards .rowName{color:var(--screen-text)!important}
 body[data-main-screen-color]:not([data-main-screen-color="default"]) #cards .tableActions button:not(.dangerMini){background:var(--screen-button);color:var(--screen-text);border-color:var(--screen-border)}
 @media(hover:hover){body[data-main-screen-color]:not([data-main-screen-color="default"]) #cards .detailTable tr[data-row]:not(.folderRow):hover>td{background:var(--screen-hover)!important}}
@@ -2461,11 +2458,11 @@ body[data-main-screen-color]:not([data-main-screen-color="default"]) #cards .tab
 /* ALPHA2t: Raised folder headers. Inset edges do not change cell dimensions
    or the separate blue open-folder enclosure. D&D target styles take priority. */
 body{--folder-raised-top:#fff0bb;--folder-raised-bottom:#e5c16a;--folder-raised-edge:#a67c28;--folder-raised-text:#4d390d}
-body[data-main-screen-color="aqua"]{--folder-raised-top:#fff0c6;--folder-raised-bottom:#e5c67e;--folder-raised-edge:#aa8233;--folder-raised-text:#4b3913}
+body[data-main-screen-color="aqua"]{--folder-raised-top:#ffdbbf;--folder-raised-bottom:#e5a787;--folder-raised-edge:#aa6347;--folder-raised-text:#593323}
 body[data-main-screen-color="red"]{--folder-raised-top:#ffdbbf;--folder-raised-bottom:#e5a787;--folder-raised-edge:#aa6347;--folder-raised-text:#593323}
-body[data-main-screen-color="pastel"]{--folder-raised-top:#fff0b8;--folder-raised-bottom:#dfc478;--folder-raised-edge:#a18432;--folder-raised-text:#4b3c10}
+body[data-main-screen-color="pastel"]{--folder-raised-top:#ffdbbf;--folder-raised-bottom:#e5a787;--folder-raised-edge:#aa6347;--folder-raised-text:#593323}
 body[data-main-screen-color="yellow"]{--folder-raised-top:#ffe694;--folder-raised-bottom:#dcb24e;--folder-raised-edge:#967024;--folder-raised-text:#4a350b}
-body[data-main-screen-color="multicolor"]{--folder-raised-top:#ffebad;--folder-raised-bottom:#e3bc69;--folder-raised-edge:#a77b29;--folder-raised-text:#4b370d}
+body[data-main-screen-color="multicolor"]{--folder-raised-top:#ffdbbf;--folder-raised-bottom:#e5a787;--folder-raised-edge:#aa6347;--folder-raised-text:#593323}
 body #cards .detailTable.detailTable .folderRow:not(.folderDropTarget)>td{
   background:linear-gradient(180deg,var(--folder-raised-top) 0%,var(--folder-raised-bottom) 100%)!important;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.8),inset 0 -1px 0 var(--folder-raised-edge)!important;
