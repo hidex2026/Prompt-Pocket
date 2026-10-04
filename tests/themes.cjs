@@ -21,6 +21,10 @@ const server=http.createServer((req,res)=>{
       localStorage.setItem('promptPocket.dataVersion','2.0');localStorage.setItem('promptPocket.imagesInIndexedDB.v1','done');localStorage.setItem('promptPocket.starterSamples.current.v4','done');
     });
     await page.goto('http://127.0.0.1:'+server.address().port);await page.waitForSelector('[data-row="c1"]');
+    await page.evaluate(()=>{
+      folders=[{id:'f1',name:'実用',created:2},{id:'f2',name:'アレンジ',created:3}];
+      items.push({id:'child',name:'フォルダ内カード',prompt:'テスト',folderId:'f1',tags:[],created:2});save();render();
+    });
     const bg=()=>page.locator('body').evaluate(e=>getComputedStyle(e).backgroundColor);
     const original=await bg();
     assert.equal(await page.locator('body').getAttribute('data-main-screen-color'),'default');
@@ -36,6 +40,16 @@ const server=http.createServer((req,res)=>{
       await page.reload();await page.waitForSelector('[data-row="c1"]');assert.equal(await bg(),color);
       await page.evaluate(()=>openOptions());assert.equal(await page.locator('#mainScreenColor').inputValue(),theme);await page.locator('#optionCancel').click();
       await page.screenshot({path:path.join(__dirname,'theme-'+theme+'.png')});console.log('PASS '+theme+' save, cancel, reload');
+      const folder=page.locator('.folderRow').first();
+      const raised=await folder.locator('td').first().evaluate(e=>{const s=getComputedStyle(e);return {image:s.backgroundImage,shadow:s.boxShadow}});
+      assert.match(raised.image,/linear-gradient/);assert.match(raised.shadow,/inset/);
+      await page.evaluate(()=>{openFolders.add('f1');render()});
+      const openCell=page.locator('.folderRow.folderOpen td').first();
+      assert.equal(await openCell.evaluate(e=>getComputedStyle(e).borderLeftWidth),'2px');
+      await page.screenshot({path:path.join(__dirname,'folder-'+theme+'.png')});
+      await page.evaluate(()=>document.querySelector('.folderRow').classList.add('folderDropTarget'));
+      assert.equal(await page.locator('.folderDropTarget td').first().evaluate(e=>getComputedStyle(e).borderColor),'rgb(169, 109, 0)');
+      await page.evaluate(()=>{openFolders.clear();render()});
     }
     for(const close of ['#optionClose','Escape']){
       await page.evaluate(()=>openOptions());await page.locator('.optionMainScreenFold summary').click();await page.locator('#mainScreenColor').selectOption('yellow');
@@ -50,7 +64,7 @@ const server=http.createServer((req,res)=>{
     await page.evaluate(()=>{prefs.mainScreenColor='aqua';applyPreferences();snapshot('theme-test');prefs.mainScreenColor='red';savePrefs();applyPreferences()});
     await page.locator('#undoBtn').click();assert.equal(await page.locator('body').getAttribute('data-main-screen-color'),'aqua');
     await page.setViewportSize({width:1280,height:800});await page.screenshot({path:path.join(__dirname,'theme-desktop.png')});
-    assert.deepEqual(errors,[]);assert.match(await page.title(),/ALPHA2s/);assert.equal(await page.locator('#mainScreenColor option[value="pastel"]').textContent(),'ミントグリーン');console.log('PASS invalid value fallback, undo, desktop, version, renamed label');
+    assert.deepEqual(errors,[]);assert.match(await page.title(),/ALPHA2t/);assert.equal(await page.locator('#mainScreenColor option[value="pastel"]').textContent(),'ミントグリーン');console.log('PASS invalid value fallback, undo, desktop, version, renamed label');
     await ctx.close();
   }finally{await browser.close();await new Promise(r=>server.close(r))}
 })().catch(e=>{console.error(e);process.exitCode=1;server.close()});

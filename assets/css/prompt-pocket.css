@@ -2457,3 +2457,24 @@ body[data-main-screen-color]:not([data-main-screen-color="default"]) #cards .det
 body[data-main-screen-color]:not([data-main-screen-color="default"]) #cards .rowName{color:var(--screen-text)!important}
 body[data-main-screen-color]:not([data-main-screen-color="default"]) #cards .tableActions button:not(.dangerMini){background:var(--screen-button);color:var(--screen-text);border-color:var(--screen-border)}
 @media(hover:hover){body[data-main-screen-color]:not([data-main-screen-color="default"]) #cards .detailTable tr[data-row]:not(.folderRow):hover>td{background:var(--screen-hover)!important}}
+
+/* ALPHA2t: Raised folder headers. Inset edges do not change cell dimensions
+   or the separate blue open-folder enclosure. D&D target styles take priority. */
+body{--folder-raised-top:#fff0bb;--folder-raised-bottom:#e5c16a;--folder-raised-edge:#a67c28;--folder-raised-text:#4d390d}
+body[data-main-screen-color="aqua"]{--folder-raised-top:#fff0c6;--folder-raised-bottom:#e5c67e;--folder-raised-edge:#aa8233;--folder-raised-text:#4b3913}
+body[data-main-screen-color="red"]{--folder-raised-top:#ffdbbf;--folder-raised-bottom:#e5a787;--folder-raised-edge:#aa6347;--folder-raised-text:#593323}
+body[data-main-screen-color="pastel"]{--folder-raised-top:#fff0b8;--folder-raised-bottom:#dfc478;--folder-raised-edge:#a18432;--folder-raised-text:#4b3c10}
+body[data-main-screen-color="yellow"]{--folder-raised-top:#ffe694;--folder-raised-bottom:#dcb24e;--folder-raised-edge:#967024;--folder-raised-text:#4a350b}
+body[data-main-screen-color="multicolor"]{--folder-raised-top:#ffebad;--folder-raised-bottom:#e3bc69;--folder-raised-edge:#a77b29;--folder-raised-text:#4b370d}
+body #cards .detailTable.detailTable .folderRow:not(.folderDropTarget)>td{
+  background:linear-gradient(180deg,var(--folder-raised-top) 0%,var(--folder-raised-bottom) 100%)!important;
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.8),inset 0 -2px 0 var(--folder-raised-edge),inset 0 -5px 6px rgba(86,58,13,.1)!important;
+}
+body #cards .detailTable.detailTable .folderRow:not(.folderDropTarget)>td:first-child{
+  box-shadow:inset 2px 0 0 var(--folder-raised-edge),inset 0 2px 0 rgba(255,255,255,.8),inset 0 -2px 0 var(--folder-raised-edge),inset 0 -5px 6px rgba(86,58,13,.1)!important;
+}
+body #cards .detailTable.detailTable .folderRow:not(.folderDropTarget)>td:last-child{
+  box-shadow:inset -2px 0 0 var(--folder-raised-edge),inset 0 2px 0 rgba(255,255,255,.8),inset 0 -2px 0 var(--folder-raised-edge),inset 0 -5px 6px rgba(86,58,13,.1)!important;
+}
+body #cards .detailTable.detailTable .folderRow:not(.folderDropTarget) .folderNameBtn{color:var(--folder-raised-text)!important;font-weight:800!important;text-shadow:0 1px 0 rgba(255,255,255,.45)}
+body #cards .detailTable.detailTable .folderRow:not(.folderDropTarget) .folderCountInline{background:rgba(255,255,255,.55)!important;color:var(--folder-raised-text)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.75)}
