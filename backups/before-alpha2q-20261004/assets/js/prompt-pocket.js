@@ -103,7 +103,7 @@ function clearAppStorage(storage){
 }
 const validCards=value=>Array.isArray(value)&&value.every(x=>x&&typeof x==='object'&&typeof x.name==='string'&&typeof x.prompt==='string');
 let items=readStoredJson(localStorage.getItem(KEY)!==null?KEY:LEGACY_KEY,[],validCards);
-const APP_VERSION='2.0-alpha.2q';
+const APP_VERSION='2.0-alpha.2p';
 const VERSION_KEY='promptPocket.lastSeenVersion';
 const DATA_VERSION_KEY='promptPocket.dataVersion';
 const DATA_SCHEMA_VERSION='2.0';
@@ -162,9 +162,6 @@ prefs.dragVibrationEnabled=Object.prototype.hasOwnProperty.call(prefs,'dragVibra
 prefs.cardCellSize=['small','medium','large'].includes(prefs.cardCellSize)?prefs.cardCellSize:'medium';
 document.body.dataset.cardCellSize=prefs.cardCellSize;
 prefs.folderNameSize=['small','medium','large'].includes(prefs.folderNameSize)?prefs.folderNameSize:'medium';
-function normalizeMainScreenColor(value){return ['default','aqua','red','pastel'].includes(value)?value:'default'}
-prefs.mainScreenColor=normalizeMainScreenColor(prefs.mainScreenColor);
-document.body.dataset.mainScreenColor=prefs.mainScreenColor;
 document.body.dataset.folderNameSize=prefs.folderNameSize;
 document.body.classList.toggle('buttonGlowEnabled',prefs.buttonGlowEnabled);
 prefs.mainActionOpenMode=['single','double'].includes(prefs.mainActionOpenMode)
@@ -204,8 +201,6 @@ function restoreState(state){
   applyPreferences();
 }
 function applyPreferences(){
-  prefs.mainScreenColor=normalizeMainScreenColor(prefs.mainScreenColor);
-  document.body.dataset.mainScreenColor=prefs.mainScreenColor;
   document.body.classList.toggle('buttonGlowEnabled',!!prefs.buttonGlowEnabled);
   document.body.dataset.cardCellSize=prefs.cardCellSize||'medium';
   document.body.dataset.folderNameSize=prefs.folderNameSize||'medium';
@@ -1559,7 +1554,7 @@ $('cancelBtn').onclick=closeEditor;$('editorCloseBtn').onclick=closeEditor;$('se
   render();restoreOpenDetails(target.openCards);toast('前の状態に戻しました');
 };
 $('closeAllBtn').onclick=closeAllOpenContent;
-function defaultPrefs(){return {view:'card',welcomed:false,tagOrder:[],hiddenTags:[],rememberOps:false,buttonGlowEnabled:true,doubleTapOpenEnabled:false,dragVibrationEnabled:true,cardCellSize:'medium',folderNameSize:'medium',mainScreenColor:'default',mainActionOpenMode:'single',shortcutDelay:800,customTags:[]}}
+function defaultPrefs(){return {view:'card',welcomed:false,tagOrder:[],hiddenTags:[],rememberOps:false,buttonGlowEnabled:true,doubleTapOpenEnabled:false,dragVibrationEnabled:true,cardCellSize:'medium',folderNameSize:'medium',mainActionOpenMode:'single',shortcutDelay:800,customTags:[]}}
 let dataConfirmResolve=null;
 function closeDataConfirm(result){const dialog=$('dataConfirmDialog');if(dialog.open)dialog.close();const resolve=dataConfirmResolve;dataConfirmResolve=null;if(resolve)resolve(result)}
 function showDataConfirm(title,message){$('dataConfirmTitle').textContent=title;$('dataConfirmMessage').textContent=message;return new Promise(resolve=>{dataConfirmResolve=resolve;$('dataConfirmDialog').showModal()})}
@@ -1583,7 +1578,7 @@ async function eraseEverything(){
   await deleteImageDb();clearAppStorage(localStorage);clearAppStorage(sessionStorage);storageRecoveryIssues.length=0;
   if('caches'in window){const keys=await caches.keys();await Promise.all(keys.filter(key=>key.startsWith('prompt-pocket-static-')).map(key=>caches.delete(key)))}
   if('serviceWorker'in navigator){const registrations=await navigator.serviceWorker.getRegistrations();await Promise.all(registrations.filter(reg=>reg.scope===new URL('./',location.href).href).map(reg=>reg.unregister()))}
-  items=[];folders=[];undoState=null;customTags.clear();prefs=defaultPrefs();openFolders.clear();filterTags.clear();committedState=captureState();applyPreferences();$('search').value='';closeOptionSections();$('optionDialog').close();render();$('eraseCompleteDialog').showModal();
+  items=[];folders=[];undoState=null;customTags.clear();prefs=defaultPrefs();openFolders.clear();filterTags.clear();committedState=captureState();document.body.dataset.cardCellSize='medium';document.body.dataset.folderNameSize='medium';$('search').value='';closeOptionSections();$('optionDialog').close();render();$('eraseCompleteDialog').showModal();
 }
 $('deleteAllBtn').onclick=resetDataToInitial;
 $('deleteAllBtn').addEventListener('click',()=>document.body.classList.toggle('buttonGlowEnabled',!!prefs.buttonGlowEnabled));
@@ -1672,7 +1667,7 @@ $('form').onsubmit=async e=>{
   finally{editorSaving=false}
 };
 let optionPrefsDraft=null;
-const openOptions=()=>{optionPrefsDraft=structuredClone(prefs);$('mainScreenColor').value=normalizeMainScreenColor(optionPrefsDraft.mainScreenColor);$('rememberOps').checked=!!optionPrefsDraft.rememberOps;$('buttonGlowEnabled').checked=!!optionPrefsDraft.buttonGlowEnabled;$('doubleTapOpenEnabled').checked=!!optionPrefsDraft.doubleTapOpenEnabled;$('dragVibrationEnabled').checked=!!optionPrefsDraft.dragVibrationEnabled;$('cardCellSize').value=['small','medium','large'].includes(optionPrefsDraft.cardCellSize)?optionPrefsDraft.cardCellSize:'medium';$('folderNameSize').value=['small','medium','large'].includes(optionPrefsDraft.folderNameSize)?optionPrefsDraft.folderNameSize:'medium';$('mainActionOpenMode').value=['single','double'].includes(optionPrefsDraft.mainActionOpenMode)?optionPrefsDraft.mainActionOpenMode:'single';$('shortcutDelay').value=String(optionPrefsDraft.shortcutDelay||800);$('shortcutDelay').disabled=false;$('optionDialog').showModal()};
+const openOptions=()=>{optionPrefsDraft=structuredClone(prefs);$('rememberOps').checked=!!optionPrefsDraft.rememberOps;$('buttonGlowEnabled').checked=!!optionPrefsDraft.buttonGlowEnabled;$('doubleTapOpenEnabled').checked=!!optionPrefsDraft.doubleTapOpenEnabled;$('dragVibrationEnabled').checked=!!optionPrefsDraft.dragVibrationEnabled;$('cardCellSize').value=['small','medium','large'].includes(optionPrefsDraft.cardCellSize)?optionPrefsDraft.cardCellSize:'medium';$('folderNameSize').value=['small','medium','large'].includes(optionPrefsDraft.folderNameSize)?optionPrefsDraft.folderNameSize:'medium';$('mainActionOpenMode').value=['single','double'].includes(optionPrefsDraft.mainActionOpenMode)?optionPrefsDraft.mainActionOpenMode:'single';$('shortcutDelay').value=String(optionPrefsDraft.shortcutDelay||800);$('shortcutDelay').disabled=false;$('optionDialog').showModal()};
 function openSearchKeepingScroll(){
   const panel=$('searchPanel');
   panel.classList.remove('hidden');
@@ -1725,8 +1720,6 @@ $('buttonGlowEnabled').onchange=e=>{if(optionPrefsDraft)optionPrefsDraft.buttonG
 $('doubleTapOpenEnabled').onchange=e=>{if(optionPrefsDraft)optionPrefsDraft.doubleTapOpenEnabled=e.target.checked};
 $('dragVibrationEnabled').onchange=e=>{if(optionPrefsDraft)optionPrefsDraft.dragVibrationEnabled=e.target.checked};
 $('cardCellSize').onchange=e=>{if(optionPrefsDraft)optionPrefsDraft.cardCellSize=['small','medium','large'].includes(e.target.value)?e.target.value:'medium'};
-$('mainScreenColor').onchange=e=>{if(optionPrefsDraft)optionPrefsDraft.mainScreenColor=normalizeMainScreenColor(e.target.value)};
-$('optionSave').addEventListener('click',()=>applyPreferences());
 $('folderNameSize').onchange=e=>{if(optionPrefsDraft)optionPrefsDraft.folderNameSize=['small','medium','large'].includes(e.target.value)?e.target.value:'medium'};
 $('mainActionOpenMode').onchange=e=>{const mode=['single','double'].includes(e.target.value)?e.target.value:'single';if(optionPrefsDraft)optionPrefsDraft.mainActionOpenMode=mode};
 $('shortcutDelay').onchange=e=>{if(optionPrefsDraft)optionPrefsDraft.shortcutDelay=Number(e.target.value)||800};
