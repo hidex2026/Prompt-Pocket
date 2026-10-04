@@ -2412,9 +2412,9 @@ body[data-main-screen-color="red"],#optionDialog[data-preview-color="red"]{
   --screen-accent:#fac8b9;--screen-accent-border:#b96b59;--screen-accent-text:#673d33;--screen-loose-card:#fce4e5;
 }
 body[data-main-screen-color="pastel"],#optionDialog[data-preview-color="pastel"]{
-  --screen-bg:#edf7f0;--screen-header:#d8eee3;--screen-band:#e9e3f5;
-  --screen-card:#fffef8;--screen-table:#e9e4f4;--screen-text:#35463f;
-  --screen-border:#b8d3c7;--screen-button:#f6f3fc;--screen-hover:#e1f0e7;
+  --screen-bg:#edf7f0;--screen-header:#d8eee3;--screen-band:#d9eee1;
+  --screen-card:#fffef8;--screen-table:#dceee2;--screen-text:#35463f;
+  --screen-border:#a6c7b3;--screen-button:#e4f3e9;--screen-hover:#e1f0e7;
   --screen-accent:#a8dbc0;--screen-accent-border:#568568;--screen-accent-text:#264934;--screen-loose-card:#e2f1e7;
 }
 body[data-main-screen-color="yellow"],#optionDialog[data-preview-color="yellow"]{
@@ -2482,3 +2482,20 @@ body #cards .detailTable.detailTable .folderRow:not(.folderDropTarget)>td:last-c
 }
 body #cards .detailTable.detailTable .folderRow:not(.folderDropTarget) .folderNameBtn{color:var(--folder-raised-text)!important;font-weight:800!important;text-shadow:0 1px 0 rgba(255,255,255,.45)}
 body #cards .detailTable.detailTable .folderRow:not(.folderDropTarget) .folderCountInline{background:rgba(255,255,255,.55)!important;color:var(--folder-raised-text)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.75)}
+
+/* ALPHA2y: Mint normal controls, leaving deletion and open-folder cues intact. */
+body[data-main-screen-color="pastel"]:not([data-main-screen-color="default"]) .cardCountDisplay,
+body[data-main-screen-color="pastel"]:not([data-main-screen-color="default"]) .toolbarClose,
+body[data-main-screen-color="pastel"]:not([data-main-screen-color="default"]) .viewOptionBtn,
+body[data-main-screen-color="pastel"]:not([data-main-screen-color="default"]) #undoBtn,
+body[data-main-screen-color="pastel"] main .quickMenu .ghost,
+body[data-main-screen-color="pastel"] main .searchrow .ghost,
+body[data-main-screen-color="pastel"] #cardJumpNav button{
+  background:#e4f3e9!important;color:#2c5840!important;border-color:#a6c7b3!important;
+}
+body[data-main-screen-color="pastel"]:not([data-main-screen-color="default"]) #undoBtn.undoReady{background:#bfe3cc!important;border-color:#689779!important;color:#214d33!important}
+body[data-main-screen-color="pastel"] #cards .detailPopupMenu{background:#f1faf4!important;border-color:#a6c7b3!important}
+body[data-main-screen-color="pastel"] #cards .detailPopupMenu button:not(.dangerMenu){background:#e4f3e9!important;color:#2c5840!important}
+body[data-main-screen-color="pastel"] #cards .detailCloseBtn{background:#e4f3e9!important;color:#2c5840!important;border-color:#a6c7b3!important}
+body[data-main-screen-color="pastel"] #cards .detailExplorer.unifiedExplorer{border-color:#a6c7b3!important}
+body[data-main-screen-color="pastel"] #cards .detailExplorer.unifiedExplorer::after{background:#a6c7b3!important}

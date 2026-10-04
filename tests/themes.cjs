@@ -48,6 +48,11 @@ const server=http.createServer((req,res)=>{
       assert.equal(await page.locator('[data-row="c1"] td').first().evaluate(e=>getComputedStyle(e).backgroundColor),theme==='red'?'rgb(255, 254, 250)':theme==='multicolor'?'rgb(255, 254, 250)':'rgb(255, 254, 248)');
       assert.equal(await page.locator('#bottomNew').evaluate(e=>getComputedStyle(e).backgroundColor),accentColors[theme]);
       assert.equal(await page.locator('#createFolderBtn').evaluate(e=>getComputedStyle(e).backgroundColor),theme==='multicolor'?'rgb(168, 219, 192)':accentColors[theme]);
+      if(theme==='pastel'){
+        for(const selector of ['#count','#viewOptionBtn','#closeAllBtn','#undoBtn','[data-copy="c1"]'])assert.equal(await page.locator(selector).first().evaluate(e=>getComputedStyle(e).backgroundColor),'rgb(228, 243, 233)');
+        assert.equal(await page.locator('.detailTable th').first().evaluate(e=>getComputedStyle(e).backgroundColor),'rgb(220, 238, 226)');
+        assert.ok(await page.locator('#undoBtn').evaluate(e=>e.disabled&&Number(getComputedStyle(e).opacity)<0.6),'disabled button remains visually muted');
+      }
       await page.evaluate(()=>openOptions());assert.equal(await page.locator('#mainScreenColor').inputValue(),theme);await page.locator('#optionCancel').click();
       await page.screenshot({path:path.join(__dirname,'theme-'+theme+'.png')});console.log('PASS '+theme+' save, cancel, reload');
       const folder=page.locator('.folderRow').first();
@@ -80,7 +85,7 @@ const server=http.createServer((req,res)=>{
     await page.evaluate(()=>{prefs.mainScreenColor='aqua';applyPreferences();snapshot('theme-test');prefs.mainScreenColor='red';savePrefs();applyPreferences()});
     await page.locator('#undoBtn').click();assert.equal(await page.locator('body').getAttribute('data-main-screen-color'),'aqua');
     await page.setViewportSize({width:1280,height:800});await page.screenshot({path:path.join(__dirname,'theme-desktop.png')});
-    assert.deepEqual(errors,[]);assert.match(await page.title(),/ALPHA2x/);assert.equal(await page.locator('#mainScreenColor option[value="pastel"]').textContent(),'ミントグリーン');console.log('PASS invalid value fallback, undo, desktop, version, renamed label');
+    assert.deepEqual(errors,[]);assert.match(await page.title(),/ALPHA2y/);assert.equal(await page.locator('#mainScreenColor option[value="pastel"]').textContent(),'ミントグリーン');console.log('PASS invalid value fallback, undo, desktop, version, renamed label');
     await ctx.close();
   }finally{await browser.close();await new Promise(r=>server.close(r))}
 })().catch(e=>{console.error(e);process.exitCode=1;server.close()});
