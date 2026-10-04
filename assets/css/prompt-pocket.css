@@ -2468,13 +2468,13 @@ body[data-main-screen-color="yellow"]{--folder-raised-top:#ffe694;--folder-raise
 body[data-main-screen-color="multicolor"]{--folder-raised-top:#ffebad;--folder-raised-bottom:#e3bc69;--folder-raised-edge:#a77b29;--folder-raised-text:#4b370d}
 body #cards .detailTable.detailTable .folderRow:not(.folderDropTarget)>td{
   background:linear-gradient(180deg,var(--folder-raised-top) 0%,var(--folder-raised-bottom) 100%)!important;
-  box-shadow:inset 0 2px 0 rgba(255,255,255,.8),inset 0 -2px 0 var(--folder-raised-edge),inset 0 -5px 6px rgba(86,58,13,.1)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.8),inset 0 -1px 0 var(--folder-raised-edge)!important;
 }
 body #cards .detailTable.detailTable .folderRow:not(.folderDropTarget)>td:first-child{
-  box-shadow:inset 2px 0 0 var(--folder-raised-edge),inset 0 2px 0 rgba(255,255,255,.8),inset 0 -2px 0 var(--folder-raised-edge),inset 0 -5px 6px rgba(86,58,13,.1)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.8),inset 0 -1px 0 var(--folder-raised-edge)!important;
 }
 body #cards .detailTable.detailTable .folderRow:not(.folderDropTarget)>td:last-child{
-  box-shadow:inset -2px 0 0 var(--folder-raised-edge),inset 0 2px 0 rgba(255,255,255,.8),inset 0 -2px 0 var(--folder-raised-edge),inset 0 -5px 6px rgba(86,58,13,.1)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.8),inset 0 -1px 0 var(--folder-raised-edge)!important;
 }
 body #cards .detailTable.detailTable .folderRow:not(.folderDropTarget) .folderNameBtn{color:var(--folder-raised-text)!important;font-weight:800!important;text-shadow:0 1px 0 rgba(255,255,255,.45)}
 body #cards .detailTable.detailTable .folderRow:not(.folderDropTarget) .folderCountInline{background:rgba(255,255,255,.55)!important;color:var(--folder-raised-text)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.75)}
