@@ -1,5 +1,5 @@
-/* PP_RELEASE:2.0-alpha.3e */
-if(window.ppVersion&&(!window.ppVersion.assert('2.0-alpha.3e')||window.ppVersion.blocked))throw new Error('Prompt Pocket release mismatch: initialization stopped.');
+/* PP_RELEASE:2.0-beta.1a */
+if(window.ppVersion&&(!window.ppVersion.assert('2.0-beta.1a')||window.ppVersion.blocked))throw new Error('Prompt Pocket release mismatch: initialization stopped.');
 if(!window.ppSession?.active)throw new Error('Prompt Pocket: active tab required.');
 function ppOnReady(fn){if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',fn,{once:true});else fn()}
 const noticeQueue=[];
@@ -127,9 +127,21 @@ function clearAppStorage(storage){
   const keys=Array.from({length:storage.length},(_,i)=>storage.key(i)).filter(key=>key&&isAppStorageKey(key));
   keys.forEach(key=>storage.removeItem(key));
 }
-const validCards=value=>Array.isArray(value)&&value.every(x=>x&&typeof x==='object'&&typeof x.name==='string'&&typeof x.prompt==='string');
+const isRecord=value=>!!value&&typeof value==='object'&&!Array.isArray(value);
+const validStringList=value=>value==null||(Array.isArray(value)&&value.every(x=>typeof x==='string'));
+const validOptionalStrings=(value,keys)=>keys.every(key=>value[key]==null||typeof value[key]==='string');
+const validCards=value=>Array.isArray(value)&&value.every(x=>isRecord(x)&&typeof x.name==='string'&&typeof x.prompt==='string'&&validStringList(x.tags)&&validOptionalStrings(x,['id','author','xhandle','source','memo','image','folderId']));
+function validPreferences(value){
+  return isRecord(value)&&['tagOrder','hiddenTags','openFolderIds','openCardIds','manualOrder','cardOrder','customTags'].every(key=>validStringList(value[key]))&&validOptionalStrings(value,['view','sort','mainScreenColor','cardCellSize','folderNameSize','mainActionOpenMode']);
+}
+function validBackup(value){
+  if(Array.isArray(value))return validCards(value);
+  return isRecord(value)&&validCards(value.items)&&validStringList(value.customTags)&&
+    (value.prefs==null||validPreferences(value.prefs))&&
+    (value.folders==null||(Array.isArray(value.folders)&&value.folders.every(folder=>isRecord(folder)&&validOptionalStrings(folder,['id','name']))));
+}
 let items=readStoredJson(localStorage.getItem(KEY)!==null?KEY:LEGACY_KEY,[],validCards);
-const APP_VERSION='2.0-alpha.3e';
+const APP_VERSION='2.0-beta.1a';
 const VERSION_KEY='promptPocket.lastSeenVersion';
 const DATA_VERSION_KEY='promptPocket.dataVersion';
 const DATA_SCHEMA_VERSION='2.0';
@@ -175,7 +187,7 @@ let imageData='';
 let imageBlob=null;
 let editorImageObjectUrl='';
 let undoState=null;
-let prefs=readStoredJson(PREF_KEY,{view:'card',welcomed:false,tagOrder:[]},v=>v&&typeof v==='object'&&!Array.isArray(v));
+let prefs=readStoredJson(PREF_KEY,{view:'card',welcomed:false,tagOrder:[]},validPreferences);
 prefs.tagOrder=Array.isArray(prefs.tagOrder)?prefs.tagOrder:[];
 prefs.hiddenTags=Array.isArray(prefs.hiddenTags)?prefs.hiddenTags:[];
 prefs.rememberOps=!!prefs.rememberOps;
@@ -459,6 +471,7 @@ function fmt(ts){return new Date(ts).toLocaleString('ja-JP',{year:'numeric',mont
 function sortList(list){const s=$('sort').value;if(s==='manual'||s==='foldersFirst'){const order=Array.isArray(prefs.manualOrder)?prefs.manualOrder:[];list.sort((a,b)=>{const ai=order.indexOf(a.id),bi=order.indexOf(b.id);if(ai<0&&bi<0)return b.created-a.created;if(ai<0)return 1;if(bi<0)return -1;return ai-bi});}else if(s==='nameAsc')list.sort((a,b)=>a.name.localeCompare(b.name,'ja'));else if(s==='fav')list.sort((a,b)=>(b.fav?1:0)-(a.fav?1:0)||b.created-a.created);else list.sort((a,b)=>b.created-a.created);return list;}
 function actionButtons(x){return `<button data-copy="${x.id}">📋 コピー</button><button data-edit="${x.id}">✏️ 編集</button><button data-duplicate="${x.id}">📄 複製</button><button class="dangerMini" data-delete="${x.id}">🗑️ 削除</button>${x.source?`<button data-source="${x.id}">出典</button>`:''}`;}
 function render(){
+  closeCardPopup();
   cancelTapMove();
   rememberOpenFolderState();
   document.querySelector('.folderPopupPortal')?.remove();
@@ -524,6 +537,7 @@ function render(){
     last?.nextElementSibling?.classList.contains('folderChildDetail')&&last.nextElementSibling.classList.add('folderFrameLastDetail');
   });
   bindActions();
+  bindCardMenus();
   bindFolderActions();
   hydrateLazyImages($('cards'));
   updateUndo();
@@ -784,18 +798,7 @@ function bindFolderActions(){
     if(!f?.isNew)return;
     f.isNew=false;saveFolders();row.querySelector('.folderNewBadge')?.remove();
   },{once:true}));
-  document.querySelectorAll('[data-folder-remove]').forEach(b=>b.onclick=()=>{
-    const x=items.find(i=>i.id===b.dataset.folderRemove);if(!x)return;
-    const folderKey='folder:'+x.folderId;
-    const order=[...document.querySelectorAll('.detailTable tbody > tr.folderRow, .detailTable tbody > tr.unifiedRow:not(.folderChildRow)')]
-      .map(row=>row.dataset.folder?'folder:'+row.dataset.folder:row.dataset.row).filter(Boolean).filter(id=>id!==x.id);
-    const at=order.indexOf(folderKey);if(at<0)return;
-    snapshot('フォルダから出す');
-    delete x.folderId;x.updated=Date.now();
-    order.splice(at+1,0,x.id);
-    prefs.manualOrder=order;prefs.sort='manual';savePrefs();$('sort').value='manual';
-    save();render();toast('フォルダから出しました');
-  });
+  document.querySelectorAll('[data-folder-remove]').forEach(b=>b.onclick=()=>moveCardOutsideFolder(b.dataset.folderRemove));
   document.querySelectorAll('[data-folder-menu-toggle]').forEach(b=>b.onclick=e=>{
     e.stopPropagation();
     const sourceMenu=b.closest('.detailMenuWrap')?.querySelector('.detailPopupMenu');
@@ -873,18 +876,67 @@ function bindActions(){document.querySelectorAll('[data-fav]').forEach(b=>b.oncl
 */
 let ppDnd=null;
 let tapMove=null;
+let cardPopupOrigin=null;
+function closeCardPopup(){
+  if(!cardPopupOrigin)return;
+  const {menu,wrap}=cardPopupOrigin;cardPopupOrigin=null;
+  menu.classList.add('hidden');menu.classList.remove('cardPopupFloating');
+  if(wrap.isConnected)wrap.appendChild(menu);else menu.remove();
+}
+function bindCardMenus(){
+  document.querySelectorAll('[data-menu-toggle]').forEach(button=>button.onclick=event=>{
+    event.stopPropagation();
+    const wrap=button.closest('.detailMenuWrap');
+    const wasOpen=cardPopupOrigin?.wrap===wrap;closeCardPopup();
+    const menu=wrap?.querySelector('.detailPopupMenu');
+    if(!menu)return;
+    document.querySelectorAll('.detailPopupMenu').forEach(el=>el.classList.add('hidden'));
+    document.querySelector('.folderPopupPortal')?.remove();
+    if(wasOpen)return;
+    cardPopupOrigin={menu,wrap};document.body.prepend(menu);
+    menu.onclick=e=>{e.stopPropagation();if(e.target.closest('button'))closeCardPopup()};
+    menu.classList.remove('hidden','openUp');menu.classList.add('cardPopupFloating');
+    const viewport=window.visualViewport,bottomNav=document.querySelector('.bottomnav');
+    const safeTop=(viewport?.offsetTop||0)+8;
+    const safeBottom=Math.min((viewport?.offsetTop||0)+(viewport?.height||innerHeight),bottomNav?.getBoundingClientRect().top??innerHeight)-8;
+    menu.style.maxHeight=Math.max(40,safeBottom-safeTop)+'px';
+    menu.style.width=Math.min(220,innerWidth-16)+'px';
+    const b=button.getBoundingClientRect(),r=menu.getBoundingClientRect();
+    menu.style.left=Math.max(8,Math.min(innerWidth-r.width-8,b.right-r.width))+'px';
+    menu.style.top=Math.max(safeTop,Math.min(safeBottom-r.height,b.bottom+5+r.height<=safeBottom?b.bottom+5:b.top-r.height-5))+'px';
+  });
+}
+function moveCardOutsideFolder(id){
+  const card=items.find(x=>x.id===id);if(!card?.folderId)return;
+  const keys=tapMoveRootKeys().filter(key=>key!==id),at=keys.indexOf('folder:'+card.folderId);
+  if(at<0)return;
+  snapshot('フォルダから出す');delete card.folderId;card.updated=Date.now();
+  keys.splice(at+1,0,id);prefs.manualOrder=keys;prefs.sort='manual';$('sort').value='manual';
+  save();render();toast('フォルダから出しました');
+}
+window.addEventListener('scroll',event=>{
+  if(event.target.closest?.('.cardPopupFloating'))return;
+  closeCardPopup();
+  document.querySelector('.folderPopupPortal')?.remove();
+},true);
+window.addEventListener('resize',closeCardPopup);
+document.addEventListener('click',event=>{if(!event.target.closest?.('.cardPopupFloating,[data-menu-toggle]'))closeCardPopup()});
 function cancelTapMove(){
   tapMove=null;
   document.querySelectorAll('.tapMoveSource').forEach(row=>row.classList.remove('tapMoveSource'));
   $('tapMoveNotice').hidden=true;
+  ppRemoveFolderExitSlot();
 }
 function beginTapMove(kind,id){
   ppFinishCancel();cancelTapMove();
+  closeCardPopup();
+  if(kind==='folder'){openFolders.clear();render()}
   const row=[...document.querySelectorAll('#cards tr[data-row],#cards tr[data-folder]')].find(row=>kind==='folder'?row.dataset.folder===id:row.dataset.row===id);
   if(!row)return;
   document.querySelector('.folderPopupPortal')?.remove();
   document.querySelectorAll('.detailPopupMenu,.rowDetail').forEach(el=>el.classList.add('hidden'));
   tapMove={kind,id,row};row.classList.add('tapMoveSource');$('tapMoveNotice').hidden=false;
+  if(kind==='card')ppEnsureFolderExitSlot({row});
 }
 function tapMoveRootKeys(){
   const known=[...folders.map(f=>'folder:'+f.id),...items.filter(x=>!x.folderId).map(x=>x.id)];
@@ -927,8 +979,9 @@ document.addEventListener('mousedown',e=>{
 document.addEventListener('click',e=>{
   if(tapMove){
     const st=tapMove,target=e.target.closest?.('#cards tr[data-row],#cards tr[data-folder]');
+    const exit=e.target.closest?.('#ppFolderExitSlot');
     e.preventDefault();e.stopImmediatePropagation();cancelTapMove();
-    if(target)try{commitTapMove(st,target)}catch(error){render();reportSaveFailure(error)}
+    try{if(exit&&st.kind==='card')moveCardOutsideFolder(st.id);else if(target)commitTapMove(st,target)}catch(error){render();reportSaveFailure(error)}
     return;
   }
   const action=e.target.closest?.('[data-tap-move-card],[data-tap-move-folder]');
@@ -1912,7 +1965,7 @@ $('importFile').onchange=async e=>{
   try{
     const data=JSON.parse(await f.text());
     const restored=Array.isArray(data)?data:data?.items;
-    if(!validCards(restored))throw new Error();
+    if(!validBackup(data))throw new Error('Invalid backup structure');
     const ok=await showDataConfirm('バックアップの復元',`現在のカード${items.length}枚とフォルダを、バックアップのカード${restored.length}枚とフォルダに置き換えます。復元しますか？\n「戻す」で読み込み前の状態に戻せます。`,'復元する');
     if(!ok)return;
     const previousState=captureState();

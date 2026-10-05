@@ -1,6 +1,7 @@
 const fs=require('fs'),path=require('path'),http=require('http'),assert=require('assert/strict');
 const {chromium}=require('C:/Users/cooki/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
 const root=path.resolve(__dirname,'..');
+const displayVersion=JSON.parse(fs.readFileSync(path.join(root,'version.json'),'utf8')).displayVersion;
 const server=http.createServer((req,res)=>{
   const file=path.resolve(root,'.'+(new URL(req.url,'http://localhost').pathname==='/'?'/index.html':new URL(req.url,'http://localhost').pathname));
   if(!file.startsWith(root+path.sep)){res.writeHead(403).end();return}
@@ -52,6 +53,11 @@ const server=http.createServer((req,res)=>{
       await page.evaluate(()=>openOptions());await page.locator('.optionMainScreenFold summary').click();await page.locator('#mainScreenColor').selectOption(theme);await page.locator('#optionSave').click();
       assert.equal(await bg(),color);assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('promptPocket.prefs.v1')).mainScreenColor),theme);
       await page.reload();await page.waitForSelector('[data-row="c1"]');assert.equal(await bg(),color);
+      await page.evaluate(()=>openEditor(items[0]));
+      assert.equal(await page.locator('#editor').evaluate(e=>getComputedStyle(e).backgroundColor),color);
+      assert.equal(await page.locator('#editor .editorActions').evaluate(e=>getComputedStyle(e).backgroundColor),color);
+      await page.screenshot({path:path.join(__dirname,'editor-theme-'+theme+'.png')});
+      await page.locator('#editorCloseBtn').click();
       assert.equal(await page.locator('[data-row="c1"] td').first().evaluate(e=>getComputedStyle(e).backgroundColor),theme==='red'?'rgb(255, 254, 250)':theme==='multicolor'?'rgb(255, 254, 250)':'rgb(255, 254, 248)');
       assert.equal(await page.locator('#bottomNew').evaluate(e=>getComputedStyle(e).backgroundColor),accentColors[theme]);
       assert.equal(await page.locator('#createFolderBtn').evaluate(e=>getComputedStyle(e).backgroundColor),theme==='multicolor'?'rgb(168, 219, 192)':accentColors[theme]);
@@ -95,7 +101,7 @@ const server=http.createServer((req,res)=>{
     await page.evaluate(()=>openOptions());await page.locator('.optionMainScreenFold summary').click();
     await page.locator('#optionDialog').evaluate(e=>{e.scrollTop=e.scrollHeight});
     assert.ok(await page.locator('#optionSave').isVisible());await page.locator('#optionCancel').click();
-    assert.deepEqual(errors,[]);assert.match(await page.title(),/ALPHA3d/);assert.equal(await page.locator('#mainScreenColor option[value="pastel"]').textContent(),'ミントグリーン');console.log('PASS invalid value fallback, undo, desktop, version, renamed label');
+    assert.deepEqual(errors,[]);assert.ok((await page.title()).includes(displayVersion));assert.equal(await page.locator('#mainScreenColor option[value="pastel"]').textContent(),'ミントグリーン');console.log('PASS invalid value fallback, undo, desktop, version, renamed label');
     await ctx.close();
   }finally{await browser.close();await new Promise(r=>server.close(r))}
 })().catch(e=>{console.error(e);process.exitCode=1;server.close()});

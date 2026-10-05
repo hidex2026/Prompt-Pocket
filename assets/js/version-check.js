@@ -1,6 +1,6 @@
-/* PP_RELEASE:2.0-alpha.3e */
+/* PP_RELEASE:2.0-beta.1a */
 (()=>{
-  const release='2.0-alpha.3e',main=document.querySelector('meta[name="pp-release"]')?.content;
+  const release='2.0-beta.1a',main=document.querySelector('meta[name="pp-release"]')?.content;
   const dialog=document.getElementById('versionUpdateDialog'),message=document.getElementById('versionUpdateMessage');
   const reloadButton=document.getElementById('versionReload'),editButton=document.getElementById('versionEdit');
   const versions=document.getElementById('versionUpdateVersions');
@@ -12,8 +12,8 @@
     editButton.textContent=context==='options'?'設定に戻る':'編集に戻る';
     return context;
   }
-  const label=v=>String(v||'最新版').replace(/^(\d+\.\d+)-alpha\.(\d+[a-z]*)$/,'Ver.$1 Alpha$2').replace(/^(\d+(?:\.\d+)+)$/,'Ver.$1');
-  const order=v=>{const m=String(v).match(/^(\d+)\.(\d+)(?:-alpha\.(\d+)([a-z]*))?$/);return m?[Number(m[1]),Number(m[2]),m[3]?0:1,Number(m[3]||0),[...(m[4]||'')].reduce((n,c)=>n*26+c.charCodeAt(0)-96,0)]:[0]};
+  const label=v=>String(v||'最新版').replace(/^(\d+\.\d+)-(alpha|beta)\.(\d+[a-z]*)$/,(_,version,stage,number)=>`Ver.${version} ${stage==='beta'?'Beta':'Alpha'}${number}`).replace(/^(\d+(?:\.\d+)+)$/,'Ver.$1');
+  const order=v=>{const m=String(v).match(/^(\d+)\.(\d+)(?:-(alpha|beta)\.(\d+)([a-z]*))?$/);return m?[Number(m[1]),Number(m[2]),m[3]==='alpha'?0:m[3]==='beta'?1:2,Number(m[4]||0),[...(m[5]||'')].reduce((n,c)=>n*26+c.charCodeAt(0)-96,0)]:[0]};
   const newer=(a,b)=>{const x=order(a),y=order(b);for(let i=0;i<Math.max(x.length,y.length);i++){if((x[i]||0)!==(y[i]||0))return (x[i]||0)>(y[i]||0)?a:b}return a};
   function mismatch(version){
     target=newer(main,version||main);

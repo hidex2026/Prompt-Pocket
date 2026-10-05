@@ -1,14 +1,15 @@
 const fs=require('fs'),path=require('path'),http=require('http'),assert=require('assert/strict');
 const {chromium}=require('C:/Users/cooki/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
 const root=path.resolve(__dirname,'..');let future=false,badTutorial=false;
+const {version:release,displayVersion}=JSON.parse(fs.readFileSync(path.join(root,'version.json'),'utf8'));
 const server=http.createServer((req,res)=>{
   const url=new URL(req.url,'http://localhost'),name=url.pathname==='/'?'/index.html':url.pathname;
   const file=path.resolve(root,'.'+name);if(!file.startsWith(root+path.sep)){res.writeHead(403).end();return}
   fs.readFile(file,(err,data)=>{if(err){res.writeHead(404).end();return}
     const ext=path.extname(file);res.setHeader('Content-Type',({'.html':'text/html','.js':'application/javascript','.css':'text/css','.json':'application/json','.webp':'image/webp'})[ext]||'application/octet-stream');res.setHeader('Cache-Control','no-store');
     if(['.html','.js','.css','.json'].includes(ext)){
-      let text=data.toString();if(future)text=text.replaceAll('2.0-alpha.3d','2.1').replaceAll('PP_v2.0_ALPHA3d','Ver.2.1');
-      if(badTutorial&&name==='/tutorial.html')text=text.replaceAll('PP_RELEASE:2.1','PP_RELEASE:2.2').replaceAll('PP_RELEASE:2.0-alpha.3d','PP_RELEASE:2.2');
+      let text=data.toString();if(future)text=text.replaceAll(release,'2.1').replaceAll(displayVersion,'Ver.2.1');
+      if(badTutorial&&name==='/tutorial.html')text=text.replaceAll('PP_RELEASE:2.1','PP_RELEASE:2.2').replaceAll('PP_RELEASE:'+release,'PP_RELEASE:2.2');
       data=Buffer.from(text);
     }res.end(data);
   });
@@ -30,8 +31,8 @@ async function seed(page){await page.addInitScript(()=>{
     assert.equal(await page.locator('#versionReload').textContent(),'バージョンを更新する');
     assert.equal(await page.locator('#versionEdit').isVisible(),false);
     await page.keyboard.press('Escape');assert.equal(await page.locator('#versionUpdateDialog').evaluate(e=>e.open),true);
-    await page.evaluate(()=>ppVersion.mismatch('2.0-alpha.3e'));
-    assert.match(await page.locator('#versionUpdateVersions').textContent(),/Ver\.2\.0 Alpha3d → Ver\.2\.0 Alpha3e/);
+    await page.evaluate(()=>ppVersion.mismatch('2.1'));
+    assert.ok((await page.locator('#versionUpdateVersions').textContent()).endsWith('→ Ver.2.1'));
     for(const width of [320,390,1280]){
       await page.setViewportSize({width,height:844});
       const layout=await page.evaluate(()=>{
@@ -43,14 +44,24 @@ async function seed(page){await page.addInitScript(()=>{
       await page.screenshot({path:path.join(__dirname,'version-update-'+width+'.png')});
     }
     await ctx.close();console.log('PASS mismatched tutorial blocked');
+    const stageCtx=await browser.newContext({serviceWorkers:'block'}),stagePage=await stageCtx.newPage();await seed(stagePage);await stagePage.goto(url);await stagePage.waitForFunction(()=>window.ppSession?.ready);
+    await stagePage.evaluate(()=>ppVersion.mismatch('2.0-beta.2'));
+    assert.ok((await stagePage.locator('#versionUpdateVersions').textContent()).endsWith('→ Ver.2.0 Beta2'));
+    await stagePage.evaluate(()=>ppVersion.mismatch('2.0'));
+    assert.ok((await stagePage.locator('#versionUpdateVersions').textContent()).endsWith('→ Ver.2.0'));
+    if(release.includes('-beta.')){
+      await stagePage.evaluate(()=>ppVersion.mismatch('2.0-alpha.99'));
+      assert.ok((await stagePage.locator('#versionUpdateVersions').textContent()).endsWith('→ '+release.replace(/^(\d+\.\d+)-beta\.(.+)$/,'Ver.$1 Beta$2')),'beta ranks newer than any alpha of the same base');
+    }
+    await stageCtx.close();console.log('PASS alpha/beta/stable labels and version ordering');
     // Browser update-flow tests isolate Service Worker registration.
     const live=await browser.newContext({serviceWorkers:'block'}),app=await live.newPage();app.setDefaultTimeout(5000);await seed(app);await app.goto(url);await app.waitForFunction(()=>window.ppSession?.ready);console.log('loaded update fixture');
     await app.evaluate(()=>openEditor(items[0]));await app.locator('#name').fill('編集中');console.log('editor draft ready');
     future=true;await app.evaluate(()=>ppVersion.checkLatest());await app.waitForSelector('#versionUpdateDialog[open]');assert.match(await app.locator('#versionUpdateVersions').textContent(),/Ver\.2\.1/);
-    await app.locator('#versionReload').click();assert.match(await app.locator('#versionUpdateMessage').textContent(),/先に編集画面で保存/);assert.match(await app.title(),/ALPHA3d/);
+    await app.locator('#versionReload').click();assert.match(await app.locator('#versionUpdateMessage').textContent(),/先に編集画面で保存/);assert.ok((await app.title()).includes(displayVersion));
     await app.locator('#versionEdit').click();assert.equal(await app.locator('#name').inputValue(),'編集中');await app.evaluate(()=>document.getElementById('form').requestSubmit());await app.waitForFunction(()=>!document.getElementById('editor').open);
     await app.evaluate(()=>ppVersion.checkLatest());badTutorial=true;await app.evaluate(()=>ppVersion.reloadLatest());console.log('preflight:',await app.locator('#versionUpdateMessage').textContent());assert.match(await app.locator('#versionUpdateMessage').textContent(),/更新に失敗しました/);
-    assert.match(await app.title(),/ALPHA3d/);badTutorial=false;console.log('PASS dirty editor protected and incomplete release rejected');
+    assert.ok((await app.title()).includes(displayVersion));badTutorial=false;console.log('PASS dirty editor protected and incomplete release rejected');
     const before=await app.evaluate(()=>localStorage.getItem('promptPocket.v2'));
     await app.evaluate(async()=>{const cache=await caches.open('unrelated-cache');await cache.put('/unrelated',new Response('keep'))});
     await app.locator('#versionReload').click();await app.waitForURL(/pp-update=2\.1/);await app.waitForSelector('[data-row="c1"]');assert.match(await app.title(),/Ver\.2\.1/);

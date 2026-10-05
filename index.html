@@ -1,12 +1,12 @@
 <!doctype html>
-<!-- PP_RELEASE:2.0-alpha.3e -->
+<!-- PP_RELEASE:2.0-beta.1a -->
 <html lang="ja">
 <head>
   <meta charset="utf-8">
-  <meta name="pp-release" content="2.0-alpha.3e">
+  <meta name="pp-release" content="2.0-beta.1a">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#ffffff">
-  <title>Prompt Pocket PP_v2.0_ALPHA3e</title>
+  <title>Prompt Pocket PP_v2.0_BETA1a</title>
   <!--
   Prompt Pocket ver.1.9 / FOLDER TEST1
   Folder feature baseline:
@@ -17,12 +17,12 @@
 -->
 
 
-  <link rel="stylesheet" href="assets/css/prompt-pocket.css?v=2.0-alpha3e-v1">
+  <link rel="stylesheet" href="assets/css/prompt-pocket.css?v=2.0-beta1a-v1">
 </head>
 <body>
 <header class="topbar">
   <div>
-    <div class="titleLine"><h1>Prompt Pocket</h1><span class="headerVersion">PP_v2.0_ALPHA3e</span></div>
+    <div class="titleLine"><h1>Prompt Pocket</h1><span class="headerVersion">PP_v2.0_BETA1a</span></div>
   </div>
   <div class="topActions">
     <button id="newBtn" class="primary">＋ 新規登録</button>
@@ -48,6 +48,7 @@
 
   <div class="stickyViewBar">
     <div class="viewCountRow"><strong id="count" class="cardCountDisplay">カード総数：0枚</strong><button id="closeAllBtn" class="ghost toolbarClose" type="button" disabled>📁 閉じる</button><button id="undoBtn" class="ghost toolbarUndo" type="button" disabled>↶ 戻す</button><button id="viewOptionBtn" class="viewOptionBtn" type="button" aria-label="オプション"><span class="viewOptionGear">⚙</span><span class="viewOptionLabel">オプション</span></button></div>
+    <div id="tapMoveNotice" class="tapMoveNotice" role="status" hidden>移動先をタップ（ほかの場所でキャンセル）</div>
   </div>
 
   <section class="toolbar sortToolbar">
@@ -68,7 +69,7 @@
   <section id="empty" class="empty hidden">
     <div class="emptyIcon">✦</div>
     <h3>最初のプロンプトを保存してみよう</h3>
-    <p>「＋ 新規登録」から、画像用でも動画用でも気軽に登録できます。</p>
+    <p>画面下の［＋追加］から、画像用でも動画用でも気軽に登録できます。</p>
   </section>
 </main>
 
@@ -252,7 +253,7 @@
         <p class="noteText">負荷テスト用データには専用の印を付け、通常のカードやフォルダとは分けて削除できます。</p>
       </section></details>
     </div>
-    <div class="appVersion">Prompt Pocket PP_v2.0_ALPHA3e</div>
+    <div class="appVersion">Prompt Pocket PP_v2.0_BETA1a</div>
     <div class="optionFixedActions"><button type="button" id="optionSave" class="primary">保存する</button><button type="button" id="optionCancel" class="ghost">キャンセル</button></div>
   </div>
 </dialog>
@@ -289,7 +290,7 @@
         <div class="dndBlueNote"><b>黒い線が挿入位置の目印です</b><br>フォルダに入れるときは、フォルダが移動先として強調されたことを確認して離します。</div>
         <h4>［･･･］からタップで移動する</h4>
         <p>移動したいカードまたはフォルダの<strong>［･･･］→［移動］</strong>を選びます。対象の行が緑色になったら、移動先をタップします。この方法では、押し続けたり黒い線を待ったりする必要はありません。</p>
-        <ul><li><strong>カードを移動：</strong>別のカードを選ぶと、そのカードのすぐ下へ移動します。フォルダ内のカードを選ぶと、そのフォルダの中へ入ります。フォルダ名を選ぶと、その中の先頭へ入ります。</li><li><strong>フォルダを移動：</strong>選んだカードやフォルダのすぐ下へ移動します。フォルダ内のカードを選んだ場合は、そのフォルダ全体のすぐ下へ移動します。フォルダの中に別のフォルダは作れません。</li></ul>
+        <ul><li><strong>カードを移動：</strong>別のカードを選ぶと、そのカードのすぐ下へ移動します。フォルダ内のカードを選ぶと、そのフォルダの中へ入ります。フォルダ名を選ぶと、その中の先頭へ入ります。フォルダの下に表示される<strong>［フォルダの外へ移動］</strong>をタップすると、元のフォルダのすぐ下にカードを出せます。</li><li><strong>フォルダを移動：</strong>すべてのフォルダを閉じてから移動先を選びます。選んだカードやフォルダのすぐ下へ移動します。フォルダの中に別のフォルダは作れません。</li></ul>
         <p>カード・フォルダ以外の場所、自分自身、または移動するフォルダ内のカードをタップするとキャンセルします。移動中は、移動先の☆や［コピー］を押しても、お気に入りやコピーの操作はせず、その行を移動先として扱います。</p>
       </div>
     
@@ -380,7 +381,6 @@
 </dialog>
 
 <div id="toast"></div>
-<div id="tapMoveNotice" class="tapMoveNotice" role="status" hidden>移動先のカード・フォルダをタップしてください。その他の場所をタップするとキャンセルします。</div>
 <dialog id="sessionWaitDialog" aria-labelledby="sessionWaitTitle"><div class="managePanel"><h2 id="sessionWaitTitle">Prompt Pocket</h2><p id="sessionWaitMessage">利用を開始しています…</p><button id="sessionRetry" class="primary wide" type="button">再読み込み</button></div></dialog>
 <dialog id="appNoticeDialog" aria-labelledby="appNoticeTitle"><div class="sampleConfirmPanel"><h2 id="appNoticeTitle">お知らせ</h2><p id="appNoticeMessage" class="dataConfirmMessage"></p><div class="sampleActions"><button id="appNoticeOk" class="primary" type="button">閉じる</button></div></div></dialog>
 <dialog id="folderRenameDialog" aria-labelledby="folderRenameTitle"><form id="folderRenameForm" class="sampleConfirmPanel"><h2 id="folderRenameTitle">フォルダ名を変更</h2><label>フォルダ名<input id="folderRenameInput" required maxlength="80"></label><p id="folderRenameError" role="alert"></p><div class="sampleActions"><button class="primary" type="submit">変更する</button><button id="folderRenameCancel" class="ghost" type="button">キャンセル</button></div></form></dialog>
@@ -394,8 +394,8 @@
 </dialog>
 
   <dialog id="versionUpdateDialog" aria-labelledby="versionUpdateTitle"><div class="managePanel"><h2 id="versionUpdateTitle">バージョンの更新</h2><p id="versionUpdateMessage"></p><p id="versionUpdateVersions"></p><div class="manageActions"><button id="versionReload" class="primary" type="button">バージョンを更新する</button><button id="versionEdit" class="ghost" type="button" hidden>編集に戻る</button></div></div></dialog>
-  <script defer src="assets/js/version-check.js?v=2.0-alpha3e-v1"></script>
-  <script defer src="assets/js/session-gate.js?v=2.0-alpha3e-v1"></script>
-  <script id="ppAppScript" type="application/json" data-app-src="assets/js/prompt-pocket.js?v=2.0-alpha3e-v1">{}</script>
+  <script defer src="assets/js/version-check.js?v=2.0-beta1a-v1"></script>
+  <script defer src="assets/js/session-gate.js?v=2.0-beta1a-v1"></script>
+  <script id="ppAppScript" type="application/json" data-app-src="assets/js/prompt-pocket.js?v=2.0-beta1a-v1">{}</script>
 </body>
 </html>

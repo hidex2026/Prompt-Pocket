@@ -3,7 +3,7 @@
 バージョンの元データは `version.json`。通常は次のコマンドで本体・分離ファイル・画面表示・キャッシュ名を一括更新する。
 
 ```
-node scripts/release.cjs 2.0-alpha.3e
+node scripts/release.cjs 2.0-beta.1a
 node scripts/release.cjs --check
 ```
 
@@ -22,6 +22,7 @@ node tests/versions.cjs
 node tests/worker.cjs
 node tests/interaction.cjs
 node tests/release.cjs
+node tests/audit.cjs
 ```
 
 スマートフォン実機では、スクロールと長押し、タップ移動、クリップボード画像貼り付けも確認する。

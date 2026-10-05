@@ -8,7 +8,7 @@ const server=http.createServer((req,res)=>{
 });
 async function startMove(page,kind,id){
   await page.locator(kind==='folder'?`#cards [data-folder-menu-toggle="${id}"]`:`#cards [data-menu-toggle="${id}"]`).click();
-  await page.locator(kind==='folder'?`.folderPopupPortal [data-tap-move-folder="${id}"]`:`#cards [data-tap-move-card="${id}"]`).click();
+  await page.locator(kind==='folder'?`.folderPopupPortal [data-tap-move-folder="${id}"]`:`.cardPopupFloating [data-tap-move-card="${id}"]`).click();
   assert.equal(await page.locator('#cards .tapMoveSource').count(),1);
 }
 (async()=>{
@@ -42,8 +42,14 @@ async function startMove(page,kind,id){
       assert.equal(await b.evaluate(()=>items.find(x=>x.id==='c1').name),'先に開いた画面で保存');
       assert.equal(await b.locator('#sessionWaitDialog').evaluate(el=>el.open),false);
       console.log('PASS single-tab lock and latest-data handoff',mobile?'mobile':'desktop');
+      await b.locator('[data-menu-toggle="c2"]').click();
+      assert.equal(await b.locator('#detailMenu-c2').evaluate(menu=>getComputedStyle(menu).position),'fixed');
+      assert.ok(await b.locator('#detailMenu-c2 button').evaluateAll(buttons=>buttons.every(button=>{const r=button.getBoundingClientRect();return r.top>=0&&r.bottom<=innerHeight&&button.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2))})), 'all card menu actions are visible and not clipped by the list');
+      await b.screenshot({path:path.join(__dirname,`card-menu-${mobile?'mobile':'desktop'}.png`)});
+      await b.locator('[data-menu-toggle="c2"]').click();
 
       await startMove(b,'card','c1');
+      assert.ok(await b.evaluate(()=>document.getElementById('tapMoveNotice').getBoundingClientRect().bottom<=document.getElementById('cards').getBoundingClientRect().top),'move hint stays above the list');
       await b.screenshot({path:path.join(__dirname,`tap-move-${mobile?'mobile':'desktop'}.png`)});
       await b.locator('[data-row="c2"] [data-copy]').first().click();
       assert.deepEqual(await b.evaluate(()=>prefs.manualOrder.slice(0,3)),['folder:f1','c2','c1']);
@@ -62,9 +68,19 @@ async function startMove(page,kind,id){
       await startMove(b,'card','k2');await b.locator('[data-row="c2"] .nameCell').click();
       assert.equal(await b.evaluate(()=>items.find(x=>x.id==='k2').folderId||null),null);
       assert.deepEqual(await b.evaluate(()=>prefs.manualOrder.slice(0,3)),['folder:f1','c2','k2']);
+      await startMove(b,'card','c1');assert.equal(await b.locator('#ppFolderExitSlot').isVisible(),true);
+      await b.locator('#ppFolderExitSlot').click();
+      assert.equal(await b.evaluate(()=>items.find(x=>x.id==='c1').folderId||null),null);
+      assert.deepEqual(await b.evaluate(()=>prefs.manualOrder.slice(0,2)),['folder:f1','c1']);
+      await b.locator('#undoBtn').click();await b.locator('#dataConfirmOk').click();
+      assert.equal(await b.evaluate(()=>items.find(x=>x.id==='c1').folderId),'f1');
       await startMove(b,'folder','f2');await b.locator('[data-folder="f1"] .nameCell').click();
       assert.deepEqual(await b.evaluate(()=>prefs.manualOrder.slice(0,2)),['folder:f1','folder:f2']);
-      await startMove(b,'folder','f2');await b.locator('[data-row="k1"] .nameCell').click();
+      await b.locator('[data-folder="f1"] .nameCell').click();
+      await startMove(b,'folder','f2');
+      assert.equal(await b.evaluate(()=>openFolders.size),0,'folder tap move collapses every folder');
+      assert.equal(await b.locator('.folderChildRow').count(),0);
+      await b.locator('[data-row="c2"] .nameCell').click();
       assert.equal(await b.evaluate(()=>folders.find(x=>x.id==='f2').folderId||null),null);
       await b.locator('#undoBtn').click();await b.locator('#dataConfirmCancel').click();
       await b.reload();await b.waitForFunction(()=>window.ppSession?.ready);
