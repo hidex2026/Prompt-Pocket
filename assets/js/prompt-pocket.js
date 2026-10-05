@@ -1,5 +1,5 @@
-/* PP_RELEASE:2.0-beta.1a */
-if(window.ppVersion&&(!window.ppVersion.assert('2.0-beta.1a')||window.ppVersion.blocked))throw new Error('Prompt Pocket release mismatch: initialization stopped.');
+/* PP_RELEASE:2.0-beta.1b */
+if(window.ppVersion&&(!window.ppVersion.assert('2.0-beta.1b')||window.ppVersion.blocked))throw new Error('Prompt Pocket release mismatch: initialization stopped.');
 if(!window.ppSession?.active)throw new Error('Prompt Pocket: active tab required.');
 function ppOnReady(fn){if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',fn,{once:true});else fn()}
 const noticeQueue=[];
@@ -141,7 +141,7 @@ function validBackup(value){
     (value.folders==null||(Array.isArray(value.folders)&&value.folders.every(folder=>isRecord(folder)&&validOptionalStrings(folder,['id','name']))));
 }
 let items=readStoredJson(localStorage.getItem(KEY)!==null?KEY:LEGACY_KEY,[],validCards);
-const APP_VERSION='2.0-beta.1a';
+const APP_VERSION='2.0-beta.1b';
 const VERSION_KEY='promptPocket.lastSeenVersion';
 const DATA_VERSION_KEY='promptPocket.dataVersion';
 const DATA_SCHEMA_VERSION='2.0';

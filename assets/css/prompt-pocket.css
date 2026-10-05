@@ -1,4 +1,4 @@
-/* PP_RELEASE:2.0-beta.1a */
+/* PP_RELEASE:2.0-beta.1b */
 /* Help diagrams are explanatory images, not interactive controls. */
 #versionUpdateVersions{font-weight:800;color:#245d87;overflow-wrap:anywhere}
 #versionEdit[hidden]{display:none}
@@ -15,7 +15,7 @@
 .helpOperationDiagram p{color:#1765a8;font-weight:700;font-size:14px;margin:6px 0 12px}
 .helpColumns{display:grid;grid-template-columns:1fr 100px;background:#edf5fb}
 .helpColumns span{padding:8px}.helpColumns span+span{border-left:4px solid #267bc1}
-*{box-sizing:border-box} :root{--pp-release:"2.0-beta.1a";font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;color:#171717;background:#f6f5f2}
+*{box-sizing:border-box} :root{--pp-release:"2.0-beta.1b";font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;color:#171717;background:#f6f5f2}
 body{margin:0;padding-bottom:84px}.topbar{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:rgba(246,245,242,.92);backdrop-filter:blur(12px);border-bottom:1px solid #ddd}
 h1,h2,h3,p{margin-top:0}.topbar h1{font-size:22px;margin:2px 0}.titleLine{display:flex;align-items:center;gap:8px}.headerOptionBtn{margin-left:12px;min-width:70px;padding:4px 7px;border:0;border-radius:12px;background:transparent;color:#222;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1.1}.headerOptionIcon{font-size:25px;line-height:1}.headerOptionLabel{font-size:11px;font-weight:750;white-space:nowrap}.headerOptionBtn:hover{background:#e9e7e1}.eyebrow{font-size:10px;letter-spacing:.18em;color:#777;font-weight:800}
 button,input,textarea,select{font:inherit}.primary,.ghost,.danger,.iconBtn{border:0;border-radius:14px;padding:11px 14px;font-weight:750;cursor:pointer}
@@ -2531,7 +2531,9 @@ body[data-main-screen-color="pastel"] #cards .detailExplorer.unifiedExplorer::af
 body[data-main-screen-color]:not([data-main-screen-color="default"]) #editor{background:var(--screen-bg)!important;color:var(--screen-text);border-color:var(--screen-border)}
 body[data-main-screen-color]:not([data-main-screen-color="default"]) #editor .editorActions{background:var(--screen-bg)!important;border-color:var(--screen-border)}
 body[data-main-screen-color]:not([data-main-screen-color="default"]) #editor .editorCloseBtn{background:var(--screen-button);color:var(--screen-text)}
-#cards tr.tapMoveSource>td{background:#d5f2e1!important;box-shadow:inset 0 2px #79bb95,inset 0 -2px #79bb95;color:#16462d!important}
+/* Move state outranks theme, hover and raised-folder backgrounds. */
+#cards#cards tr.tapMoveSource>td{background:#d5f2e1!important;box-shadow:inset 0 2px #79bb95,inset 0 -2px #79bb95;color:#16462d!important}
+#cards#cards tr.tapMoveSource .rowName{color:#16462d!important}
 #cards tr.tapMoveSource>td:first-child{border-left:3px solid #79bb95}
 #cards tr.tapMoveSource>td:last-child{border-right:3px solid #79bb95}
 #folderRenameError{color:#a32424;font-size:14px;min-height:1.5em}

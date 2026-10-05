@@ -85,6 +85,29 @@ const server=http.createServer((req,res)=>{
       assert.equal(await page.locator('.folderDropTarget td').first().evaluate(e=>getComputedStyle(e).borderColor),'rgb(169, 109, 0)');
       await page.evaluate(()=>{openFolders.clear();render()});
     }
+    // Selected loose cards, folder children and folders stay green in every theme,
+    // including desktop hover, then recover their original background on cancel.
+    for(const viewport of [{width:390,height:844},{width:1280,height:800}]){
+      await page.setViewportSize(viewport);
+      for(const theme of ['default','aqua','red','pastel','yellow','multicolor']){
+        await page.evaluate(theme=>{prefs.mainScreenColor=theme;applyPreferences();openFolders.add('f1');render()},theme);
+        for(const [kind,id,selector] of [['card','c1','[data-row="c1"]'],['card','child','[data-row="child"]'],['folder','f1','tr[data-folder="f1"]']]){
+          const row=page.locator(selector);
+          const original=await row.locator('td').evaluateAll(cells=>cells.map(e=>getComputedStyle(e).background));
+          await page.evaluate(({kind,id})=>beginTapMove(kind,id),{kind,id});
+          await row.hover();
+          const selected=await row.locator('td').evaluateAll(cells=>cells.map(e=>({color:getComputedStyle(e).backgroundColor,image:getComputedStyle(e).backgroundImage})));
+          for(const cell of selected){assert.equal(cell.color,'rgb(213, 242, 225)',theme+' '+kind+' '+id);assert.equal(cell.image,'none')}
+          if(theme==='aqua'&&id==='child'&&viewport.width===390)await page.screenshot({path:path.join(__dirname,'tap-move-theme-aqua.png')});
+          await page.keyboard.press('Escape');await page.mouse.move(0,0);
+          assert.deepEqual(await row.locator('td').evaluateAll(cells=>cells.map(e=>getComputedStyle(e).background)),original);
+          assert.equal(await page.locator('.tapMoveSource').count(),0);
+        }
+      }
+    }
+    console.log('PASS tap move green selection and cancel in all six themes, mobile and desktop hover');
+    await page.setViewportSize({width:390,height:844});
+    await page.evaluate(()=>{prefs.mainScreenColor='multicolor';applyPreferences();render()});
     for(const close of ['#optionClose','Escape']){
       await page.evaluate(()=>openOptions());await page.locator('.optionMainScreenFold summary').click();await page.locator('#mainScreenColor').selectOption('yellow');
       if(close==='Escape')await page.keyboard.press('Escape');else await page.locator(close).click();
