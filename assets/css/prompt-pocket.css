@@ -1,4 +1,4 @@
-/* PP_RELEASE:2.0-beta.1b */
+/* PP_RELEASE:2.0-beta.1c */
 /* Help diagrams are explanatory images, not interactive controls. */
 #versionUpdateVersions{font-weight:800;color:#245d87;overflow-wrap:anywhere}
 #versionEdit[hidden]{display:none}
@@ -15,7 +15,7 @@
 .helpOperationDiagram p{color:#1765a8;font-weight:700;font-size:14px;margin:6px 0 12px}
 .helpColumns{display:grid;grid-template-columns:1fr 100px;background:#edf5fb}
 .helpColumns span{padding:8px}.helpColumns span+span{border-left:4px solid #267bc1}
-*{box-sizing:border-box} :root{--pp-release:"2.0-beta.1b";font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;color:#171717;background:#f6f5f2}
+*{box-sizing:border-box} :root{--pp-release:"2.0-beta.1c";font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;color:#171717;background:#f6f5f2}
 body{margin:0;padding-bottom:84px}.topbar{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:rgba(246,245,242,.92);backdrop-filter:blur(12px);border-bottom:1px solid #ddd}
 h1,h2,h3,p{margin-top:0}.topbar h1{font-size:22px;margin:2px 0}.titleLine{display:flex;align-items:center;gap:8px}.headerOptionBtn{margin-left:12px;min-width:70px;padding:4px 7px;border:0;border-radius:12px;background:transparent;color:#222;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1.1}.headerOptionIcon{font-size:25px;line-height:1}.headerOptionLabel{font-size:11px;font-weight:750;white-space:nowrap}.headerOptionBtn:hover{background:#e9e7e1}.eyebrow{font-size:10px;letter-spacing:.18em;color:#777;font-weight:800}
 button,input,textarea,select{font:inherit}.primary,.ghost,.danger,.iconBtn{border:0;border-radius:14px;padding:11px 14px;font-weight:750;cursor:pointer}
@@ -398,8 +398,10 @@ fieldset{border:1px solid #ddd8cf;border-radius:16px;margin:14px 0;padding:12px}
 .optionOther summary{cursor:pointer;padding:16px;font-size:18px;font-weight:800;list-style:none}
 .optionOther summary::-webkit-details-marker{display:none}.optionOther summary:after{content:'⌄';float:right;color:#777}.optionOther[open] summary:after{content:'⌃'}
 .optionOther section{border:0!important;border-top:1px solid #e2dfd8!important;border-radius:0!important;margin:0!important}
-#optionDialog{height:fit-content}
-#optionDialog .managePanel{padding-bottom:16px}
+#optionDialog{height:fit-content;max-height:calc(100vh - 48px - env(safe-area-inset-top) - env(safe-area-inset-bottom));max-height:calc(100dvh - 48px - env(safe-area-inset-top) - env(safe-area-inset-bottom));overflow:hidden}
+#optionDialog .managePanel{padding:16px;display:flex;flex-direction:column;box-sizing:border-box;max-height:inherit}
+#optionDialog .optionScrollArea{min-height:0;overflow-y:auto;overscroll-behavior:contain}
+#optionDialog .optionFixedActions{position:static;flex-shrink:0;padding:12px 0 0;margin:0}
 .optionFixedActions{position:sticky;bottom:0;z-index:5;background:rgba(255,255,255,.96);backdrop-filter:blur(8px);padding:12px 0 4px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .optionFixedActions button{min-height:48px;font-weight:800}
 @media(max-width:560px){.optionFixedActions{position:sticky;bottom:0;padding:10px 0 0;background:rgba(255,255,255,.96);border-radius:18px}}
@@ -2532,10 +2534,15 @@ body[data-main-screen-color]:not([data-main-screen-color="default"]) #editor{bac
 body[data-main-screen-color]:not([data-main-screen-color="default"]) #editor .editorActions{background:var(--screen-bg)!important;border-color:var(--screen-border)}
 body[data-main-screen-color]:not([data-main-screen-color="default"]) #editor .editorCloseBtn{background:var(--screen-button);color:var(--screen-text)}
 /* Move state outranks theme, hover and raised-folder backgrounds. */
-#cards#cards tr.tapMoveSource>td{background:#d5f2e1!important;box-shadow:inset 0 2px #79bb95,inset 0 -2px #79bb95;color:#16462d!important}
-#cards#cards tr.tapMoveSource .rowName{color:#16462d!important}
-#cards tr.tapMoveSource>td:first-child{border-left:3px solid #79bb95}
-#cards tr.tapMoveSource>td:last-child{border-right:3px solid #79bb95}
+body{--tap-move-fill:#d5f2e1;--tap-move-edge:#488461;--tap-move-text:#16462d}
+body[data-main-screen-color="pastel"]{--tap-move-fill:#ffe0b0;--tap-move-edge:#a85c16;--tap-move-text:#65370e}
+#cards#cards tr.tapMoveSource>td,
+#cards#cards tr.folderRow.tapMoveSource>td{background:var(--tap-move-fill)!important;box-shadow:inset 0 2px var(--tap-move-edge),inset 0 -2px var(--tap-move-edge)!important;color:var(--tap-move-text)!important}
+#cards#cards tr.tapMoveSource .rowName,
+#cards#cards tr.tapMoveSource .folderNameBtn,
+#cards#cards tr.tapMoveSource .folderCountInline{color:var(--tap-move-text)!important;text-shadow:none!important}
+#cards#cards tr.tapMoveSource>td:first-child{border-left:3px solid var(--tap-move-edge)!important}
+#cards#cards tr.tapMoveSource>td:last-child{border-right:3px solid var(--tap-move-edge)!important}
 #folderRenameError{color:#a32424;font-size:14px;min-height:1.5em}
 #appNoticeDialog{width:min(440px,calc(100% - 32px));height:fit-content}
 .optionOther summary{position:relative;padding-right:38px!important}

@@ -1,13 +1,13 @@
-/* PP_RELEASE:2.0-beta.1b */
-const RELEASE='2.0-beta.1b',CACHE_PREFIX='prompt-pocket-static-';
-const CACHE_NAME=CACHE_PREFIX+'2-0-beta1b-v1';
+/* PP_RELEASE:2.0-beta.1c */
+const RELEASE='2.0-beta.1c',CACHE_PREFIX='prompt-pocket-static-';
+const CACHE_NAME=CACHE_PREFIX+'2-0-beta1c-v1';
 const APP_SHELL=['./','./index.html','./tutorial.html','./manual.html','./assets/help/main-screen.png','./assets/help/drag-and-drop.png',
   './assets/tutorial/tutorial-cover.webp','./assets/tutorial/tutorial-pointer.webp',
   './assets/tutorial/step-01-copy-prompt.webp','./assets/tutorial/step-02-add-clean.webp',
   './assets/tutorial/step-03-prompt-input-clean.webp','./assets/tutorial/step-04-copy-photo-clean.webp',
   './assets/tutorial/step-05-select-image-clean.webp','./assets/tutorial/step-06-save-clean.webp','./assets/tutorial/step-07-card-added.webp',
-  './assets/css/prompt-pocket.css?v=2.0-beta1b-v1',
-  './assets/js/session-gate.js?v=2.0-beta1b-v1','./assets/js/version-check.js?v=2.0-beta1b-v1','./assets/js/prompt-pocket.js?v=2.0-beta1b-v1'];
+  './assets/css/prompt-pocket.css?v=2.0-beta1c-v1',
+  './assets/js/session-gate.js?v=2.0-beta1c-v1','./assets/js/version-check.js?v=2.0-beta1c-v1','./assets/js/prompt-pocket.js?v=2.0-beta1c-v1'];
 self.addEventListener('install',event=>event.waitUntil((async()=>{
   // Validate every text component before installing the offline shell.
   const files=await Promise.all(APP_SHELL.map(async path=>{

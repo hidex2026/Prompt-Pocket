@@ -3,7 +3,7 @@
 バージョンの元データは `version.json`。通常は次のコマンドで本体・分離ファイル・画面表示・キャッシュ名を一括更新する。
 
 ```
-node scripts/release.cjs 2.0-beta.1b
+node scripts/release.cjs 2.0-beta.1c
 node scripts/release.cjs --check
 ```
 

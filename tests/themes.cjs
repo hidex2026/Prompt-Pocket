@@ -33,7 +33,7 @@ const server=http.createServer((req,res)=>{
       const dialog=document.querySelector('#optionDialog'),actions=dialog.querySelector('.optionFixedActions'),version=dialog.querySelector('.appVersion');
       return {gap:actions.getBoundingClientRect().top-version.getBoundingClientRect().bottom,visible:actions.getBoundingClientRect().bottom<=innerHeight,position:getComputedStyle(actions).position};
     });
-    assert.ok(optionLayout.gap<=16,'no empty spacer below version');assert.ok(optionLayout.visible);assert.equal(optionLayout.position,'sticky');
+    assert.ok(optionLayout.gap<=16,'no empty spacer below version');assert.ok(optionLayout.visible);assert.equal(optionLayout.position,'static');
     await page.screenshot({path:path.join(__dirname,'options-compact.png')});
     assert.equal(await page.locator('#toast').evaluate(e=>getComputedStyle(e).color),'rgb(255, 255, 255)');
     const headingColor=await page.locator('.optionMainScreenFold summary').evaluate(e=>getComputedStyle(e).backgroundColor);
@@ -97,7 +97,9 @@ const server=http.createServer((req,res)=>{
           await page.evaluate(({kind,id})=>beginTapMove(kind,id),{kind,id});
           await row.hover();
           const selected=await row.locator('td').evaluateAll(cells=>cells.map(e=>({color:getComputedStyle(e).backgroundColor,image:getComputedStyle(e).backgroundImage})));
-          for(const cell of selected){assert.equal(cell.color,'rgb(213, 242, 225)',theme+' '+kind+' '+id);assert.equal(cell.image,'none')}
+          for(const cell of selected){assert.equal(cell.color,theme==='pastel'?'rgb(255, 224, 176)':'rgb(213, 242, 225)',theme+' '+kind+' '+id);assert.equal(cell.image,'none')}
+          assert.equal(await row.locator('td').first().evaluate(e=>getComputedStyle(e).borderLeftColor),theme==='pastel'?'rgb(168, 92, 22)':'rgb(72, 132, 97)');
+          if(kind==='folder'&&viewport.width===390&&['aqua','pastel'].includes(theme))await page.screenshot({path:path.join(__dirname,'tap-move-folder-'+theme+'.png')});
           if(theme==='aqua'&&id==='child'&&viewport.width===390)await page.screenshot({path:path.join(__dirname,'tap-move-theme-aqua.png')});
           await page.keyboard.press('Escape');await page.mouse.move(0,0);
           assert.deepEqual(await row.locator('td').evaluateAll(cells=>cells.map(e=>getComputedStyle(e).background)),original);
@@ -105,7 +107,7 @@ const server=http.createServer((req,res)=>{
         }
       }
     }
-    console.log('PASS tap move green selection and cancel in all six themes, mobile and desktop hover');
+    console.log('PASS tap move selection (orange on mint) and cancel in all six themes, mobile and desktop hover');
     await page.setViewportSize({width:390,height:844});
     await page.evaluate(()=>{prefs.mainScreenColor='multicolor';applyPreferences();render()});
     for(const close of ['#optionClose','Escape']){
@@ -122,8 +124,27 @@ const server=http.createServer((req,res)=>{
     await page.locator('#undoBtn').click();await page.locator('#dataConfirmOk').click();assert.equal(await page.locator('body').getAttribute('data-main-screen-color'),'aqua');
     await page.setViewportSize({width:1280,height:800});await page.screenshot({path:path.join(__dirname,'theme-desktop.png')});
     await page.evaluate(()=>openOptions());await page.locator('.optionMainScreenFold summary').click();
-    await page.locator('#optionDialog').evaluate(e=>{e.scrollTop=e.scrollHeight});
+    await page.locator('#optionDialog .optionScrollArea').evaluate(e=>{e.scrollTop=e.scrollHeight});
     assert.ok(await page.locator('#optionSave').isVisible());await page.locator('#optionCancel').click();
+    for(const viewport of [{width:320,height:568},{width:390,height:600},{width:844,height:390}]){
+      await page.setViewportSize(viewport);await page.evaluate(()=>openOptions());
+      await page.locator('.optionDataFold summary').click();
+      const footerTop=await page.locator('.optionFixedActions').evaluate(e=>e.getBoundingClientRect().top);
+      await page.locator('#optionDialog .optionScrollArea').evaluate(e=>{e.scrollTop=e.scrollHeight});
+      const geometry=await page.locator('#optionDialog').evaluate(dialog=>{
+        const d=dialog.getBoundingClientRect(),footer=dialog.querySelector('.optionFixedActions').getBoundingClientRect(),scroll=dialog.querySelector('.optionScrollArea');
+        return {top:d.top,bottom:d.bottom,footerTop:footer.top,footerBottom:footer.bottom,height:innerHeight,scrollBottom:scroll.getBoundingClientRect().bottom,overflow:scroll.scrollHeight>scroll.clientHeight};
+      });
+      assert.ok(geometry.top>=23&&geometry.bottom<=geometry.height-23,'dialog keeps clear of browser/system edges');
+      assert.equal(geometry.footerTop,footerTop,'footer does not move when content scrolls');
+      assert.ok(geometry.scrollBottom<=geometry.footerTop&&geometry.overflow,'content scrolls above footer');
+      assert.ok(geometry.footerBottom<=geometry.bottom,'footer inside dialog');
+      await page.locator('#importBtn').scrollIntoViewIfNeeded();
+      assert.ok(await page.locator('#importBtn').evaluate(button=>{const r=button.getBoundingClientRect();return button.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2))}),'import control reachable, not hidden by footer');
+      await page.screenshot({path:path.join(__dirname,'options-expanded-'+viewport.width+'.png')});
+      await page.locator('#optionCancel').click();
+    }
+    console.log('PASS expanded options, fixed footer and 24px edge clearance on small/short/landscape screens');
     assert.deepEqual(errors,[]);assert.ok((await page.title()).includes(displayVersion));assert.equal(await page.locator('#mainScreenColor option[value="pastel"]').textContent(),'ミントグリーン');console.log('PASS invalid value fallback, undo, desktop, version, renamed label');
     await ctx.close();
   }finally{await browser.close();await new Promise(r=>server.close(r))}

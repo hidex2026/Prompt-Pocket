@@ -1,6 +1,6 @@
-/* PP_RELEASE:2.0-beta.1b */
+/* PP_RELEASE:2.0-beta.1c */
 (()=>{
-  const release='2.0-beta.1b',main=document.querySelector('meta[name="pp-release"]')?.content;
+  const release='2.0-beta.1c',main=document.querySelector('meta[name="pp-release"]')?.content;
   const dialog=document.getElementById('versionUpdateDialog'),message=document.getElementById('versionUpdateMessage');
   const reloadButton=document.getElementById('versionReload'),editButton=document.getElementById('versionEdit');
   const versions=document.getElementById('versionUpdateVersions');

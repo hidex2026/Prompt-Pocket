@@ -1,6 +1,6 @@
-/* PP_RELEASE:2.0-beta.1b */
+/* PP_RELEASE:2.0-beta.1c */
 (()=>{
-  if(window.ppVersion&&!window.ppVersion.assert('2.0-beta.1b'))return;
+  if(window.ppVersion&&!window.ppVersion.assert('2.0-beta.1c'))return;
   const dialog=document.getElementById('sessionWaitDialog'),message=document.getElementById('sessionWaitMessage');
   let releaseLock=null;
   const session=window.ppSession={active:false,ready:false};
